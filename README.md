@@ -74,6 +74,7 @@ The LSP is a custom DSP which can execute 384 instructions programs for each sam
 
 `ii rr cc`
 
+```
 ii[7] (0x80):  
 ii[6] (0x40):  
 ii[5] (0x20):  input = 0 or acc
@@ -87,55 +88,59 @@ rr[7]:         scale select
 rr[6:0]:       mem offset/shifter
 
 cc[7:0]:       coefficient (int8_t)
+```
 
 
 ### Instr 00/08/20/28: MAC
 
-> ab rr cc
+`ab rr cc`
+
+```
 a:       00: in_a=acc    20: in_a=0
 b:       00: nothing     08: store to mem
 rr[7]:   scale select
 rr[6:0]: mem offset/shifter
 cc:      coefficient (int8_t)
+```
 
 1. Store acc to mem if 0x08
 2. Compute mac
 3. Store result to acc
 
 Examples:
-  00 00 7f: acc += $00 * (0x7f/0x80)
-  00 01 7f: acc += 0x7f << 0
-  00 02 7f: acc += 0x7f << 5
-  00 03 7f: acc += 0x7f << 10
-  00 04 7f: acc += 0x7f << 15
-  00 05 7f: acc += $05 * (0x7f/0x80)
+  - `00 00 7f`: acc += $00 * (0x7f/0x80)
+  - `00 01 7f`: acc += 0x7f << 0
+  - `00 02 7f`: acc += 0x7f << 5
+  - `00 03 7f`: acc += 0x7f << 10
+  - `00 04 7f`: acc += 0x7f << 15
+  - `00 05 7f`: acc += $05 * (0x7f/0x80)
   
-  00 80 7f: acc += $00 * (0x7f/0x20)
-  00 81 7f: acc += 0x7f << 2
-  00 82 7f: acc += 0x7f << 7
-  00 83 7f: acc += 0x7f << 12
-  00 84 7f: acc += 0x7f << 17   (warning: saturated to 0x7fffff)
-  00 85 7f: acc += $05 * (0x7f/0x20)
+  - `00 80 7f`: acc += $00 * (0x7f/0x20)
+  - `00 81 7f`: acc += 0x7f << 2
+  - `00 82 7f`: acc += 0x7f << 7
+  - `00 83 7f`: acc += 0x7f << 12
+  - `00 84 7f`: acc += 0x7f << 17   (warning: saturated to 0x7fffff)
+  - `00 85 7f`: acc += $05 * (0x7f/0x20)
 
-  00 00 90: acc += $00 * (signed(0x90)/0x80)
-  00 01 90: acc += signed(0x90) << 0
-  00 02 90: acc += signed(0x90) << 5
-  00 03 90: acc += signed(0x90) << 10
-  00 04 90: acc += signed(0x90) << 15
-  00 05 90: acc += $05 * (signed(0x90)/0x80)
+  - `00 00 90`: acc += $00 * (signed(0x90)/0x80)
+  - `00 01 90`: acc += signed(0x90) << 0
+  - `00 02 90`: acc += signed(0x90) << 5
+  - `00 03 90`: acc += signed(0x90) << 10
+  - `00 04 90`: acc += signed(0x90) << 15
+  - `00 05 90`: acc += $05 * (signed(0x90)/0x80)
 
 ### Instr C0: ??
 
 Examples:
-  00 35 10: acc = acc + $35 * (0x10/0x80)
-  c0 35 10: acc = $35 + $35 * (0x10/0x80)
+  - `00 35 10`: acc = acc + $35 * (0x10/0x80)
+  - `c0 35 10`: acc = $35 + $35 * (0x10/0x80)
 
   acc = 0x14
-  c0 00 7f: ??
-  c0 01 7f: acc += 0x7f << 0   (000093)
-  c0 02 7f: acc += 0x7f << 5   (000ff4)
-  c0 03 7f: acc += 0x7f << 10  (01fc14)
-  c0 04 7f: acc += 0x7f << 15  (3f8014)
-  c0 05 7f: ??
+  - `c0 00 7f`: ??
+  - `c0 01 7f`: acc += 0x7f << 0   (000093)
+  - `c0 02 7f`: acc += 0x7f << 5   (000ff4)
+  - `c0 03 7f`: acc += 0x7f << 10  (01fc14)
+  - `c0 04 7f`: acc += 0x7f << 15  (3f8014)
+  - `c0 05 7f`: ??
 
 
