@@ -1,0 +1,384 @@
+0080: 20 78 7f  // opcode:2 write:0 reg:78 scaler:0 coef:0.992188
+0081: c8 7e 7f  // opcode:c write:8 reg:7e scaler:0 coef:0.992188
+0082: 00 00 00
+0083: 28 f5 7f  // opcode:2 write:8 reg:75 scaler:1 coef:3.968750
+0084: 28 75 20  // opcode:2 write:8 reg:75 scaler:0 coef:0.250000
+0085: 20 81 20  // opcode:2 write:0 reg:01 scaler:1 coef:20
+0086: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
+0087: 08 7e 00  // opcode:0 write:8 reg:7e scaler:0 coef:0.000000
+0088: 00 00 00
+0089: c8 58 00  // opcode:c write:8 reg:58 scaler:0 coef:0.000000
+008a: 20 7f 40  // opcode:2 write:0 reg:7f scaler:0 coef:0.500000
+008b: 00 7e 40  // opcode:0 write:0 reg:7e scaler:0 coef:0.500000
+008c: 02 00 00  // opcode:0 write:2 reg:00 scaler:0 coef:0.000000
+008d: 00 00 00
+008e: 2c 75 7f  // opcode:2 write:c reg:75 scaler:0 coef:0.992188
+008f: 00 00 00
+0090: 20 86 20  // opcode:2 write:0 reg:06 scaler:1 coef:1.000000
+0091: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
+0092: c6 50 c0  // opcode:c write:6 reg:50 scaler:0 coef:-0.500000
+0093: 00 00 00
+0094: 20 86 20  // opcode:2 write:0 reg:06 scaler:1 coef:1.000000
+0095: 08 15 ff  // opcode:0 write:8 reg:15 scaler:0 coef:-0.992188
+0096: c0 50 80  // opcode:c write:0 reg:50 scaler:0 coef:0.000000
+0097: 60 95 20  // opcode:6 write:0 reg:15 scaler:1 coef:1.000000
+0098: c8 7a 00  // opcode:c write:8 reg:7a scaler:0 coef:0.000000
+0099: 08 05 00  // opcode:0 write:8 reg:05 scaler:0 coef:0.000000
+009a: d0 50 00  // opcode:d write:0 reg:50 scaler:0 coef:0.000000
+009b: 20 93 20  // opcode:2 write:0 reg:13 scaler:1 coef:1.000000
+009c: 00 00 00
+009d: 00 00 00
+009e: c8 54 00  // opcode:c write:8 reg:54 scaler:0 coef:0.000000
+009f: 80 15 09  // opcode:8 write:0 reg:15 scaler:0 coef:0.070312
+00a0: 80 15 41  // opcode:8 write:0 reg:15 scaler:0 coef:0.507812
+00a1: 00 00 00
+00a2: 00 00 00
+00a3: a8 75 80  // opcode:a write:8 reg:75 scaler:0 coef:0.000000
+00a4: 00 00 00
+00a5: 00 00 00
+00a6: 28 f5 1d  // opcode:2 write:8 reg:75 scaler:1 coef:0.906250
+00a7: c0 d0 78  // opcode:c write:0 reg:50 scaler:1 coef:3.750000
+00a8: 00 00 00
+00a9: 00 00 00
+00aa: 28 f5 7f  // opcode:2 write:8 reg:75 scaler:1 coef:3.968750
+00ab: 00 04 fd  // opcode:0 write:0 reg:04 scaler:0 coef:ffffff83
+00ac: c0 50 f9  // opcode:c write:0 reg:50 scaler:0 coef:-0.945312
+00ad: 00 00 00
+00ae: 60 84 40  // opcode:6 write:0 reg:04 scaler:1 coef:40
+00af: 48 75 80  // opcode:4 write:8 reg:75 scaler:0 coef:0.000000
+00b0: 00 00 00
+00b1: 00 00 00
+00b2: d0 54 00  // opcode:d write:0 reg:54 scaler:0 coef:0.000000
+00b3: c8 6e 5e  // opcode:c write:8 reg:6e scaler:0 coef:0.734375
+00b4: 00 00 00
+00b5: a0 13 80  // opcode:a write:0 reg:13 scaler:0 coef:0.000000
+00b6: 00 02 04  // opcode:0 write:0 reg:02 scaler:0 coef:04
+00b7: c0 50 90  // opcode:c write:0 reg:50 scaler:0 coef:-0.125000
+00b8: 00 00 00
+00b9: 00 00 00
+00ba: 08 12 00  // opcode:0 write:8 reg:12 scaler:0 coef:0.000000
+00bb: c8 6f 61  // opcode:c write:8 reg:6f scaler:0 coef:0.757812
+00bc: 00 00 00
+00bd: 80 13 09  // opcode:8 write:0 reg:13 scaler:0 coef:0.070312
+00be: 80 13 41  // opcode:8 write:0 reg:13 scaler:0 coef:0.507812
+00bf: 00 00 00
+00c0: 00 00 00
+00c1: 08 12 00  // opcode:0 write:8 reg:12 scaler:0 coef:0.000000
+00c2: 20 12 2a  // opcode:2 write:0 reg:12 scaler:0 coef:0.328125
+00c3: 00 14 56  // opcode:0 write:0 reg:14 scaler:0 coef:0.671875
+00c4: 00 00 00
+00c5: 00 00 00
+00c6: 08 13 00  // opcode:0 write:8 reg:13 scaler:0 coef:0.000000
+00c7: c8 54 00  // opcode:c write:8 reg:54 scaler:0 coef:0.000000
+00c8: 80 fa 09  // opcode:8 write:0 reg:7a scaler:1 coef:0.281250
+00c9: 80 fa 41  // opcode:8 write:0 reg:7a scaler:1 coef:2.031250
+00ca: 00 00 00
+00cb: 00 00 00
+00cc: 28 f5 1d  // opcode:2 write:8 reg:75 scaler:1 coef:0.906250
+00cd: c0 d0 78  // opcode:c write:0 reg:50 scaler:1 coef:3.750000
+00ce: 00 00 00
+00cf: 20 91 40  // opcode:2 write:0 reg:11 scaler:1 coef:2.000000
+00d0: 08 90 40  // opcode:0 write:8 reg:10 scaler:1 coef:2.000000
+00d1: 00 00 00
+00d2: 00 00 00
+00d3: 28 f5 20  // opcode:2 write:8 reg:75 scaler:1 coef:1.000000
+00d4: 00 00 00
+00d5: 00 00 00
+00d6: 28 f5 40  // opcode:2 write:8 reg:75 scaler:1 coef:2.000000
+00d7: 00 00 00
+00d8: 20 95 00  // opcode:2 write:0 reg:15 scaler:1 coef:0.000000
+00d9: 08 f5 20  // opcode:0 write:8 reg:75 scaler:1 coef:1.000000
+00da: 00 00 00
+00db: 00 00 00
+00dc: 28 20 7f  // opcode:2 write:8 reg:20 scaler:0 coef:0.992188
+00dd: 00 21 00  // opcode:0 write:0 reg:21 scaler:0 coef:0.000000
+00de: 00 22 00  // opcode:0 write:0 reg:22 scaler:0 coef:0.000000
+00df: 00 00 00
+00e0: 00 00 00
+00e1: 28 a1 20  // opcode:2 write:8 reg:21 scaler:1 coef:1.000000
+00e2: 00 00 00
+00e3: 00 00 00
+00e4: 28 23 7f  // opcode:2 write:8 reg:23 scaler:0 coef:0.992188
+00e5: 00 24 00  // opcode:0 write:0 reg:24 scaler:0 coef:0.000000
+00e6: 00 25 00  // opcode:0 write:0 reg:25 scaler:0 coef:0.000000
+00e7: 00 00 00
+00e8: 00 00 00
+00e9: 28 a4 20  // opcode:2 write:8 reg:24 scaler:1 coef:1.000000
+00ea: 00 00 00
+00eb: 20 a9 00  // opcode:2 write:0 reg:29 scaler:1 coef:0.000000
+00ec: 08 a8 00  // opcode:0 write:8 reg:28 scaler:1 coef:0.000000
+00ed: 60 2a 00  // opcode:6 write:0 reg:2a scaler:0 coef:0.000000
+00ee: 40 ac 20  // opcode:4 write:0 reg:2c scaler:1 coef:1.000000
+00ef: 00 2a 00  // opcode:0 write:0 reg:2a scaler:0 coef:0.000000
+00f0: 00 2a 00  // opcode:0 write:0 reg:2a scaler:0 coef:0.000000
+00f1: 10 ab 20  // opcode:1 write:0 reg:2b scaler:1 coef:1.000000
+00f2: 00 00 00
+00f3: 20 aa 20  // opcode:2 write:0 reg:2a scaler:1 coef:1.000000
+00f4: 08 75 28  // opcode:0 write:8 reg:75 scaler:0 coef:0.312500
+00f5: 00 00 00
+00f6: 20 a8 20  // opcode:2 write:0 reg:28 scaler:1 coef:1.000000
+00f7: 08 29 00  // opcode:0 write:8 reg:29 scaler:0 coef:0.000000
+00f8: 00 00 00
+00f9: 00 00 00
+00fa: 00 00 00
+00fb: 28 75 00  // opcode:2 write:8 reg:75 scaler:0 coef:0.000000
+00fc: c0 50 04  // opcode:c write:0 reg:50 scaler:0 coef:0.031250
+00fd: 00 00 00
+00fe: 00 00 00
+00ff: 28 75 80  // opcode:2 write:8 reg:75 scaler:0 coef:0.000000
+0100: 00 00 00
+0101: 00 00 00
+0102: 28 f5 80  // opcode:2 write:8 reg:75 scaler:1 coef:0.000000
+0103: 00 00 00
+0104: 00 00 00
+0105: 28 f5 80  // opcode:2 write:8 reg:75 scaler:1 coef:0.000000
+0106: 00 00 00
+0107: 00 00 00
+0108: 28 f5 80  // opcode:2 write:8 reg:75 scaler:1 coef:0.000000
+0109: 00 00 00
+010a: 00 00 00
+010b: 28 f5 80  // opcode:2 write:8 reg:75 scaler:1 coef:0.000000
+010c: 00 00 00
+010d: 00 00 00
+010e: 28 f5 80  // opcode:2 write:8 reg:75 scaler:1 coef:0.000000
+010f: 00 00 00
+0110: 00 00 00
+0111: 28 f5 80  // opcode:2 write:8 reg:75 scaler:1 coef:0.000000
+0112: 00 00 00
+0113: 00 00 00
+0114: 28 f5 40  // opcode:2 write:8 reg:75 scaler:1 coef:2.000000
+0115: 00 00 00
+0116: 00 00 00
+0117: 28 f5 20  // opcode:2 write:8 reg:75 scaler:1 coef:1.000000
+0118: 20 04 04  // opcode:2 write:0 reg:04 scaler:0 coef:04
+0119: c0 50 00  // opcode:c write:0 reg:50 scaler:0 coef:0.000000
+011a: 08 f5 20  // opcode:0 write:8 reg:75 scaler:1 coef:1.000000
+011b: 00 00 00
+011c: 20 88 20  // opcode:2 write:0 reg:08 scaler:1 coef:1.000000
+011d: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
+011e: c0 50 c0  // opcode:c write:0 reg:50 scaler:0 coef:-0.500000
+011f: 00 00 00
+0120: 20 88 20  // opcode:2 write:0 reg:08 scaler:1 coef:1.000000
+0121: 08 40 ff  // opcode:0 write:8 reg:40 scaler:0 coef:-0.992188
+0122: c0 50 80  // opcode:c write:0 reg:50 scaler:0 coef:0.000000
+0123: 20 c4 20  // opcode:2 write:0 reg:44 scaler:1 coef:1.000000
+0124: 60 c2 20  // opcode:6 write:0 reg:42 scaler:1 coef:1.000000
+0125: 08 07 00  // opcode:0 write:8 reg:07 scaler:0 coef:0.000000
+0126: 08 43 00  // opcode:0 write:8 reg:43 scaler:0 coef:0.000000
+0127: 10 41 00  // opcode:1 write:0 reg:41 scaler:0 coef:0.000000
+0128: c8 6d 96  // opcode:c write:8 reg:6d scaler:0 coef:-0.171875
+0129: 00 00 00
+012a: c8 6f 99  // opcode:c write:8 reg:6f scaler:0 coef:-0.195312
+012b: 00 00 00
+012c: 60 c0 20  // opcode:6 write:0 reg:40 scaler:1 coef:1.000000
+012d: 20 84 20  // opcode:2 write:0 reg:04 scaler:1 coef:20
+012e: 00 04 40  // opcode:0 write:0 reg:04 scaler:0 coef:40
+012f: 10 41 00  // opcode:1 write:0 reg:41 scaler:0 coef:0.000000
+0130: 00 00 00
+0131: 08 43 00  // opcode:0 write:8 reg:43 scaler:0 coef:0.000000
+0132: 20 c3 20  // opcode:2 write:0 reg:43 scaler:1 coef:1.000000
+0133: 00 04 c0  // opcode:0 write:0 reg:04 scaler:0 coef:ffffffc0
+0134: 00 00 00
+0135: 00 00 00
+0136: 08 43 00  // opcode:0 write:8 reg:43 scaler:0 coef:0.000000
+0137: 20 c1 20  // opcode:2 write:0 reg:41 scaler:1 coef:1.000000
+0138: 00 00 00
+0139: 20 46 40  // opcode:2 write:0 reg:46 scaler:0 coef:0.500000
+013a: 08 45 40  // opcode:0 write:8 reg:45 scaler:0 coef:0.500000
+013b: 20 51 00  // opcode:2 write:0 reg:51 scaler:0 coef:0.000000
+013c: 00 52 00  // opcode:0 write:0 reg:52 scaler:0 coef:0.000000
+013d: 08 50 7f  // opcode:0 write:8 reg:50 scaler:0 coef:0.992188
+013e: 00 00 00
+013f: 00 00 00
+0140: 28 d1 20  // opcode:2 write:8 reg:51 scaler:1 coef:1.000000
+0141: 20 54 87  // opcode:2 write:0 reg:54 scaler:0 coef:-0.054688
+0142: 00 55 71  // opcode:0 write:0 reg:55 scaler:0 coef:0.882812
+0143: 08 53 79  // opcode:0 write:8 reg:53 scaler:0 coef:0.945312
+0144: 00 00 00
+0145: 00 00 00
+0146: 28 d4 20  // opcode:2 write:8 reg:54 scaler:1 coef:1.000000
+0147: 00 00 00
+0148: 20 d9 2e  // opcode:2 write:0 reg:59 scaler:1 coef:1.437500
+0149: 08 d8 2e  // opcode:0 write:8 reg:58 scaler:1 coef:1.437500
+014a: 60 5a ea  // opcode:6 write:0 reg:5a scaler:0 coef:-0.828125
+014b: 40 dc 20  // opcode:4 write:0 reg:5c scaler:1 coef:1.000000
+014c: 00 5a c7  // opcode:0 write:0 reg:5a scaler:0 coef:-0.554688
+014d: 00 5a c7  // opcode:0 write:0 reg:5a scaler:0 coef:-0.554688
+014e: 10 db 20  // opcode:1 write:0 reg:5b scaler:1 coef:1.000000
+014f: 00 00 00
+0150: 20 da 20  // opcode:2 write:0 reg:5a scaler:1 coef:1.000000
+0151: 08 75 19  // opcode:0 write:8 reg:75 scaler:0 coef:0.195312
+0152: 00 00 00
+0153: 20 d8 20  // opcode:2 write:0 reg:58 scaler:1 coef:1.000000
+0154: 08 59 e2  // opcode:0 write:8 reg:59 scaler:0 coef:-0.765625
+0155: 00 00 00
+0156: 20 15 5e  // opcode:2 write:0 reg:15 scaler:0 coef:0.734375
+0157: 28 76 5e  // opcode:2 write:8 reg:76 scaler:0 coef:0.734375
+0158: 60 15 5e  // opcode:6 write:0 reg:15 scaler:0 coef:0.734375
+0159: 28 75 00  // opcode:2 write:8 reg:75 scaler:0 coef:0.000000
+015a: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
+015b: 60 76 5e  // opcode:6 write:0 reg:76 scaler:0 coef:0.734375
+015c: 00 00 00
+015d: 70 75 00  // opcode:7 write:0 reg:75 scaler:0 coef:0.000000
+015e: 50 75 7f  // opcode:5 write:0 reg:75 scaler:0 coef:0.992188
+015f: 20 61 85  // opcode:2 write:0 reg:61 scaler:0 coef:-0.039062
+0160: c0 50 86  // opcode:c write:0 reg:50 scaler:0 coef:-0.046875
+0161: 08 e0 20  // opcode:0 write:8 reg:60 scaler:1 coef:1.000000
+0162: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
+0163: 00 62 7a  // opcode:0 write:0 reg:62 scaler:0 coef:0.953125
+0164: c0 50 7a  // opcode:c write:0 reg:50 scaler:0 coef:0.953125
+0165: 20 62 ca  // opcode:2 write:0 reg:62 scaler:0 coef:-0.578125
+0166: c0 50 7f  // opcode:c write:0 reg:50 scaler:0 coef:0.992188
+0167: 08 e1 20  // opcode:0 write:8 reg:61 scaler:1 coef:1.000000
+0168: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
+0169: 00 63 35  // opcode:0 write:0 reg:63 scaler:0 coef:0.414062
+016a: c0 50 81  // opcode:c write:0 reg:50 scaler:0 coef:-0.007812
+016b: 00 00 00
+016c: 00 00 00
+016d: 08 62 00  // opcode:0 write:8 reg:62 scaler:0 coef:0.000000
+016e: 08 79 00  // opcode:0 write:8 reg:79 scaler:0 coef:0.000000
+016f: 20 65 85  // opcode:2 write:0 reg:65 scaler:0 coef:-0.039062
+0170: c0 50 86  // opcode:c write:0 reg:50 scaler:0 coef:-0.046875
+0171: 10 e4 20  // opcode:1 write:0 reg:64 scaler:1 coef:1.000000
+0172: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
+0173: 00 66 7a  // opcode:0 write:0 reg:66 scaler:0 coef:0.953125
+0174: c0 50 7a  // opcode:c write:0 reg:50 scaler:0 coef:0.953125
+0175: 20 66 ca  // opcode:2 write:0 reg:66 scaler:0 coef:-0.578125
+0176: c0 50 7f  // opcode:c write:0 reg:50 scaler:0 coef:0.992188
+0177: 08 e5 20  // opcode:0 write:8 reg:65 scaler:1 coef:1.000000
+0178: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
+0179: 00 67 35  // opcode:0 write:0 reg:67 scaler:0 coef:0.414062
+017a: c0 50 81  // opcode:c write:0 reg:50 scaler:0 coef:-0.007812
+017b: 00 00 00
+017c: 00 00 00
+017d: 08 66 00  // opcode:0 write:8 reg:66 scaler:0 coef:0.000000
+017e: 08 77 00  // opcode:0 write:8 reg:77 scaler:0 coef:0.000000
+017f: 00 00 00
+0180: 00 00 00
+0181: 00 00 00
+0182: 00 00 00
+0183: 00 00 00
+0184: 00 00 00
+0185: 00 00 00
+0186: 00 00 00
+0187: 00 00 00
+0188: 00 00 00
+0189: 00 00 00
+018a: 00 00 00
+018b: 00 00 00
+018c: 00 00 00
+018d: 00 00 00
+018e: 00 00 00
+018f: 00 00 00
+0190: 00 00 00
+0191: 00 00 00
+0192: 00 00 00
+0193: 00 00 00
+0194: 00 00 00
+0195: 00 00 00
+0196: 00 00 00
+0197: 00 00 00
+0198: 00 00 00
+0199: 00 00 00
+019a: 00 00 00
+019b: 00 00 00
+019c: 00 00 00
+019d: 00 00 00
+019e: 00 00 00
+019f: 00 00 00
+01a0: 00 00 00
+01a1: 00 00 00
+01a2: 00 00 00
+01a3: 00 00 00
+01a4: 00 00 00
+01a5: 00 00 00
+01a6: 00 00 00
+01a7: 00 00 00
+01a8: 00 00 00
+01a9: 00 00 00
+01aa: 00 00 00
+01ab: 00 00 00
+01ac: 00 00 00
+01ad: 00 00 00
+01ae: 00 00 00
+01af: 00 00 00
+01b0: 00 00 00
+01b1: 00 00 00
+01b2: 00 00 00
+01b3: 00 00 00
+01b4: 00 00 00
+01b5: 00 00 00
+01b6: 00 00 00
+01b7: 00 00 00
+01b8: 00 00 00
+01b9: 00 00 00
+01ba: 00 00 00
+01bb: 00 00 00
+01bc: 00 00 00
+01bd: 00 00 00
+01be: 00 00 00
+01bf: 00 00 00
+01c0: 00 00 00
+01c1: 00 00 00
+01c2: 00 00 00
+01c3: 00 00 00
+01c4: 00 00 00
+01c5: 00 00 00
+01c6: 00 00 00
+01c7: 00 00 00
+01c8: 00 00 00
+01c9: 00 00 00
+01ca: 00 00 00
+01cb: 00 00 00
+01cc: 00 00 00
+01cd: 00 00 00
+01ce: 00 00 00
+01cf: 00 00 00
+01d0: 00 00 00
+01d1: 00 00 00
+01d2: 00 00 00
+01d3: 00 00 00
+01d4: 00 00 00
+01d5: 00 00 00
+01d6: 00 00 00
+01d7: 00 00 00
+01d8: 00 00 00
+01d9: 00 00 00
+01da: 00 00 00
+01db: 00 00 00
+01dc: 00 00 00
+01dd: 00 00 00
+01de: 00 00 00
+01df: 00 00 00
+01e0: 00 00 00
+01e1: 00 00 00
+01e2: 00 00 00
+01e3: 00 00 00
+01e4: 00 00 00
+01e5: 00 00 00
+01e6: 00 00 00
+01e7: 00 00 00
+01e8: 00 00 00
+01e9: 00 00 00
+01ea: 00 00 00
+01eb: 00 00 00
+01ec: 00 00 00
+01ed: 00 00 00
+01ee: 00 00 00
+01ef: 00 00 00
+01f0: 00 00 00
+01f1: 00 00 00
+01f2: 20 79 7f  // opcode:2 write:0 reg:79 scaler:0 coef:0.992188
+01f3: c8 7e 7f  // opcode:c write:8 reg:7e scaler:0 coef:0.992188
+01f4: 00 00 00
+01f5: 28 f5 7f  // opcode:2 write:8 reg:75 scaler:1 coef:3.968750
+01f6: 28 75 20  // opcode:2 write:8 reg:75 scaler:0 coef:0.250000
+01f7: 20 81 20  // opcode:2 write:0 reg:01 scaler:1 coef:20
+01f8: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
+01f9: 08 7e 00  // opcode:0 write:8 reg:7e scaler:0 coef:0.000000
+01fa: 00 00 00
+01fb: c8 58 00  // opcode:c write:8 reg:58 scaler:0 coef:0.000000
+01fc: c8 6f fe  // opcode:c write:8 reg:6f scaler:0 coef:-0.984375
+01fd: 00 00 00
+01fe: 00 00 00
+01ff: 00 00 00
