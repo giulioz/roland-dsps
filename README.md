@@ -70,19 +70,47 @@ All internal variables are 24 bit.
 - 0x080-0x1ff: DSP program (24 bit x 384 instr)
   - Cannot(?) be written by the DSP program
 
+There seems to be two 24-bit? accumulator registers (accA and accB).
+
 
 ## DSP instructions format
 
 `ii rr cc`
 
 ```
-ii[7:4] (0xf0):  opcode
-ii[3]   (0x08):  mem[offset] <- acc
-ii[2]   (0x04):  external ram?
-ii[1]   (0x02):  external ram?
-ii[0]   (0x01):  external ram?
+ii[7:5] (0xf0):  opcode
+  with mem offset == 1/2/3/4
+    0x00 (accA): accA = accA + shift(cc)
+    0x20 (accA): accA = shift(cc)
 
-rr[7]:         scale select
+    0x40 (accB): accB = accB + shift(cc)
+    0x60 (accB): accB = shift(cc)
+
+    0x80 (accA): ?? (keeps accumulators as-is?)
+    0xa0 (accA): ?? (same as 0x20?)
+
+    0xc0 (accB): ?? (same as 0x20?)
+    0xe0 (accB): ?? (same as 0x40?)
+
+    where shift(cc) = cc << (r[6:0] - 1)
+  with mem offset != 1/2/3/4
+    0x00: accA = accA + ((mem[offset] * cc) >> 7)
+    0x20: accA = (mem[offset] * cc) >> 7
+    0x40: ??
+    0x60: ??
+    0x80: ??
+    0xa0: ??
+    0xc0: special reg?
+    0xe0: ??
+
+ii[7]   (0x80):  bus select?
+ii[6]   (0x40):  accumulator dest A/B
+ii[5]   (0x20):  accumulate/replace
+ii[4]   (0x10):  store mem[offset] = accB
+ii[3]   (0x08):  store mem[offset] = accA (takes priority? what does 0x18 mean then?)
+ii[2:0] (0x07):  external ram opcode?
+
+rr[7]:         scale select (<<2 after multiplier)
 rr[6:0]:       mem offset/shifter
 
 cc[7:0]:       immediate/coefficient (int8_t)
@@ -160,6 +188,7 @@ C0 special cases:
   - `c0 50 ff`: acc = acc + (acc >> 5) * (0xff/0x80)
   - `c0 d0 ff`: acc = acc + (acc >> 5) * (0xff/0x20)
   - `c0 7f 7f`: acc = audio_in * (0x7f/0x80)
+
 
 ### Audio I/O
 
