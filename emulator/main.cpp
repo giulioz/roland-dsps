@@ -51,8 +51,8 @@ public:
   int32_t audioOut = 0;
 
   // For pipelining
-  uint8_t accAHistory[4] = {0};
-  uint8_t accBHistory[4] = {0};
+  int32_t accAHistory[8] = {0};
+  int32_t accBHistory[8] = {0};
   uint8_t pipelinePos = 0;
 
   void runProgram() {
@@ -63,20 +63,24 @@ public:
         audioIn = audioInR;
 
       uint32_t instr = iram[pc];
+      pipelinePos = (pipelinePos + 1) & 0x7;
       step(instr);
-
-      bufferPos++;
+      accAHistory[pipelinePos] = accA;
+      accBHistory[pipelinePos] = accB;
 
       if (pc >= (0x80 + 384 / 2))
         audioOutL = audioOut;
       else
         audioOutR = audioOut;
     }
+
+    bufferPos = (bufferPos - 1) & 0x7f;
   }
 
-  void step(uint32_t instr) {
-    pipelinePos = (pipelinePos + 1) & 0x3;
+  int32_t getAccAForStore() { return accAHistory[(pipelinePos - 3) & 0x7]; }
+  int32_t getAccBForStore() { return accBHistory[(pipelinePos - 3) & 0x7]; }
 
+  void step(uint32_t instr) {
     if (instr == 0) {
       // No operation, just return
       return;
@@ -95,7 +99,7 @@ public:
     uint8_t memOffset = rr & 0x7f;
 
     // Dest/src ram position
-    uint32_t ramPos = (memOffset + bufferPos) & 0x7f;
+    uint32_t ramPos = ((uint32_t)memOffset + bufferPos) & 0x7f;
 
     // Debug
     // printf("op:%x wr:%x er:%x sh:%x mo:%02x cf:%i\n", opcode, writeCtrl,
@@ -103,16 +107,16 @@ public:
 
     // Write ram
     if (writeCtrl == 0x08) {
-      iram[ramPos] = accA;
+      iram[ramPos] = getAccAForStore();
     } else if (writeCtrl == 0x10) {
-      iram[ramPos] = accB;
+      iram[ramPos] = getAccBForStore();
     } else if (writeCtrl == 0x18) {
-      iram[ramPos] = accA; // ??
+      iram[ramPos] = getAccAForStore(); // ??
     }
 
     // Audio output
     if (ii == 0xc8 && memOffset == 0x58) {
-      audioOut = accA;
+      audioOut = getAccAForStore();
     }
 
     // Multiply
@@ -160,7 +164,8 @@ public:
       accA = add24_sat(0, multRes);
     } else if (opcode == 0xc0) {
       // ??
-      accA = add24_sat(0, multRes);
+      if (memOffset != 0x58)
+        accA = add24_sat(0, multRes);
     } else if (opcode == 0xe0) {
       // ??
       printf("Unimplemented opcode: %02x\n", opcode);
@@ -261,12 +266,14 @@ bool write_wav(const std::string &filename, const std::vector<int16_t> &samples,
   return true;
 }
 
-int main() {
-  LspState state;
+LspState state;
 
+int main() {
   // Load program
   // FILE *pgmFile = fopen("../lsp_pgm/stereo_eq.txt", "r");
-  FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
+  FILE *pgmFile = fopen("spectrum_test.txt", "r");
+  // FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
+  // FILE *pgmFile = fopen("../test.txt", "r");
   if (!pgmFile) {
     fprintf(stderr, "Error opening program file.\n");
     return 1;
@@ -276,7 +283,7 @@ int main() {
   while (fgets(line, sizeof(line), pgmFile)) {
     int b1, b2, b3;
     if (sscanf(line, "%*[^:]: %2x %2x %2x", &b1, &b2, &b3) == 3) {
-      // Combine the three bytes into a 24-bit value
+      // if (sscanf(line, "%2x %2x %2x", &b1, &b2, &b3) == 3) {
       int32_t value = (b1 << 16) | (b2 << 8) | b3;
       state.iram[iramIdx++] = value;
     }
@@ -307,6 +314,13 @@ int main() {
   }
 
   write_wav("output.wav", audioOutput, sampleRate, 2);
+
+  // for (size_t i = 0; i < 33; i++)
+  //   state.runProgram();
+
+  // for (size_t i = 0; i < 0x7f; i++) {
+  //   printf("%04x: %06x\n", i, state.iram[i]);
+  // }
 
   return 0;
 }
