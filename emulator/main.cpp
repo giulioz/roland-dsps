@@ -121,13 +121,17 @@ public:
 
     // Multiply
     int32_t multA = iram[ramPos];
-    if (opcode == 0xc0) {
-      if (memOffset == 0x50)
-        multA = accA;
-      else if (memOffset == 0x7e || memOffset == 0x7f)
-        multA = audioIn;
-    }
     int32_t multB = cc;
+    if (opcode == 0xc0) {
+      if (memOffset == 0x50) {
+        // TODO: when using this mode, only the immediately previous accumulator
+        // should work
+        multA = accA >> 6;
+        multB = (uint8_t)cc;
+      } else if (memOffset == 0x7e || memOffset == 0x7f) {
+        multA = audioIn;
+      }
+    }
     int32_t multRes = multA * multB;
     multRes >>= shifter ? 5 : 7;
 
@@ -164,7 +168,9 @@ public:
       accA = add24_sat(0, multRes);
     } else if (opcode == 0xc0) {
       // ??
-      if (memOffset != 0x58)
+      if (memOffset == 0x50)
+        accA = add24_sat(accA, multRes);
+      else if (memOffset != 0x58)
         accA = add24_sat(0, multRes);
     } else if (opcode == 0xe0) {
       // ??
@@ -306,8 +312,14 @@ int main() {
       state.audioInL = audioSamples[i];
       state.audioInR = audioSamples[i + 1];
     }
+    
+    state.audioInL <<= 6; 
+    state.audioInR <<= 6; 
 
     state.runProgram();
+
+    state.audioOutL >>= 8;
+    state.audioOutR >>= 8;
 
     audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
     audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
