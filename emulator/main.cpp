@@ -111,7 +111,8 @@ public:
     } else if (writeCtrl == 0x10) {
       iram[ramPos] = getAccBForStore();
     } else if (writeCtrl == 0x18) {
-      iram[ramPos] = getAccAForStore(); // ??
+      // TODO: no saturation
+      iram[ramPos] = getAccAForStore();
     }
 
     // Audio output
@@ -127,6 +128,16 @@ public:
         // TODO: when using this mode, only the immediately previous accumulator
         // should work
         multA = accA >> 6;
+        multB = (uint8_t)cc;
+      } else if (memOffset == 0x7e || memOffset == 0x7f) {
+        multA = audioIn;
+      }
+    }
+    if (opcode == 0xe0) {
+      if (memOffset == 0x50) {
+        // TODO: when using this mode, only the immediately previous accumulator
+        // should work
+        multA = accB >> 6;
         multB = (uint8_t)cc;
       } else if (memOffset == 0x7e || memOffset == 0x7f) {
         multA = audioIn;
@@ -174,7 +185,10 @@ public:
         accA = add24_sat(0, multRes);
     } else if (opcode == 0xe0) {
       // ??
-      printf("Unimplemented opcode: %02x\n", opcode);
+      if (memOffset == 0x50)
+        accB = add24_sat(accB, multRes);
+      else if (memOffset != 0x58)
+        accB = add24_sat(0, multRes);
     } else {
       printf("Unknown opcode: %02x\n", opcode);
     }
@@ -279,6 +293,7 @@ int main() {
   // FILE *pgmFile = fopen("../lsp_pgm/stereo_eq.txt", "r");
   FILE *pgmFile = fopen("spectrum_test.txt", "r");
   // FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
+  // FILE *pgmFile = fopen("lsp_square.txt", "r");
   // FILE *pgmFile = fopen("../test.txt", "r");
   if (!pgmFile) {
     fprintf(stderr, "Error opening program file.\n");

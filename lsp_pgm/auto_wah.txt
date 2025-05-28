@@ -164,19 +164,23 @@
 0123: 00 12 80  // opcode:0 write:0 reg:12 scaler:0 coef:0.000000
 0124: c0 50 00  // opcode:c write:0 reg:50 scaler:0 coef:0.000000
 0125: 00 00 00
+
 0126: 20 13 80  // opcode:2 write:0 reg:13 scaler:0 coef:0.000000
 0127: 88 75 02  // opcode:8 write:8 reg:75 scaler:0 coef:0.015625
 0128: 80 75 42  // opcode:8 write:0 reg:75 scaler:0 coef:0.515625
 0129: 00 00 00
+
 012a: 20 92 20  // opcode:2 write:0 reg:12 scaler:1 coef:1.000000
 012b: 88 75 01  // opcode:8 write:8 reg:75 scaler:0 coef:0.007812
 012c: 80 75 41  // opcode:8 write:0 reg:75 scaler:0 coef:0.507812
 012d: 00 00 00
+
 012e: 20 93 20  // opcode:2 write:0 reg:13 scaler:1 coef:1.000000
 012f: 88 11 01  // opcode:8 write:8 reg:11 scaler:0 coef:0.007812
 0130: 80 11 41  // opcode:8 write:0 reg:11 scaler:0 coef:0.507812
 0131: 00 00 00
 0132: 00 00 00
+
 0133: 28 12 00  // opcode:2 write:8 reg:12 scaler:0 coef:0.000000
 0134: 00 91 7f  // opcode:0 write:0 reg:11 scaler:1 coef:3.968750
 0135: 20 61 85  // opcode:2 write:0 reg:61 scaler:0 coef:-0.039062

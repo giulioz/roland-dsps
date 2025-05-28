@@ -8,6 +8,9 @@
 0087: 08 7e 00  // opcode:0 write:8 reg:7e scaler:0 coef:0.000000
 0088: 00 00 00
 0089: c8 58 00  // opcode:c write:8 reg:58 scaler:0 coef:0.000000
+
+
+// Process L
 008a: 20 7f 7f  // opcode:2 write:0 reg:7f scaler:0 coef:0.992188
 008b: 00 00 00
 008c: 20 91 20  // opcode:2 write:0 reg:11 scaler:1 coef:1.000000
@@ -57,6 +60,9 @@
 00b8: 00 00 00
 00b9: 08 62 00  // opcode:0 write:8 reg:62 scaler:0 coef:0.000000
 00ba: 08 79 00  // opcode:0 write:8 reg:79 scaler:0 coef:0.000000
+
+
+// Process R
 00bb: 20 7e 7f  // opcode:2 write:0 reg:7e scaler:0 coef:0.992188
 00bc: 00 00 00
 00bd: 20 a1 20  // opcode:2 write:0 reg:21 scaler:1 coef:1.000000
@@ -106,6 +112,8 @@
 00e9: 00 00 00
 00ea: 08 66 00  // opcode:0 write:8 reg:66 scaler:0 coef:0.000000
 00eb: 08 77 00  // opcode:0 write:8 reg:77 scaler:0 coef:0.000000
+
+
 00ec: 00 00 00
 00ed: 00 00 00
 00ee: 00 00 00
@@ -368,6 +376,8 @@
 01ef: 00 00 00
 01f0: 00 00 00
 01f1: 00 00 00
+
+
 01f2: 20 79 7f  // opcode:2 write:0 reg:79 scaler:0 coef:0.992188
 01f3: c8 7e 7f  // opcode:c write:8 reg:7e scaler:0 coef:0.992188
 01f4: 00 00 00

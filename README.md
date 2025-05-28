@@ -80,34 +80,33 @@ There seems to be two 24-bit? accumulator registers (accA and accB).
 ```
 ii[7:5] (0xf0):  opcode
   with mem offset == 1/2/3/4
-    0x00 (accA): accA = accA + shift(cc)
-    0x20 (accA): accA = shift(cc)
-
-    0x40 (accB): accB = accB + shift(cc)
-    0x60 (accB): accB = shift(cc)
-
-    0x80 (accA): ?? (keeps accumulators as-is?)
-    0xa0 (accA): ?? (same as 0x20?)
-
-    0xc0 (accB): ?? (same as 0x20?)
-    0xe0 (accB): ?? (same as 0x40?)
-
+    0x00: accA = accA + shift(cc)
+    0x20: accA = shift(cc)
+    0x40: accB = accB + shift(cc)
+    0x60: accB = shift(cc)
+    0x80: ?? (conditional accumulate?)
+    0xa0: ?? (same as 0x20?)
+    0xc0: ?? (same as 0x00?)
+    0xe0: ?? (same as 0x40?)
     where shift(cc) = cc << (r[6:0] - 1)
   with mem offset != 1/2/3/4
     0x00: accA = accA + ((mem[offset] * cc) >> 7)
     0x20: accA = (mem[offset] * cc) >> 7
-    0x40: ??
-    0x60: ??
+    0x40: accB = accB + ((mem[offset] * cc) >> 7)
+    0x60: accB = (mem[offset] * cc) >> 7
     0x80: ??
     0xa0: ??
-    0xc0: special reg?
-    0xe0: ??
+    0xc0: special reg -> accA? used mostly with mem=0x50 (prev acc)
+    0xe0: special reg -> accB? used mostly with mem=0x50 (prev acc)
 
 ii[7]   (0x80):  bus select?
 ii[6]   (0x40):  accumulator dest A/B
 ii[5]   (0x20):  accumulate/replace
-ii[4]   (0x10):  store mem[offset] = accB
-ii[3]   (0x08):  store mem[offset] = accA (takes priority? what does 0x18 mean then?)
+ii[4:3] (0x18):  store mem
+    0x00: no store
+    0x08: store mem[offset] = accA with saturation
+    0x10: store mem[offset] = accB with saturation
+    0x18: store mem[offset] = accA without saturation
 ii[2:0] (0x07):  external ram opcode?
 
 rr[7]:         scale select (<<2 after multiplier)
@@ -126,8 +125,8 @@ The chip is pipelined, so the order/location of instructions is important. Progr
 - External ram needs NOPs (TODO)
 - Instructions with special registers (`c0 rr xx`) have special needs
   - `c0 40 xx` will read the accumulator 3 instructions before (like `08`)
-  - `c0 50 xx` and `c0 d0 xx` will read the accumulator that is set in the instruction immediately before
-  - `c0 50 xx` will set the accumulator after the following instruction has completed
+  - `c0 50 xx` and `c0 d0 xx` will read the accumulator that is set in the instruction immediately before (adding another instruction in between breaks it)
+  - `c0 50 xx` will execute using the accumulator value after the following instruction has completed
 
 
 ### Instr 00/08/20/28/c0/c8: MAC
@@ -185,9 +184,71 @@ Examples:
 
 C0 special cases:
   - `c0 40 7f`: acc = acc + acc * (0x7f/0x80)
-  - `c0 50 ff`: acc = acc + (acc >> 5) * (0xff/0x80)
-  - `c0 d0 ff`: acc = acc + (acc >> 5) * (0xff/0x20)
+  - `c0 50 ff`: acc = acc + (((acc >> 6) * 0xff) >> 7)
+  - `c0 d0 ff`: acc = acc + (((acc >> 6) * 0xff) >> 5)
   - `c0 7f 7f`: acc = audio_in * (0x7f/0x80)
+
+
+### Instr 80
+
+accA = 0x00
+$25  = 0x42
+
+  80 25 00: 000000
+  80 25 01: 000000
+  80 25 02: ffffff
+  80 25 03: ffffff
+  80 25 04: fffffe
+  80 25 05: 000000
+  80 25 06: 000001
+  80 25 07: 000001
+  80 25 08: 000004
+  80 25 09: 000000
+  80 25 0a: ffffff
+  80 25 0b: ffffff
+  80 25 0c: fffffa
+  80 25 0d: 000000
+  80 25 0e: 000001
+  80 25 0f: 000001
+  80 25 10: 000000
+  80 25 11: 000000
+  80 25 12: 000000
+  80 25 13: 000000
+  80 25 14: 
+
+
+
+80 25 04:  accA = accA - (mem >> 5)
+  mem:0x080000, accA:0x3f8000 -> 0x3f4000
+  mem:0x100000, accA:0x3f8000 -> 0x3f0000
+  mem:0x180000, accA:0x3f8000 -> 0x3ec000
+  mem:0x200000, accA:0x3f8000 -> 0x3e8000
+  
+  mem:0x004000, accA:0x01fc00 -> 0x01fa00
+  mem:0x008000, accA:0x01fc00 -> 0x01f800
+  mem:0x00c000, accA:0x01fc00 -> 0x01f600
+  mem:0x010000, accA:0x01fc00 -> 0x01f400
+
+80 25 05:  ?? do nothing
+  mem:0x080000, accA:0x3f8000 -> 0x3f8000
+  mem:0x100000, accA:0x3f8000 -> 0x3f8000
+  mem:0x180000, accA:0x3f8000 -> 0x3f8000
+  mem:0x200000, accA:0x3f8000 -> 0x3f8000
+
+  mem:0x000200, accA:0x000fe0 -> 0x000fe0
+
+80 25 06:  accA = accA + (mem >> 7)
+  mem:0x080000, accA:0x3f8000 -> 0x3f9000
+  mem:0x100000, accA:0x3f8000 -> 0x3fa000
+  mem:0x180000, accA:0x3f8000 -> 0x3fb000
+  mem:0x200000, accA:0x3f8000 -> 0x3fc000
+
+
+80 25 09:  ?? do nothing
+  mem:0x080000, accA:0x3f8000 -> 0x000000
+  mem:0x100000, accA:0x3f8000 -> 0x000000
+  mem:0x3f8000, accA:0x3f8000 -> 0x000000
+
 
 
 ### Audio I/O
