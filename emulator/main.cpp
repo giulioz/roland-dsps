@@ -6,194 +6,7 @@
 #include <string>
 #include <vector>
 
-// Performs signed 24-bit addition with saturation.
-// Inputs are assumed to be signed 24-bit values stored in int32_t.
-// Returns the saturated signed 24-bit result as int32_t.
-int32_t add24_sat(int32_t a, int32_t b) {
-  // Mask to 24 bits and sign-extend
-  auto sign_extend_24 = [](int32_t x) -> int32_t {
-    x &= 0xffffff;
-    if (x & 0x800000) // If sign bit is set
-      x |= ~0xffffff;
-    return x;
-  };
-
-  a = sign_extend_24(a);
-  b = sign_extend_24(b);
-
-  int64_t sum = static_cast<int64_t>(a) + static_cast<int64_t>(b);
-
-  // 24-bit signed min/max
-  constexpr int32_t MIN24 = -0x800000;
-  constexpr int32_t MAX24 = 0x7fffff;
-
-  if (sum > MAX24)
-    return MAX24;
-  if (sum < MIN24)
-    return MIN24;
-  return static_cast<int32_t>(sum);
-}
-
-class LspState {
-public:
-  // Public audio inteface
-  int32_t audioInL = 0;
-  int32_t audioInR = 0;
-  int32_t audioOutL = 0;
-  int32_t audioOutR = 0;
-
-  // Internal state
-  int32_t accA = 0;
-  int32_t accB = 0;
-  uint8_t bufferPos = 0;
-  int32_t iram[0x200] = {0};
-  int32_t audioIn = 0;
-  int32_t audioOut = 0;
-
-  // For pipelining
-  int32_t accAHistory[8] = {0};
-  int32_t accBHistory[8] = {0};
-  uint8_t pipelinePos = 0;
-
-  void runProgram() {
-    for (size_t pc = 0x80; pc < 0x200; pc++) {
-      if (pc >= (0x80 + 384 / 2))
-        audioIn = audioInL;
-      else
-        audioIn = audioInR;
-
-      uint32_t instr = iram[pc];
-      pipelinePos = (pipelinePos + 1) & 0x7;
-      step(instr);
-      accAHistory[pipelinePos] = accA;
-      accBHistory[pipelinePos] = accB;
-
-      if (pc >= (0x80 + 384 / 2))
-        audioOutL = audioOut;
-      else
-        audioOutR = audioOut;
-    }
-
-    bufferPos = (bufferPos - 1) & 0x7f;
-  }
-
-  int32_t getAccAForStore() { return accAHistory[(pipelinePos - 3) & 0x7]; }
-  int32_t getAccBForStore() { return accBHistory[(pipelinePos - 3) & 0x7]; }
-
-  void step(uint32_t instr) {
-    if (instr == 0) {
-      // No operation, just return
-      return;
-    }
-
-    // Decode
-    uint8_t ii = (instr >> 16) & 0xff;
-    uint8_t rr = (instr >> 8) & 0xff;
-    int8_t cc = (int8_t)(instr & 0xff);
-
-    uint8_t opcode = ii & 0xe0;
-    uint8_t writeCtrl = ii & 0x18;
-    uint8_t extRamCtrl = ii & 0x7;
-
-    uint8_t shifter = (rr & 0x80) != 0;
-    uint8_t memOffset = rr & 0x7f;
-
-    // Dest/src ram position
-    uint32_t ramPos = ((uint32_t)memOffset + bufferPos) & 0x7f;
-
-    // Debug
-    // printf("op:%x wr:%x er:%x sh:%x mo:%02x cf:%i\n", opcode, writeCtrl,
-    // extRamCtrl, shifter, memOffset, cc);
-
-    // Write ram
-    if (writeCtrl == 0x08) {
-      iram[ramPos] = getAccAForStore();
-    } else if (writeCtrl == 0x10) {
-      iram[ramPos] = getAccBForStore();
-    } else if (writeCtrl == 0x18) {
-      // TODO: no saturation
-      iram[ramPos] = getAccAForStore();
-    }
-
-    // Audio output
-    if (ii == 0xc8 && memOffset == 0x58) {
-      audioOut = getAccAForStore();
-    }
-
-    // Multiply
-    int32_t multA = iram[ramPos];
-    int32_t multB = cc;
-    if (opcode == 0xc0) {
-      if (memOffset == 0x50) {
-        // TODO: when using this mode, only the immediately previous accumulator
-        // should work
-        multA = accA >> 6;
-        multB = (uint8_t)cc;
-      } else if (memOffset == 0x7e || memOffset == 0x7f) {
-        multA = audioIn;
-      }
-    }
-    if (opcode == 0xe0) {
-      if (memOffset == 0x50) {
-        // TODO: when using this mode, only the immediately previous accumulator
-        // should work
-        multA = accB >> 6;
-        multB = (uint8_t)cc;
-      } else if (memOffset == 0x7e || memOffset == 0x7f) {
-        multA = audioIn;
-      }
-    }
-    int32_t multRes = multA * multB;
-    multRes >>= shifter ? 5 : 7;
-
-    // Constant load
-    bool useConstant =
-        memOffset == 1 | memOffset == 2 || memOffset == 3 || memOffset == 4;
-    int32_t ccLoad = cc;
-    if (memOffset == 2)
-      ccLoad <<= 5;
-    else if (memOffset == 3)
-      ccLoad <<= 10;
-    else if (memOffset == 4)
-      ccLoad <<= 15;
-    ccLoad <<= shifter ? 2 : 0;
-
-    if (useConstant) {
-      multRes = ccLoad;
-    }
-
-    // Accumulate
-    if (opcode == 0x00) {
-      accA = add24_sat(accA, multRes);
-    } else if (opcode == 0x20) {
-      accA = add24_sat(0, multRes);
-    } else if (opcode == 0x40) {
-      accB = add24_sat(accB, multRes);
-    } else if (opcode == 0x60) {
-      accB = add24_sat(0, multRes);
-    } else if (opcode == 0x80) {
-      // ??
-      printf("Unimplemented opcode: %02x\n", opcode);
-    } else if (opcode == 0xa0) {
-      // ??
-      accA = add24_sat(0, multRes);
-    } else if (opcode == 0xc0) {
-      // ??
-      if (memOffset == 0x50)
-        accA = add24_sat(accA, multRes);
-      else if (memOffset != 0x58)
-        accA = add24_sat(0, multRes);
-    } else if (opcode == 0xe0) {
-      // ??
-      if (memOffset == 0x50)
-        accB = add24_sat(accB, multRes);
-      else if (memOffset != 0x58)
-        accB = add24_sat(0, multRes);
-    } else {
-      printf("Unknown opcode: %02x\n", opcode);
-    }
-  }
-};
+#include "emulator.h"
 
 // Reads a 16-bit PCM mono or stereo WAV file into a vector of int16_t.
 // Returns true on success, false on failure.
@@ -290,9 +103,10 @@ LspState state;
 
 int main() {
   // Load program
+  // FILE *pgmFile = fopen("spectrum_test.txt", "r");
   // FILE *pgmFile = fopen("../lsp_pgm/stereo_eq.txt", "r");
-  FILE *pgmFile = fopen("spectrum_test.txt", "r");
-  // FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
+  // FILE *pgmFile = fopen("../lsp_pgm/enhancer.txt", "r");
+  FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
   // FILE *pgmFile = fopen("lsp_square.txt", "r");
   // FILE *pgmFile = fopen("../test.txt", "r");
   if (!pgmFile) {
@@ -304,50 +118,51 @@ int main() {
   while (fgets(line, sizeof(line), pgmFile)) {
     int b1, b2, b3;
     if (sscanf(line, "%*[^:]: %2x %2x %2x", &b1, &b2, &b3) == 3) {
-      // if (sscanf(line, "%2x %2x %2x", &b1, &b2, &b3) == 3) {
+    // if (sscanf(line, "%2x %2x %2x", &b1, &b2, &b3) == 3) {
       int32_t value = (b1 << 16) | (b2 << 8) | b3;
       state.iram[iramIdx++] = value;
     }
   }
   fclose(pgmFile);
 
-  // Load audio input
-  std::vector<int16_t> audioSamples;
-  int sampleRate = 0;
-  int numChannels = 0;
-  read_wav("input.wav", audioSamples, sampleRate, numChannels);
+  // // Load audio input
+  // std::vector<int16_t> audioSamples;
+  // int sampleRate = 0;
+  // int numChannels = 0;
+  // read_wav("input.wav", audioSamples, sampleRate, numChannels);
 
-  std::vector<int16_t> audioOutput;
+  // std::vector<int16_t> audioOutput;
 
-  // Process audio samples
-  for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
-    if (numChannels == 1) {
-      state.audioInL = state.audioInR = audioSamples[i];
-    } else if (numChannels == 2) {
-      state.audioInL = audioSamples[i];
-      state.audioInR = audioSamples[i + 1];
-    }
-    
-    state.audioInL <<= 6; 
-    state.audioInR <<= 6; 
+  // // Process audio samples
+  // for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
+  //   if (numChannels == 1) {
+  //     state.audioInL = state.audioInR = audioSamples[i];
+  //   } else if (numChannels == 2) {
+  //     state.audioInL = audioSamples[i];
+  //     state.audioInR = audioSamples[i + 1];
+  //   }
 
-    state.runProgram();
+  //   state.audioInL <<= 6;
+  //   state.audioInR <<= 6;
 
-    state.audioOutL >>= 8;
-    state.audioOutR >>= 8;
-
-    audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
-    audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
-  }
-
-  write_wav("output.wav", audioOutput, sampleRate, 2);
-
-  // for (size_t i = 0; i < 33; i++)
   //   state.runProgram();
 
-  // for (size_t i = 0; i < 0x7f; i++) {
-  //   printf("%04x: %06x\n", i, state.iram[i]);
+  //   state.audioOutL >>= 8;
+  //   state.audioOutR >>= 8;
+
+  //   audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
+  //   audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
   // }
+
+  // write_wav("output.wav", audioOutput, sampleRate, 2);
+
+  state.audioInL = state.audioInR = sign_extend_24(0xffffc0);
+  for (size_t i = 0; i < 1; i++)
+    state.runProgram();
+
+  for (size_t i = 0; i < 0x80; i++) {
+    printf("%04x: %06x\n", i, state.iram[i] & 0xffffff);
+  }
 
   return 0;
 }

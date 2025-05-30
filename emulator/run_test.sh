@@ -1,0 +1,1 @@
+gcc test.cpp --std=c++2a -lstdc++ -O3;./a.out

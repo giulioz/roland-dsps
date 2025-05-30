@@ -10,48 +10,52 @@ The LSP is a custom DSP which can execute 384 instructions programs for each sam
 
 ### Pinout
 
-- 7, 33, 47, 73: +5v VDD
-- 2, 12, 17, 23, 29, 39, 42, 52, 63, 69: VSS
+![pinout](./pinout.png)
 
-- 40, 41: XTAL-EXTAL, clock crystal interface, freq = 2 * 384 * sample rate
+```
+7, 33, 47, 73: +5v VDD
+2, 12, 17, 23, 29, 39, 42, 52, 63, 69: VSS
 
-- 75: SYI, sync interface (TODO)
-- 74: SYO, sync interface (TODO)
+40, 41: XTAL-EXTAL, clock crystal interface, freq = 2 * 384 * sample rate
 
-- 34, 35, 36, 37, 38, 43, 44, 45: CD0-7, host interface data I/O
-- 32, 31, 30, 28: CA0-3, host interface address in
-- 24: RXW, host interface write control in
-- 25: DS, host interface read control in
-- 26: XCS, host interface chip select in
-- 27: INT, host interface interrupt (TODO)
+75: SYI, sync interface (TODO)
+74: SYO, sync interface (TODO)
 
-- 6, 5, 9, 8, 80: ED0-4, external RAM data I/O
-- 22, 21, 20, 19, 18, 16, 15, 14, 13, 1: EA0-9, external RAM address out
-- 10, 11: CAS0-1, external RAM column address strobe
-- 3: RAS, external RAM row address strobe
-- 4: WE, external RAM write enable
+34, 35, 36, 37, 38, 43, 44, 45: CD0-7, host interface data I/O
+32, 31, 30, 28: CA0-3, host interface address in
+24: RXW, host interface write control in
+25: DS, host interface read control in
+26: XCS, host interface chip select in
+27: INT, host interface interrupt (TODO)
 
-- 65: DABCLK, bit clock for audio out
-- 68: DALRCLK, word clock for audio out
-- 66, 67: TRS0-1, serial data lines for audio out
+6, 5, 9, 8, 80: ED0-4, external RAM data I/O
+22, 21, 20, 19, 18, 16, 15, 14, 13, 1: EA0-9, external RAM address out
+10, 11: CAS0-1, external RAM column address strobe
+3: RAS, external RAM row address strobe
+4: WE, external RAM write enable
 
-- 78: ADBCLK, bit clock for audio in
-- 79: ADCC, word clock for audio in
-- 77: TRR, serial data line for audio in
-- 76: CK (TODO)
+65: DABCLK, bit clock for audio out
+68: DALRCLK, word clock for audio out
+66, 67: TRS0-1, serial data lines for audio out
 
-- 58, 59, 60, 61, 62, 64: G-XG2-XG1-A-B-C, address decoder control in
-- 49, 50, 51, 53, 54, 55, 56, 57: Q0-7, address decoder out
-- 46, 48: CPUCK1-2 (TODO)
+78: ADBCLK, bit clock for audio in
+79: ADCC, word clock for audio in
+77: TRR, serial data line for audio in
+76: CK (TODO)
 
-- 70: X68 (TODO)
-- 71: XE (TODO)
-- 72: TEST (TODO)
+58, 59, 60, 61, 62, 64: G-XG2-XG1-A-B-C, address decoder control in
+49, 50, 51, 53, 54, 55, 56, 57: Q0-7, address decoder out
+46, 48: CPUCK1-2 (TODO)
+
+70: X68 (TODO)
+71: XE (TODO)
+72: TEST (TODO)
+```
 
 ### Host Interface
 
-- **Read ready status**: read 0x03 until it reads 0x00
-- **Write config register**: wait for ready status, write config in 0x03-0x02 then write 0x00 in 0x06
+- **Read ready status**: read address 0x03 until it reads 0x00
+- **Write config register**: wait for ready status, write config in 0x03-0x02 then write 0x00 or 0xff in 0x06
 - **Write internal memory**: wait for ready status, write 3 bytes in 0x04(MSB)-0x03-0x02(LSB), then address in 0x01-0x00, writing in 0x00 triggers the write
 - **Read internal memory**: write address in 0x09-0x08, wait for ready status, read 3 bytes from 0x02(MSB)-0x01-0x00(LSB)
 
@@ -63,56 +67,120 @@ The LSP is a custom DSP which can execute 384 instructions programs for each sam
 
 ### Internal Memory
 
-All internal variables are 24 bit.
+All internal variables are 24 bit. (TODO confirm)
+
+#### Memory Map (accessible from host)
 
 - 0x000-0x07f: Internal delay line/registers
-  - The internal registers are typically accessed as a circular buffer. Every sample the current memory pointer is decremented by 1, and most(all?) instructions access memory access it using an offset
+  - The internal registers are typically accessed as a circular buffer. Every sample the current memory pointer is decremented by 1, and most instructions access memory access it using an offset
 - 0x080-0x1ff: DSP program (24 bit x 384 instr)
   - Cannot(?) be written by the DSP program
 
-There seems to be two 24-bit? accumulator registers (accA and accB).
+#### Hidden Variables
+
+There are two 24-bit accumulator registers (accA and accB).
+
+Some instructions also access some special internal variables:
+```
+00   accA?
+01   accA?
+02   accA?
+03   accA?
+04   accA?
+05   accA?
+06   accA?
+07   accA?
+08   accA?
+09   accA?
+0a   accA?
+0b   accA?
+0c   accA?
+0d   accA?
+0e   constant 0?
+0f   constant 0?
+10   accA? (shift=15)  NOTE: breaks if you put a nop before
+11   accA? (shift=7)
+12   constant 0?  -> setting it to 0 messes up the accumulator? next multiplier?
+13   accA?  (eram?)
+14   multiplier value for 0x80 A
+15   multiplier value for 0x80 B
+16   accA?  (unused)
+17   accA?  (unused)
+18   audio out (cannot be read)
+19   accA?  (unused)
+1a   $7a  constant 0xfffc00? (eram tap?)
+1b   $7b  constant 0xfffc00? (eram tap?)
+1c   $7c  constant 0xfffc00? (eram tap?)
+1d   $7d  constant 0xfffc00? (eram tap?)
+1e   $7e  audio in
+1f   $7f  audio in (unused?)
+```
+
 
 
 ## DSP instructions format
 
-`ii rr cc`
+Each DSP instruction is 3 bytes long, using a format like `ii rr cc`.
+
+- `ii` encodes an opcode
+- `rr` encodes a shift value and a memory offset
+- `cc` encodes a signed 8 bit offset (except for opcode 0x80)
 
 ```
-ii[7:5] (0xf0):  opcode
+ii[7:5] (0xe0):  opcode
+
   with mem offset == 1/2/3/4
+  where shift(cc) = cc << (r[6:0] - 1)
     0x00: accA = accA + shift(cc)
     0x20: accA = shift(cc)
     0x40: accB = accB + shift(cc)
     0x60: accB = shift(cc)
-    0x80: ?? (conditional accumulate?)
-    0xa0: ?? (same as 0x20?)
-    0xc0: ?? (same as 0x00?)
-    0xe0: ?? (same as 0x40?)
-    where shift(cc) = cc << (r[6:0] - 1)
+    0x80: ?? (TODO, likely similar to the other version)
+    0xa0: accA = abs(shift(cc))
+    0xc0: accA = accA + shift(cc)
+    0xe0: accB = accB + shift(cc)
+
   with mem offset != 1/2/3/4
     0x00: accA = accA + ((mem[offset] * cc) >> 7)
     0x20: accA = (mem[offset] * cc) >> 7
     0x40: accB = accB + ((mem[offset] * cc) >> 7)
     0x60: accB = (mem[offset] * cc) >> 7
-    0x80: ??
-    0xa0: ??
-    0xc0: special reg -> accA? used mostly with mem=0x50 (prev acc)
-    0xe0: special reg -> accB? used mostly with mem=0x50 (prev acc)
+    0x80: accA = mem[offset] * special_reg (see below)
+    0xa0: accA = abs((mem[offset] * cc) >> 7)
+  
+  with mem offset & 0x60
+    0xc0: accA  = special_reg[offset & 0x1f]
+    0xe0: accB  = special_reg[offset & 0x1f]
+  with mem offset & 0x40
+    0xc0: accA += special_reg[offset & 0x1f]
+    0xe0: accB += special_reg[offset & 0x1f]
 
-ii[7]   (0x80):  bus select?
-ii[6]   (0x40):  accumulator dest A/B
-ii[5]   (0x20):  accumulate/replace
-ii[4:3] (0x18):  store mem
+ii[4:3] (0x18):  store mem (executed before computation)
+
+  with opcode == 0xc0/0xe0 && offset < 0x40
     0x00: no store
-    0x08: store mem[offset] = accA with saturation
-    0x10: store mem[offset] = accB with saturation
-    0x18: store mem[offset] = accA without saturation
-ii[2:0] (0x07):  external ram opcode?
+    0x08: mem[offset | 0x20] = accA with saturation
+    0x10: mem[offset | 0x20] = accB with saturation
+    0x18: mem[offset | 0x20] = accA without saturation
+  
+  with opcode == 0xc0/0xe0 && offset >= 0x40
+    0x00: no store
+    0x08: special_reg[offset & 0x1f] = accA with saturation
+    0x10: special_reg[offset & 0x1f] = accB with saturation
+    0x18: special_reg[offset & 0x1f] = accA without saturation
+  
+  else
+    0x00: no store
+    0x08: mem[offset] = accA with saturation
+    0x10: mem[offset] = accB with saturation
+    0x18: mem[offset] = accA without saturation (there seems to be a separate sign bit for accA so that it can overflow after 0xffffff keeping the same saturated value)
+
+ii[2:0] (0x07):  external ram opcode? (TODO)
 
 rr[7]:         scale select (<<2 after multiplier)
-rr[6:0]:       mem offset/shifter
+rr[6:0]:       mem offset/immediate shifter
 
-cc[7:0]:       immediate/coefficient (int8_t)
+cc[7:0]:       immediate/coefficient (int8_t) (except for 0x80)
 ```
 
 ### Pipeline
@@ -129,67 +197,306 @@ The chip is pipelined, so the order/location of instructions is important. Progr
   - `c0 50 xx` will execute using the accumulator value after the following instruction has completed
 
 
-### Instr 00/08/20/28/c0/c8: MAC
+### Instr 00/20/40/60: MAC
 
-`ab rr cc`
-
-```
-a(in_a): 00: in_a=acc      20: in_a=0        c0: in_a=0
-b:       00: nothing       08: store to mem
-rr[7]:   scale select
-rr[6:0]: mem offset/shifter
-cc:      immediate/mul coefficient (int8_t)
-```
-
-Increments (opcode 0x) or replaces (opcode 2x,Cx) the accumulator.
+Increments (opcode 00/40) or replaces (opcode 20/60) the accumulator A (opcode 00/20) or B (opcode 40/60).
 The shifter values of 1/2/3/4 work as immediates, every other works as a memory reference offset. Increment works with 24 bit saturation and multiplies using fractional integer multiplication. The scale of the multiplication can be set with rr[7].
 Can also store the current value to the ram before computing the new one (opcode x8).
-Opcode Cx works similarly to 2x, but doesn't replace the accumulator when using shifter values of 1/2/3/4. It also allows reading/writing the audio input/output at address 7f, whereas the other opcode don't work for that. It also can use the accumulator
 
 Examples:
-  - `00 00 7f`: acc += $00 * (0x7f/0x80)
-  - `00 01 7f`: acc += 0x7f << 0
-  - `00 02 7f`: acc += 0x7f << 5
-  - `00 03 7f`: acc += 0x7f << 10
-  - `00 04 7f`: acc += 0x7f << 15
-  - `00 05 7f`: acc += $05 * (0x7f/0x80)
-  
-  - `00 80 7f`: acc += $00 * (0x7f/0x20)
-  - `00 81 7f`: acc += 0x7f << 2
-  - `00 82 7f`: acc += 0x7f << 7
-  - `00 83 7f`: acc += 0x7f << 12
-  - `00 84 7f`: acc += 0x7f << 17   (warning: saturated to 0x7fffff)
-  - `00 85 7f`: acc += $05 * (0x7f/0x20)
+```
+00 00 7f: acc += $00 * (0x7f/0x80)
+00 01 7f: acc += 0x7f << 0
+00 02 7f: acc += 0x7f << 5
+00 03 7f: acc += 0x7f << 10
+00 04 7f: acc += 0x7f << 15
+00 05 7f: acc += $05 * (0x7f/0x80)
 
-  - `00 00 90`: acc += $00 * (signed(0x90)/0x80)
-  - `00 01 90`: acc += signed(0x90) << 0
-  - `00 02 90`: acc += signed(0x90) << 5
-  - `00 03 90`: acc += signed(0x90) << 10
-  - `00 04 90`: acc += signed(0x90) << 15
-  - `00 05 90`: acc += $05 * (signed(0x90)/0x80)
+00 80 7f: acc += $00 * (0x7f/0x20)
+00 81 7f: acc += 0x7f << 2
+00 82 7f: acc += 0x7f << 7
+00 83 7f: acc += 0x7f << 12
+00 84 7f: acc += 0x7f << 17   (warning: saturated to 0x7fffff)
+00 85 7f: acc += $05 * (0x7f/0x20)
 
-  - `20 00 7f`: acc = $00 * (0x7f/0x80)
-  - `20 01 7f`: acc = 0x7f << 0
-  - `20 02 7f`: acc = 0x7f << 5
-  - `20 03 7f`: acc = 0x7f << 10
-  - `20 04 7f`: acc = 0x7f << 15
-  - `20 05 7f`: acc = $05 * (0x7f/0x80)
+00 00 90: acc += $00 * (signed(0x90)/0x80)
+00 01 90: acc += signed(0x90) << 0
+00 02 90: acc += signed(0x90) << 5
+00 03 90: acc += signed(0x90) << 10
+00 04 90: acc += signed(0x90) << 15
+00 05 90: acc += $05 * (signed(0x90)/0x80)
 
-  - `c0 00 7f`: acc = $00 * (0x7f/0x80)
-  - `c0 01 7f`: acc += 0x7f << 0
-  - `c0 02 7f`: acc += 0x7f << 5
-  - `c0 03 7f`: acc += 0x7f << 10
-  - `c0 04 7f`: acc += 0x7f << 15
-  - `c0 05 7f`: acc = $05 * (0x7f/0x80)
+20 00 7f: acc = $00 * (0x7f/0x80)
+20 01 7f: acc = 0x7f << 0
+20 02 7f: acc = 0x7f << 5
+20 03 7f: acc = 0x7f << 10
+20 04 7f: acc = 0x7f << 15
+20 05 7f: acc = $05 * (0x7f/0x80)
+```
+
+
+### Instr c0/e0: Special regs access
+
+```
+  - c0 00 7f: acc = $00 * (0x7f/0x80)
+  - c0 01 7f: acc += 0x7f << 0
+  - c0 02 7f: acc += 0x7f << 5
+  - c0 03 7f: acc += 0x7f << 10
+  - c0 04 7f: acc += 0x7f << 15
+  - c0 05 7f: acc = $05 * (0x7f/0x80)
 
 C0 special cases:
-  - `c0 40 7f`: acc = acc + acc * (0x7f/0x80)
-  - `c0 50 ff`: acc = acc + (((acc >> 6) * 0xff) >> 7)
-  - `c0 d0 ff`: acc = acc + (((acc >> 6) * 0xff) >> 5)
-  - `c0 7f 7f`: acc = audio_in * (0x7f/0x80)
+  - c0 40 7f: acc = acc + acc * (0x7f/0x80)
+  - c0 50 ff: acc = acc + (((acc >> 6) * 0xff) >> 7)  NO
+  - c0 50 ff: acc = acc + 0xff >> 3  ??
+  - c0 d0 ff: acc = acc + 0xff >> 1  ??
+  - c0 7f 7f: acc = audioIn * (0x7f/0x80)
+
+  Tested? mirror of c8
+  - c0 15 40: accA += ($35 * 0x40) >> 7
+  - c0 35 40: accA  = ($35 * 0x40) >> 7 (no sum?)
+  - c0 5a 40: accA += (0xfffc00(constant?) * 0x40) >> 7
+  - c0 7e 40: accA += (audioIn * 0x40) >> 7
+
+  - c0 50 20: acc += (acc * 0x20) >> 15
+  - c0 d0 20: acc += (acc * 0x20) >> 13
+  - c0 51 20: acc += (acc * 0x20) >> 7
+  - c0 d1 20: acc += (acc * 0x20) >> 5
 
 
-### Instr 80
+Ranges
+  00-1f -> 20-3f,    sum accumulator
+  20-3f -> 20-3f,    replace accumulator
+  40-5f -> special?, sum accumulator
+  60-7f -> special?, replace accumulator
+Specials
+  40 60 c0 e0   accA?
+  41 61 c1 e1   accA?
+  42 62 c2 e2   accA?
+  43 63 c3 e3   accA?
+  44 64 c4 e4   accA?
+  45 65 c5 e5   accA?
+  46 66 c6 e6   accA?
+  47 67 c7 e7   accA?
+  48 68 c8 e8   accA?
+  49 69 c9 e9   accA?
+  4a 6a ca ea   accA?
+  4b 6b cb eb   accA?
+  4c 6c cc ec   accA?
+  4d 6d cd ed   accA? (used as 6d)
+  4e 6e ce ee   constant 0? (used as 6e)
+  4f 6f cf ef   constant 0? (used as 6f)
+  50 70 d0 f0   accA? (shift=15)  NOTE: breaks if you put a nop before
+  51 71 d1 f1   accA? (shift=7)
+  52 72 d2 f2   constant 0?  -> setting it to 0 messes up the accumulator? next multiplier?
+  53 73 d3 f3   accA?  (eram?)
+  54 74 d4 f4   multiplier value for 0x80 A
+  55 75 d5 f5   multiplier value for 0x80 B
+  56 76 d6 f6   accA?  (unused)
+  57 77 d7 f7   accA?  (unused)
+  58 78 d8 f8   audio out (cannot be read)
+  59 79 d9 f9   accA?  (unused)
+  5a 7a da fa   $7a  constant 0xfffc00? (eram tap?)
+  5b 7b db fb   $7b  constant 0xfffc00? (eram tap?)
+  5c 7c dc fc   $7c  constant 0xfffc00? (eram tap?)
+  5d 7d dd fd   $7d  constant 0xfffc00? (eram tap?)
+  5e 7e de fe   $7e  audio in
+  5f 7f df ff   $7f  audio in (unused?)
+
+
+
+C8 special cases:
+  - `c8 00 00`: stores accA into $20
+  - `c8 01 00`: stores accA into $21
+  - `c8 02 00`: stores accA into $22
+  - `c8 0f 00`: stores accA into $2f
+  - `c8 15 00`: stores accA into $35
+  - `c8 1f 00`: stores accA into $3f
+  - `c8 20 00`: stores accA into $20 (wrap?)
+  - `c8 30 00`: stores accA into $30 (wrap?)
+  - `c8 3f 00`: stores accA into $3f (wrap?)
+  - `c8 40 00`: stores nothing (??)
+  - ...
+  - `c8 58 00`: stores accA into $78 (audio out)
+  - `c8 59 00`: stores nothing (??)
+  - `c8 5a 00`: stores 0xfffc00 into $7a (constant?)
+  - `c8 5b 00`: stores 0xfffc00 into $7b (constant?)
+  - `c8 5c 00`: stores 0xfffc00 into $7c (constant?)
+  - `c8 5d 00`: stores 0xfffc00 into $7d (constant?)
+  - `c8 5e 00`: stores audio in into $7e
+  - `c8 5f 00`: stores audio in into $7f
+  - `c8 60 00`: stores nothing (??)
+  - `c8 6f 00`: stores nothing (??)
+  - ...
+  - `c8 7a 00`: stores 0xfffc00 into $7a (constant?)
+  - `c8 7b 00`: stores 0xfffc00 into $7b (constant?)
+  - `c8 7c 00`: stores 0xfffc00 into $7c (constant?)
+  - `c8 7d 00`: stores 0xfffc00 into $7d (constant?)
+  - `c8 7e 00`: stores audio in into $7e
+  - `c8 7f 00`: stores audio in into $7f
+
+
+20 02 10, c0 50 30  (0x200)  ->  000206
+20 02 10, c0 50 40  (0x200)  ->  000208
+20 02 10, c0 50 50  (0x200)  ->  00020a
+20 02 10, c0 50 70  (0x200)  ->  00020e
+20 02 10, c0 50 90  (0x200)  ->  000212
+20 02 10, c0 50 a0  (0x200)  ->  000214
+20 02 10, c0 50 f0  (0x200)  ->  00021e
+
+20 02 10, c0 d0 30  (0x200)  ->  000218
+20 02 10, c0 d0 40  (0x200)  ->  000220
+20 02 10, c0 d0 50  (0x200)  ->  000228
+20 02 10, c0 d0 70  (0x200)  ->  000238
+20 02 10, c0 d0 90  (0x200)  ->  000248
+20 02 10, c0 d0 a0  (0x200)  ->  000250
+20 02 10, c0 d0 f0  (0x200)  ->  000278
+
+20 02 50, c0 d0 30  (0xa00)  ->  000a18
+20 02 50, c0 d0 40  (0xa00)  ->  000a20
+20 02 50, c0 d0 50  (0xa00)  ->  000a28
+20 02 50, c0 d0 70  (0xa00)  ->  000a38
+20 02 50, c0 d0 90  (0xa00)  ->  000a48
+20 02 50, c0 d0 a0  (0xa00)  ->  000a50
+20 02 50, c0 d0 f0  (0xa00)  ->  000a78
+
+20 02 70, c0 d0 30  (0xe00)  ->  000e18
+20 02 70, c0 d0 40  (0xe00)  ->  000e20
+20 02 70, c0 d0 50  (0xe00)  ->  000e28
+20 02 70, c0 d0 70  (0xe00)  ->  000e38
+20 02 70, c0 d0 90  (0xe00)  ->  000e48
+20 02 70, c0 d0 a0  (0xe00)  ->  000e50
+20 02 70, c0 d0 f0  (0xe00)  ->  000e78
+```
+
+
+### Instr 80: multiplication per variable
+
+```
+s54=0x300000
+val=0x000fe0
+
+00 -> 000000
+01 -> 0005f4
+02 -> 0005f4
+03 -> 0005f4
+04 -> ffff81
+05 -> fffa0c
+06 -> fffa0c
+07 -> 0000fe
+08 -> 0005f4
+09 -> 0005f4
+0a -> 0005f4
+0b -> fffe83
+0c -> fffa0c
+0d -> fffa0c
+0e -> fffa0c
+0f -> fffa0c
+10 -> 000000
+11 -> 000000
+12 -> 000000
+13 -> 000000
+14 -> 000000
+15 -> 000000
+16 -> 000000
+17 -> 000000
+18 -> 000000
+19 -> 000000
+1a -> 000000
+1b -> 000000
+1c -> 000000
+1d -> 000000
+1e -> 000000
+1f -> 000000
+20 -> 0003f8
+21 -> 0005f4
+22 -> 0005f4
+23 -> 0005f4
+24 -> fffb89
+
+
+
+
+
+Coefs
+  00  acc = 00
+  01  acc = ($mem * (special $54 >> 16)) >> 7
+  02  acc = ($mem * (special $55 >> 16)) >> 7
+  03  acc = ($mem * (special $55 >> 16)) >> 7  (unused)
+  04  acc = ?? (0xffff81)  (unused)
+  05  acc = ($mem * (special $54 >> 16)) >> 7 * -1
+  06  acc = ($mem * (special $55 >> 16)) >> 7 * -1  (unused)
+  07  acc = ($mem * (special $55 >> 16)) >> 7 * -1  (unused)
+  08  acc = ?? (0xfe)  (unused)
+  09  acc = ($mem * (special $54 >> 16)) >> 7
+  0a  acc = ($mem * (special $55 >> 16)) >> 7
+  0b  acc = ($mem * (special $55 >> 16)) >> 7  (unused)
+  0c  acc = ?? (0xfffe83)  (unused)
+  0d  acc = ($mem * (special $54 >> 16)) >> 7 * -1
+  0e  acc = ($mem * (special $55 >> 16)) >> 7 * -1
+  0f  acc = ($mem * (special $55 >> 16)) >> 7 * -1  (unused)
+  10  acc = 00  (unused)
+  11  acc = 00  (??)
+  15
+  19
+  1a
+  1d
+  41
+  42
+  45
+  46
+  51
+  52
+  55
+
+Combos
+  01-01
+  09-01
+  09-02
+  09-05  (with c8 da 20 in between)
+  09-41  ??
+  01-41
+  02-42
+  05-45
+  1a-52
+  ...
+
+
+
+
+accA = 0x000012
+accB = 0x000013
+$15  = 0x000100
+  80 15 00 -> 000012 000013
+  80 15 01 -> 000012 000013
+  80 15 02 -> 000010 000013
+  80 15 03 -> 000010 000013
+  80 15 04 -> 00000a 000013
+  80 15 05 -> 000012 000013
+  80 15 06 -> 000014 000013
+  80 15 07 -> 000014 000013  accA+=2
+  80 15 08 -> 000010 000013
+  80 15 09 -> 000000 000013
+  80 15 0a -> fffffe 000013
+  80 15 0b -> fffffe 000013
+  80 15 0c -> ffffe8 000013
+  80 15 0d -> 000000 000013
+  80 15 0e -> 000002 000013
+  80 15 0f -> 000002 000013
+  80 15 10 -> 000012 000033  ??
+  80 15 11 -> 000012 000013
+  80 15 12 -> 000012 000011  ??
+  80 15 13 -> 000012 000011  ??
+  80 15 14 -> 000012 ffffeb  ??
+  80 15 15 -> 000012 000013
+  80 15 16 -> 000012 000015  ??
+  80 15 17 -> 000012 000015  ??
+  80 15 18 -> 000012 000030  ??
+
+
+
+======================================================
+
 
 accA = 0x00
 $25  = 0x42
@@ -248,7 +555,7 @@ $25  = 0x42
   mem:0x080000, accA:0x3f8000 -> 0x000000
   mem:0x100000, accA:0x3f8000 -> 0x000000
   mem:0x3f8000, accA:0x3f8000 -> 0x000000
-
+```
 
 
 ### Audio I/O

@@ -176,7 +176,7 @@ void loop() {
     
     // run N cycles for debugging, then log the internal state
     start_lsp();
-    delayMicroseconds(22 * N_CYCLES);
+    delayMicroseconds(20 * N_CYCLES);
     halt_lsp();
     dump_state();
 
