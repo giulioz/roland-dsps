@@ -103,10 +103,10 @@ LspState state;
 
 int main() {
   // Load program
-  // FILE *pgmFile = fopen("spectrum_test.txt", "r");
+  FILE *pgmFile = fopen("spectrum_test.txt", "r");
   // FILE *pgmFile = fopen("../lsp_pgm/stereo_eq.txt", "r");
   // FILE *pgmFile = fopen("../lsp_pgm/enhancer.txt", "r");
-  FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
+  // FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
   // FILE *pgmFile = fopen("lsp_square.txt", "r");
   // FILE *pgmFile = fopen("../test.txt", "r");
   if (!pgmFile) {
@@ -125,44 +125,44 @@ int main() {
   }
   fclose(pgmFile);
 
-  // // Load audio input
-  // std::vector<int16_t> audioSamples;
-  // int sampleRate = 0;
-  // int numChannels = 0;
-  // read_wav("input.wav", audioSamples, sampleRate, numChannels);
+  // Load audio input
+  std::vector<int16_t> audioSamples;
+  int sampleRate = 0;
+  int numChannels = 0;
+  read_wav("input.wav", audioSamples, sampleRate, numChannels);
 
-  // std::vector<int16_t> audioOutput;
+  std::vector<int16_t> audioOutput;
 
-  // // Process audio samples
-  // for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
-  //   if (numChannels == 1) {
-  //     state.audioInL = state.audioInR = audioSamples[i];
-  //   } else if (numChannels == 2) {
-  //     state.audioInL = audioSamples[i];
-  //     state.audioInR = audioSamples[i + 1];
-  //   }
+  // Process audio samples
+  for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
+    if (numChannels == 1) {
+      state.audioInL = state.audioInR = audioSamples[i];
+    } else if (numChannels == 2) {
+      state.audioInL = audioSamples[i];
+      state.audioInR = audioSamples[i + 1];
+    }
 
-  //   state.audioInL <<= 6;
-  //   state.audioInR <<= 6;
+    // state.audioInL <<= 6;
+    // state.audioInR <<= 6;
 
-  //   state.runProgram();
-
-  //   state.audioOutL >>= 8;
-  //   state.audioOutR >>= 8;
-
-  //   audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
-  //   audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
-  // }
-
-  // write_wav("output.wav", audioOutput, sampleRate, 2);
-
-  state.audioInL = state.audioInR = sign_extend_24(0xffffc0);
-  for (size_t i = 0; i < 1; i++)
     state.runProgram();
 
-  for (size_t i = 0; i < 0x80; i++) {
-    printf("%04x: %06x\n", i, state.iram[i] & 0xffffff);
+    // state.audioOutL >>= 8;
+    // state.audioOutR >>= 8;
+
+    audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
+    audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
   }
+
+  write_wav("output.wav", audioOutput, sampleRate, 2);
+
+  // state.audioInL = state.audioInR = sign_extend_24(0xffffc0);
+  // for (size_t i = 0; i < 1; i++)
+  //   state.runProgram();
+
+  // for (size_t i = 0; i < 0x80; i++) {
+  //   printf("%04x: %06x\n", i, state.iram[i] & 0xffffff);
+  // }
 
   return 0;
 }

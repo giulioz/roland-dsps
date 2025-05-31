@@ -5,34 +5,58 @@
 #include <stdlib.h>
 #include <string>
 
-// Mask to 24 bits and sign-extend
-int32_t sign_extend_24(int32_t x) {
+static constexpr int32_t sign_extend_24(int32_t x) {
   x &= 0xffffff;
   if (x & 0x800000) // If sign bit is set
     x |= ~0xffffff;
   return x;
 }
 
-// Performs signed 24-bit addition with saturation.
-// Inputs are assumed to be signed 24-bit values stored in int32_t.
-// Returns the saturated signed 24-bit result as int32_t.
-int32_t add24_sat(int32_t a, int32_t b) {
+class DspAccumulator {
+  static constexpr int DATA_BITS = 24;
+  static constexpr int64_t MIN_VAL = -(1LL << (DATA_BITS - 1));
+  static constexpr int64_t MAX_VAL = (1LL << (DATA_BITS - 1)) - 1;
+  static constexpr int64_t MASK = (1LL << DATA_BITS) - 1;
 
-  a = sign_extend_24(a);
-  b = sign_extend_24(b);
+  int64_t acc = 0;
+  std::array<int64_t, 8> hist{};
+  std::size_t head = 0;
 
-  int64_t sum = static_cast<int64_t>(a) + static_cast<int64_t>(b);
+  static constexpr int32_t clamp_24(int64_t v) {
+    if (v > MAX_VAL)
+      return static_cast<int32_t>(MAX_VAL);
+    if (v < MIN_VAL)
+      return static_cast<int32_t>(MIN_VAL);
+    return static_cast<int32_t>(v);
+  }
 
-  // 24-bit signed min/max
-  constexpr int32_t MIN24 = -0x800000;
-  constexpr int32_t MAX24 = 0x7fffff;
+public:
+  void set(int32_t v) { acc = sign_extend_24(v); }
 
-  if (sum > MAX24)
-    return MAX24;
-  if (sum < MIN24)
-    return MIN24;
-  return static_cast<int32_t>(sum);
-}
+  void add(int32_t v) { acc += sign_extend_24(v); }
+
+  void abs() {
+    if (acc < 0)
+      acc = -acc;
+  }
+
+  int32_t sat24() const { return clamp_24(acc); }
+  int32_t raw24() const { return sign_extend_24(acc & MASK); }
+
+  int32_t historySat24(std::size_t n) const {
+    std::size_t idx = (head - n) & 7;
+    return clamp_24(hist[idx]);
+  }
+  int32_t historyRaw24(std::size_t n) const {
+    std::size_t idx = (head - n) & 7;
+    return sign_extend_24(hist[idx] & MASK);
+  }
+
+  void fwdPipeline() { head = (head + 1) & 7; }
+  void ensurePipeline() { hist[head] = acc; }
+};
+
+static constexpr int pipelineWriteDelay = 3;
 
 class LspState {
 public:
@@ -43,17 +67,22 @@ public:
   int32_t audioOutR = 0;
 
   // Internal state
-  int32_t accA = 0;
-  int32_t accB = 0;
+  DspAccumulator accA;
+  DspAccumulator accB;
   uint8_t bufferPos = 0;
   int32_t iram[0x200] = {0};
-  int32_t audioIn = 0;
-  int32_t audioOut = 0;
 
-  // For pipelining
-  int32_t accAHistory[8] = {0};
-  int32_t accBHistory[8] = {0};
-  uint8_t pipelinePos = 0;
+  // Special regs
+  int32_t eramWriteLatch = 0;    // 0x10
+  int32_t eramSecondTapOffs = 0; // 0x13
+  int32_t multiplVal1 = 0;       // 0x14
+  int32_t multiplVal2 = 0;       // 0x15
+  int32_t audioOut = 0;          // 0x18
+  int32_t eramRead1 = 0;         // 0x1a
+  int32_t eramRead2 = 0;         // 0x1b
+  int32_t eramRead3 = 0;         // 0x1c
+  int32_t eramRead4 = 0;         // 0x1d
+  int32_t audioIn = 0;           // 0x1e
 
   void runProgram() {
     for (size_t pc = 0x80; pc < 0x200; pc++) {
@@ -63,10 +92,11 @@ public:
         audioIn = audioInR;
 
       uint32_t instr = iram[pc];
-      pipelinePos = (pipelinePos + 1) & 0x7;
+      accA.fwdPipeline();
+      accB.fwdPipeline();
       step(instr);
-      accAHistory[pipelinePos] = accA;
-      accBHistory[pipelinePos] = accB;
+      accA.ensurePipeline();
+      accB.ensurePipeline();
 
       if (pc >= (0x80 + 384 / 2))
         audioOutL = audioOut;
@@ -77,124 +107,170 @@ public:
     bufferPos = (bufferPos - 1) & 0x7f;
   }
 
-  int32_t getAccAForStore() { return accAHistory[(pipelinePos - 3) & 0x7]; }
-  int32_t getAccBForStore() { return accBHistory[(pipelinePos - 3) & 0x7]; }
-
+private:
   void step(uint32_t instr) {
-    if (instr == 0) {
-      // No operation, just return
-      return;
-    }
-
-    // Decode
     uint8_t ii = (instr >> 16) & 0xff;
     uint8_t rr = (instr >> 8) & 0xff;
     int8_t cc = (int8_t)(instr & 0xff);
 
     uint8_t opcode = ii & 0xe0;
-    uint8_t writeCtrl = ii & 0x18;
     uint8_t extRamCtrl = ii & 0x7;
 
-    uint8_t shifter = (rr & 0x80) != 0;
-    uint8_t memOffset = rr & 0x7f;
+    commonDoEram(extRamCtrl);
 
-    // Dest/src ram position
-    uint32_t ramPos = ((uint32_t)memOffset + bufferPos) & 0x7f;
-
-    // Debug
-    // printf("op:%x wr:%x er:%x sh:%x mo:%02x cf:%i\n", opcode, writeCtrl,
-    // extRamCtrl, shifter, memOffset, cc);
-
-    // Write ram
-    if (!(opcode == 0xc0 && memOffset == 0x58)) {
-      if (writeCtrl == 0x08) {
-        iram[ramPos] = getAccAForStore();
-      } else if (writeCtrl == 0x10) {
-        iram[ramPos] = getAccBForStore();
-      } else if (writeCtrl == 0x18) {
-        // TODO: no saturation
-        iram[ramPos] = getAccAForStore();
-      }
-    }
-
-    // Audio output
-    if (ii == 0xc8 && memOffset == 0x58) {
-      audioOut = getAccAForStore();
-    }
-
-    // Multiply
-    int32_t multA = iram[ramPos];
-    int32_t multB = cc;
-    if (opcode == 0xc0) {
-      if (memOffset == 0x50) {
-        // TODO: when using this mode, only the immediately previous accumulator
-        // should work
-        multA = accA >> 6;
-        multB = (uint8_t)cc;
-      } else if (memOffset == 0x7e || memOffset == 0x7f) {
-        multA = audioIn;
-      }
-    }
-    if (opcode == 0xe0) {
-      if (memOffset == 0x50) {
-        // TODO: when using this mode, only the immediately previous accumulator
-        // should work
-        multA = accB >> 6;
-        multB = (uint8_t)cc;
-      } else if (memOffset == 0x7e || memOffset == 0x7f) {
-        multA = audioIn;
-      }
-    }
-    int32_t multRes = multA * multB;
-    multRes >>= shifter ? 5 : 7;
-
-    // Constant load
-    bool useConstant =
-        memOffset == 1 | memOffset == 2 || memOffset == 3 || memOffset == 4;
-    int32_t ccLoad = cc;
-    if (memOffset == 2)
-      ccLoad <<= 5;
-    else if (memOffset == 3)
-      ccLoad <<= 10;
-    else if (memOffset == 4)
-      ccLoad <<= 15;
-    ccLoad <<= shifter ? 2 : 0;
-
-    if (useConstant) {
-      multRes = ccLoad;
-    }
-
-    // Accumulate
-    if (opcode == 0x00) {
-      accA = add24_sat(accA, multRes);
-    } else if (opcode == 0x20) {
-      accA = add24_sat(0, multRes);
-    } else if (opcode == 0x40) {
-      accB = add24_sat(accB, multRes);
-    } else if (opcode == 0x60) {
-      accB = add24_sat(0, multRes);
+    if (opcode == 0x00 || opcode == 0x20 || opcode == 0x40 || opcode == 0x60 ||
+        opcode == 0xa0) {
+      doInstrMac(ii, rr, cc);
     } else if (opcode == 0x80) {
-      // ??
-      printf("Unimplemented opcode: %02x\n", opcode);
-    } else if (opcode == 0xa0) {
-      // ??
-      accA = add24_sat(0, multRes);
-    } else if (opcode == 0xc0) {
-      // ??
-      if (memOffset == 0x50)
-        accA = add24_sat(accA, multRes);
-      else if (memOffset != 0x58)
-        accA = add24_sat(0, multRes);
-    } else if (opcode == 0xe0) {
-      // ??
-      if (rr == 0x50)
-        accB = add24_sat(accB, cc >> 3);
-      else if (rr != 0xd0)
-        accB = add24_sat(accB, cc >> 1);
-      else if (memOffset != 0x58)
-        accB = add24_sat(0, multRes);
-    } else {
-      printf("Unknown opcode: %02x\n", opcode);
+      doInstrMul(ii, rr, cc);
+    } else if (opcode == 0xc0 || opcode == 0xe0) {
+      doInstrSpecialReg(ii, rr, cc);
     }
+  }
+
+  void commonDoEram(uint8_t command) {
+    // TODO
+  }
+
+  void commonDoStore(uint8_t ii, uint8_t rr) {
+    uint8_t memOffs = rr & 0x7f;
+    uint8_t writeCtrl = ii & 0x18;
+    if (writeCtrl == 0x00) {
+      // nop
+    } else if (writeCtrl == 0x08) {
+      writeMemOffs(memOffs, accA.historySat24(pipelineWriteDelay));
+    } else if (writeCtrl == 0x10) {
+      writeMemOffs(memOffs, accB.historySat24(pipelineWriteDelay));
+    } else if (writeCtrl == 0x18) {
+      writeMemOffs(memOffs, accA.historyRaw24(pipelineWriteDelay));
+    }
+  }
+
+  int32_t commonGetMemOrImmediate(uint8_t rr, int8_t cc) {
+    uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
+    uint8_t memOffs = rr & 0x7f;
+    int32_t incr = readMemOffs(memOffs) * cc;
+    if (memOffs == 1)
+      incr = cc << 7;
+    if (memOffs == 2)
+      incr = cc << 12;
+    if (memOffs == 3)
+      incr = cc << 17;
+    if (memOffs == 4)
+      incr = cc << 22;
+    incr >>= mulScaler;
+    return incr;
+  }
+
+  void doInstrMac(uint8_t ii, uint8_t rr, int8_t cc) {
+    bool absValue = (ii & 0xe0) == 0xa0;
+    bool replaceAcc = ((ii & 0x20) != 0) || absValue;
+    DspAccumulator &acc = (ii & 0x40) != 0 ? accB : accA;
+
+    commonDoStore(ii, rr);
+
+    int32_t incr = commonGetMemOrImmediate(rr, cc);
+    if (replaceAcc) {
+      acc.set(incr);
+    } else {
+      acc.add(incr);
+    }
+
+    if (absValue) {
+      acc.abs();
+    }
+  }
+
+  void doInstrMul(uint8_t ii, uint8_t rr, int8_t cc) {
+    // TODO
+    printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+
+    uint8_t memOffs = rr & 0x7f;
+    uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
+
+    commonDoStore(ii, memOffs);
+  }
+
+  void doInstrSpecialReg(uint8_t ii, uint8_t rr, int8_t cc) {
+    DspAccumulator &accDest = (ii & 0x20) != 0 ? accB : accA;
+    uint8_t writeCtrl = ii & 0x18;
+    uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
+    bool useSpecial = (rr & 0x40) != 0;
+    bool replaceAcc = (rr & 0x20) != 0;
+    uint8_t specialSlot = rr & 0x1f;
+
+    if (!useSpecial) {
+      printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+      return;
+    }
+
+    // special -> acc
+    if (writeCtrl == 0x00) {
+      if (specialSlot == 0x10) {
+        // TODO: check if it uses sat or not
+        // TODO: this should only get the acc value from the prev instruction
+        // result (does this also mean the ram write latch is set this way?)
+        int32_t incr = accDest.sat24() * cc;
+        incr >>= mulScaler;
+        incr >>= 8;
+
+        if (replaceAcc) {
+          accDest.set(incr);
+        } else {
+          accDest.add(incr);
+        }
+      } else {
+        printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+      }
+      return;
+    }
+
+    // acc -> special
+    if (specialSlot == 0x18) { // audio out
+      int32_t src = 0;
+      if (writeCtrl == 0x08) {
+        src = accA.historySat24(pipelineWriteDelay);
+      } else if (writeCtrl == 0x10) {
+        src = accB.historySat24(pipelineWriteDelay);
+      } else if (writeCtrl == 0x18) {
+        src = accA.historyRaw24(pipelineWriteDelay);
+      }
+      writeMemOffs(0x78, src);
+      audioOut = src;
+
+      src *= cc;
+      src >>= mulScaler;
+      if (replaceAcc) {
+        accDest.set(src);
+      } else {
+        accDest.add(src);
+      }
+    } else if (specialSlot == 0x1e) { // audio in
+      int32_t src = audioIn;
+      writeMemOffs(0x7e, src);
+
+      src *= cc;
+      src >>= mulScaler;
+      if (replaceAcc) {
+        accDest.set(src);
+      } else {
+        accDest.add(src);
+      }
+    } else if (specialSlot == 0x0f) { // unknown
+      // printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+    } else {
+      printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+      return;
+    }
+  }
+
+  void writeMemOffs(uint8_t memOffs, int32_t value) {
+    uint32_t ramPos = ((uint32_t)memOffs + bufferPos) & 0x7f;
+    iram[ramPos] = value;
+  }
+
+  int32_t readMemOffs(uint8_t memOffs) {
+    uint32_t ramPos = ((uint32_t)memOffs + bufferPos) & 0x7f;
+    return iram[ramPos];
   }
 };

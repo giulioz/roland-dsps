@@ -112,7 +112,7 @@ Some instructions also access some special internal variables:
 1b   $7b  ERAM read value B (<< 4)
 1c   $7c  ERAM read value C (<< 4)
 1d   $7d  ERAM read value D (<< 4)
-1e   $7e  audio in
+1e   $7e  audio in  (max 0xffffc0)
 1f   (unused)   $7f  audio in
 ```
 
@@ -151,7 +151,7 @@ ii[7:5] (0xe0):  opcode
     0x20: accA = (mem[offset] * cc) >> 7
     0x40: accB = accB + ((mem[offset] * cc) >> 7)
     0x60: accB = (mem[offset] * cc) >> 7
-    0x80: accA = mem[offset] * special_reg (see below)
+    0x80: accA = accA + mem[offset] * special_reg (see below)
     0xa0: accA = abs((mem[offset] * cc) >> 7)
   
   with mem offset & 0x60
@@ -160,6 +160,14 @@ ii[7:5] (0xe0):  opcode
   with mem offset & 0x40
     0xc0: accA += special_reg[offset & 0x1f]
     0xe0: accB += special_reg[offset & 0x1f]
+
+  c8 post action (needs 2 empty slots before)
+    0xc8: accA += accA * cc
+    0xd0: accA += accB * cc
+    0xd8: accA += accA * cc (unsigned?)
+    0xc8: accB += accA * cc
+    0xd0: accB += accB * cc
+    0xd8: accB += accA * cc
 
 ii[4:3] (0x18):  store mem (executed before computation)
 
@@ -390,6 +398,19 @@ C8 special cases:
 ### Instr 80: multiplication per variable
 
 ```
+s54=0x315ea0
+val=0x640
+
+
+```
+
+
+
+
+
+
+
+```
 s54=0x300000
 val=0x000fe0
 
@@ -436,35 +457,59 @@ val=0x000fe0
 
 
 Coefs
-  00  acc = 00
-  01  acc = ($mem * (special $54 >> 16)) >> 7
-  02  acc = ($mem * (special $55 >> 16)) >> 7
-  03  acc = ($mem * (special $55 >> 16)) >> 7  (unused)
-  04  acc = ?? (0xffff81)  (unused)
-  05  acc = ($mem * (special $54 >> 16)) >> 7 * -1
-  06  acc = ($mem * (special $55 >> 16)) >> 7 * -1  (unused)
-  07  acc = ($mem * (special $55 >> 16)) >> 7 * -1  (unused)
-  08  acc = ?? (0xfe)  (unused)
-  09  acc = ($mem * (special $54 >> 16)) >> 7
-  0a  acc = ($mem * (special $55 >> 16)) >> 7
-  0b  acc = ($mem * (special $55 >> 16)) >> 7  (unused)
-  0c  acc = ?? (0xfffe83)  (unused)
-  0d  acc = ($mem * (special $54 >> 16)) >> 7 * -1
-  0e  acc = ($mem * (special $55 >> 16)) >> 7 * -1
-  0f  acc = ($mem * (special $55 >> 16)) >> 7 * -1  (unused)
-  10  acc = 00  (unused)
-  11  acc = 00  (??)
-  15
-  19
-  1a
-  1d
-  41
-  42
-  45
-  46
-  51
-  52
-  55
+    00  acc += 00
+    01  acc += ($mem * (special $54 >> 16)) >> 7
+    02  acc += ($mem * (special $55 >> 16)) >> 7
+ u  03  acc += ($mem * (special $55 >> 16)) >> 7
+
+ u  04  acc += (($mem * 0x40) >> 7) * -1
+    05  acc += ($mem * (special $54 >> 16)) >> 7 * -1
+ u  06  acc += ($mem * (special $55 >> 16)) >> 7 * -1
+ u  07  acc += ($mem * (special $55 >> 16)) >> 7 * -1
+
+ u  08  acc  = ($mem * 0x08) >> 7
+    09  acc  = ($mem * (special $54 >> 16)) >> 7
+    0a  acc  = ($mem * (special $55 >> 16)) >> 7
+ u  0b  acc  = ($mem * (special $55 >> 16)) >> 7
+
+ u  0c  acc  = (($mem * 0xc0) >> 7) * -1
+    0d  acc  = ($mem * (special $54 >> 16)) >> 7 * -1
+    0e  acc  = ($mem * (special $55 >> 16)) >> 7 * -1
+ u  0f  acc  = ($mem * (special $55 >> 16)) >> 7 * -1
+
+ u  10  acc += 00
+    11  acc += 00  (??)
+    12  
+    13  
+    14  
+    15
+    16
+    17
+    18
+    19
+    1a
+    1b
+    1c
+    1d
+    1e
+    1f
+    41  acc += (0x4 ??) only works if after single digit
+    42
+    45
+    46
+    51
+    52
+    55
+
+Bits (not a pattern after 0x10?)
+  cc[0] 0x1   ?
+  cc[1] 0x2   mul in $54 or $55
+  cc[2] 0x4   invert sign
+  cc[3] 0x8   accumulate/replace
+  cc[4] 0x10  
+  cc[5] 0x20  
+  cc[6] 0x40  
+  cc[7] 0x80  
 
 Combos
   01-01
@@ -472,11 +517,33 @@ Combos
   09-02
   09-05  (with c8 da 20 in between)
   09-41  ??
-  01-41
+  01-41  acc += (mem*(coef>>16))>>7 + (mem*(coef>>16))>>14
   02-42
   05-45
   1a-52
   ...
+
+
+With immediate (acc=0x42)
+  00: 000042
+  01: 000042
+  02: 000041
+  03: 000041
+
+  04: 00003e
+  05: 000042
+  06: 000043
+  07: 000043
+
+  08: 000008
+  09: 000000
+  0a: ffffff
+  0b: ffffff
+
+  0c: fffff4
+  0d: 000000
+  0e: 000001
+  0f: 000001
 
 
 

@@ -9,7 +9,7 @@ void test1() {
   state.audioInL = state.audioInR = sign_extend_24(0xffffc0);
   state.iram[350 + 0x80] = 0x00200142;
   state.iram[353 + 0x80] = 0x00080000;
-  state.iram[358 + 0x80] = 0x00c0fe50;
+  state.iram[358 + 0x80] = 0x00c8fe50;
   state.iram[362 + 0x80] = 0x00080100;
   state.iram[367 + 0x80] = 0x00000130;
   state.iram[368 + 0x80] = 0x00180500;
@@ -24,6 +24,8 @@ void test1() {
       assert(state.iram[i] == sign_extend_24(0xffff60));
     else if (i == 0x06)
       assert(state.iram[i] == sign_extend_24(0xffff90));
+    else if (i == 0x7e)
+      assert(state.iram[i] == sign_extend_24(0xffffc0));
     else
       assert(state.iram[i] == 0x000000);
   }

@@ -22,7 +22,7 @@ def send_to_serial(port, baudrate, data_iter):
   with serial.Serial(port, baudrate, timeout=0.1) as ser:
     time.sleep(2)
     for data in data_iter:
-      print(data)
+      # print(data)
       ser.write(data)
     # output = ser.readlines()
     # for line in output:

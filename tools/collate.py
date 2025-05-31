@@ -38,6 +38,7 @@ def main():
 
   for idx in sorted(groups):
     print(f"{idx:04x}: {' '.join(f'{v:06x}' for v in groups[idx])}")
+  # print(f"{' '.join(f'{v:06x}' for v in groups[1])}")
   # print(f"{' '.join(f'{v:06x}' for v in groups[2])}")
 
 if __name__ == "__main__":
