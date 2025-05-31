@@ -82,39 +82,45 @@ There are two 24-bit accumulator registers (accA and accB).
 
 Some instructions also access some special internal variables:
 ```
-00   accA?
-01   accA?
-02   accA?
-03   accA?
-04   accA?
-05   accA?
-06   accA?
-07   accA?
-08   accA?
-09   accA?
-0a   accA?
-0b   accA?
+00   (unused)   accA?
+01   (unused)   accA?
+02   (unused)   accA?
+03   (unused)   accA?
+04   (unused)   accA?
+05   (unused)   accA?
+06   (unused)   accA?
+07   (unused)   accA?
+08   (unused)   accA?
+09   (unused)   accA?
+0a   (unused)   accA?
+0b   (unused)   accA?
 0c   accA?
 0d   accA?
-0e   constant 0?
-0f   constant 0?
-10   accA? (shift=15)  NOTE: breaks if you put a nop before
+0e   constant 0?  some enable (if set to 0 stuff breaks and dram stops writing)
+0f   constant 0?  some enable (if set to 0 stuff breaks and dram stops writing)
+10   ERAM write latch, accA? (shift=15)  NOTE: breaks if you put a nop before
 11   accA? (shift=7)
-12   constant 0?  -> setting it to 0 messes up the accumulator? next multiplier?
-13   accA?  (eram?)
+12   (unused)   constant 0?  some enable (if set to 0 stuff breaks and dram stops writing)
+13   ERAM tap offset (>>10 ?)
 14   multiplier value for 0x80 A
 15   multiplier value for 0x80 B
-16   accA?  (unused)
-17   accA?  (unused)
+16   accA?
+17   (unused)   accA?
 18   audio out (cannot be read)
-19   accA?  (unused)
-1a   $7a  constant 0xfffc00? (eram tap?)
-1b   $7b  constant 0xfffc00? (eram tap?)
-1c   $7c  constant 0xfffc00? (eram tap?)
-1d   $7d  constant 0xfffc00? (eram tap?)
+19   (unused)   accA?
+1a   $7a  ERAM read value A (<< 4)
+1b   $7b  ERAM read value B (<< 4)
+1c   $7c  ERAM read value C (<< 4)
+1d   $7d  ERAM read value D (<< 4)
 1e   $7e  audio in
-1f   $7f  audio in (unused?)
+1f   (unused)   $7f  audio in
 ```
+
+
+### External Memory
+
+Seems to be 16bits wide (4 bit x 4 reads in fast page mode, LSB first, >> 9).
+DRAM address does -1 every sample.
 
 
 
@@ -176,6 +182,17 @@ ii[4:3] (0x18):  store mem (executed before computation)
     0x18: mem[offset] = accA without saturation (there seems to be a separate sign bit for accA so that it can overflow after 0xffffff keeping the same saturated value)
 
 ii[2:0] (0x07):  external ram opcode? (TODO)
+    shift = special $13 >> 10
+    written value is in special $10
+    read result is in special $1a/$1b/$1c/$1d
+  00  (none)
+  01  do nothing?
+  02  read ptr
+  03  read ptr (?)
+  04  read ptr+shift
+  05  read ptr+some other shift?
+  06  write ptr
+  07  write ptr (?)
 
 rr[7]:         scale select (<<2 after multiplier)
 rr[6:0]:       mem offset/immediate shifter
