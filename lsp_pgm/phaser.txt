@@ -8,9 +8,12 @@
 0087: 08 7e 00  // opcode:00 write:08 eram:0 reg:7e
 0088: 00 00 00
 0089: c8 58 00  // opcode:c0 write:08 eram:0 reg:58
+
+
+// Load audio in L, sum with resonance
 008a: 20 7f 7f  // opcode:20 write:00 eram:0 reg:7f
 008b: 00 00 00
-008c: 20 33 0a  // opcode:20 write:00 eram:0 reg:33
+008c: 20 33 0a // RESONANCE  // opcode:20 write:00 eram:0 reg:33
 008d: 08 75 10  // opcode:00 write:08 eram:0 reg:75
 008e: 00 00 00
 008f: 20 88 20  // opcode:20 write:00 eram:0 reg:08
@@ -23,9 +26,11 @@
 0096: 00 00 00
 0097: 00 00 00
 0098: 08 07 00  // opcode:00 write:08 eram:0 reg:07
+
+// Load audio in R, sum with resonance
 0099: 20 7e 7f  // opcode:20 write:00 eram:0 reg:7e
 009a: 00 00 00
-009b: 20 35 0a  // opcode:20 write:00 eram:0 reg:35
+009b: 20 35 0a // RESONANCE  // opcode:20 write:00 eram:0 reg:35
 009c: 08 75 10  // opcode:00 write:08 eram:0 reg:75
 009d: 00 00 00
 009e: 20 8a 20  // opcode:20 write:00 eram:0 reg:0a
@@ -38,27 +43,33 @@
 00a5: 00 00 00
 00a6: 00 00 00
 00a7: 08 09 00  // opcode:00 write:08 eram:0 reg:09
+
+// sine wave gen
 00a8: 20 86 20  // opcode:20 write:00 eram:0 reg:06
-00a9: 00 82 03  // opcode:00 write:00 eram:0 reg:02
-00aa: c0 d0 7a  // opcode:c0 write:00 eram:0 reg:50
+00a9: 00 82 03 // RATE MSB  // opcode:00 write:00 eram:0 reg:02
+00aa: c0 d0 7a // RATE LSB  // opcode:c0 write:00 eram:0 reg:50
 00ab: 00 00 00
 00ac: 00 00 00
 00ad: b8 05 80  // opcode:a0 write:18 eram:0 reg:05
 00ae: 00 00 00
 00af: 00 00 00
-00b0: 28 75 29  // opcode:20 write:08 eram:0 reg:75
-00b1: c0 50 7f  // opcode:c0 write:00 eram:0 reg:50
+
+// scale sine wave with depth
+00b0: 28 75 29 // DEPTH MSB  // opcode:20 write:08 eram:0 reg:75
+00b1: c0 50 7f // DEPTH LSB  // opcode:c0 write:00 eram:0 reg:50
 00b2: 00 00 00
 00b3: 00 00 00
-00b4: 28 75 4f  // opcode:20 write:08 eram:0 reg:75
-00b5: 00 84 21  // opcode:00 write:00 eram:0 reg:04
-00b6: c0 d0 fa  // opcode:c0 write:00 eram:0 reg:50
+00b4: 28 75 4f  // MANUAL // opcode:20 write:08 eram:0 reg:75
+00b5: 00 84 21  // MANUAL // opcode:00 write:00 eram:0 reg:04
+00b6: c0 d0 fa  // MANUAL // opcode:c0 write:00 eram:0 reg:50
 00b7: 00 00 00
 00b8: 00 00 00
 00b9: 28 75 73  // opcode:20 write:08 eram:0 reg:75
 00ba: c0 50 33  // opcode:c0 write:00 eram:0 reg:50
 00bb: 00 00 00
 00bc: 00 00 00
+
+// load multiplier
 00bd: c8 55 00  // opcode:c0 write:08 eram:0 reg:55
 00be: 88 75 0a  // opcode:80 write:08 eram:0 reg:75
 00bf: 80 75 42  // opcode:80 write:00 eram:0 reg:75
@@ -66,6 +77,8 @@
 00c1: 00 00 00
 00c2: c8 54 00  // opcode:c0 write:08 eram:0 reg:54
 00c3: c8 55 00  // opcode:c0 write:08 eram:0 reg:55
+
+// process L
 00c4: 20 b0 20  // opcode:20 write:00 eram:0 reg:30
 00c5: 80 91 0e  // opcode:80 write:00 eram:0 reg:11
 00c6: 80 91 46  // opcode:80 write:00 eram:0 reg:11
@@ -107,6 +120,8 @@
 00ea: 00 00 00
 00eb: 08 18 00  // opcode:00 write:08 eram:0 reg:18
 00ec: 08 32 00  // opcode:00 write:08 eram:0 reg:32
+
+// process R
 00ed: 20 b1 20  // opcode:20 write:00 eram:0 reg:31
 00ee: 80 a1 0e  // opcode:80 write:00 eram:0 reg:21
 00ef: 80 a1 46  // opcode:80 write:00 eram:0 reg:21
@@ -148,50 +163,67 @@
 0113: 00 00 00
 0114: 08 28 00  // opcode:00 write:08 eram:0 reg:28
 0115: 08 34 00  // opcode:00 write:08 eram:0 reg:34
+
+// mix l
 0116: 20 b2 40  // opcode:20 write:00 eram:0 reg:32
 0117: 00 00 00
 0118: 20 ff 20  // opcode:20 write:00 eram:0 reg:7f
-0119: 08 f5 7f  // opcode:00 write:08 eram:0 reg:75
+0119: 08 f5 7f // MIX L  // opcode:00 write:08 eram:0 reg:75
 011a: 00 00 00
 011b: 00 00 00
+
+// low shelf l
 011c: 28 e0 20  // opcode:20 write:08 eram:0 reg:60
 011d: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
 011e: 00 61 85  // opcode:00 write:00 eram:0 reg:61
 011f: c0 50 86  // opcode:c0 write:00 eram:0 reg:50
 0120: 00 62 7a  // opcode:00 write:00 eram:0 reg:62
 0121: c0 50 7a  // opcode:c0 write:00 eram:0 reg:50
+
+// high shelf l
 0122: 20 62 ca  // opcode:20 write:00 eram:0 reg:62
 0123: c0 50 7f  // opcode:c0 write:00 eram:0 reg:50
 0124: 08 e1 20  // opcode:00 write:08 eram:0 reg:61
 0125: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
 0126: 00 63 35  // opcode:00 write:00 eram:0 reg:63
 0127: c0 50 81  // opcode:c0 write:00 eram:0 reg:50
+
+// out l
 0128: 00 00 00
 0129: 00 00 00
 012a: 08 62 00  // opcode:00 write:08 eram:0 reg:62
 012b: 08 79 00  // opcode:00 write:08 eram:0 reg:79
+
+// mix r
 012c: 20 b4 40  // opcode:20 write:00 eram:0 reg:34
 012d: 00 00 00
 012e: 20 fe 20  // opcode:20 write:00 eram:0 reg:7e
-012f: 08 f5 7f  // opcode:00 write:08 eram:0 reg:75
+012f: 08 f5 7f // MIX R  // opcode:00 write:08 eram:0 reg:75
 0130: 00 00 00
 0131: 00 00 00
+
+// low shelf r
 0132: 28 e4 20  // opcode:20 write:08 eram:0 reg:64
 0133: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
 0134: 00 65 85  // opcode:00 write:00 eram:0 reg:65
 0135: c0 50 86  // opcode:c0 write:00 eram:0 reg:50
 0136: 00 66 7a  // opcode:00 write:00 eram:0 reg:66
 0137: c0 50 7a  // opcode:c0 write:00 eram:0 reg:50
+
+// high shelf r
 0138: 20 66 ca  // opcode:20 write:00 eram:0 reg:66
 0139: c0 50 7f  // opcode:c0 write:00 eram:0 reg:50
 013a: 08 e5 20  // opcode:00 write:08 eram:0 reg:65
 013b: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
 013c: 00 67 35  // opcode:00 write:00 eram:0 reg:67
 013d: c0 50 81  // opcode:c0 write:00 eram:0 reg:50
+
+// out r
 013e: 00 00 00
 013f: 00 00 00
 0140: 08 66 00  // opcode:00 write:08 eram:0 reg:66
 0141: 08 77 00  // opcode:00 write:08 eram:0 reg:77
+
 0142: 00 00 00
 0143: 00 00 00
 0144: 00 00 00
@@ -368,6 +400,8 @@
 01ef: 00 00 00
 01f0: 00 00 00
 01f1: 00 00 00
+
+
 01f2: 20 79 61  // opcode:20 write:00 eram:0 reg:79
 01f3: c8 7e 7f  // opcode:c0 write:08 eram:0 reg:7e
 01f4: 00 00 00

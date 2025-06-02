@@ -71,6 +71,7 @@ public:
   DspAccumulator accB;
   uint8_t bufferPos = 0;
   int32_t iram[0x200] = {0};
+  uint8_t prevRR = 0;
 
   // Special regs
   int32_t eramWriteLatch = 0;    // 0x10
@@ -126,6 +127,8 @@ private:
     } else if (opcode == 0xc0 || opcode == 0xe0) {
       doInstrSpecialReg(ii, rr, cc);
     }
+
+    prevRR = rr;
   }
 
   void commonDoEram(uint8_t command) {
@@ -250,7 +253,7 @@ private:
       return;
     }
 
-    // special -> acc
+    // special case 50/d0
     if (writeCtrl == 0x00) {
       if (specialSlot == 0x10) {
         // TODO: check if it uses sat or not
@@ -259,6 +262,20 @@ private:
         int32_t incr = accDest.sat24() * cc;
         incr >>= mulScaler;
         incr >>= 8;
+
+        uint8_t prevMem = prevRR & 0x7f;
+        if (prevMem == 1 || prevMem == 2 || prevMem == 3 || prevMem == 4) {
+          int prevShift = 0;
+          if (prevMem == 2)
+            prevShift = 5;
+          else if (prevMem == 3)
+            prevShift = 10;
+          else if (prevMem == 4)
+            prevShift = 15;
+          incr = ((uint8_t)cc) << prevShift;
+          incr >>= mulScaler;
+          incr >>= 1;
+        }
 
         if (replaceAcc) {
           accDest.set(incr);

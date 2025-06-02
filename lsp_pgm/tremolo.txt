@@ -28,9 +28,9 @@
 0099: 00 00 00
 009a: 10 07 00  // opcode:00 write:10 mem_offs:07 shift:0
 009b: 00 00 00
-009c: 20 8a 20  // opcode:20          mem_offs:0a shift:1
 
 // modulation speed
+009c: 20 8a 20  // opcode:20          mem_offs:0a shift:1
 009d: 00 82 0c  // opcode:00          mem_offs:02 shift:1
 009e: c0 d0 7e  // opcode:c0          mem_offs:50 shift:1
 009f: 00 00 00

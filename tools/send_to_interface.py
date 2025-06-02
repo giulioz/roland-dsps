@@ -10,6 +10,8 @@ def read_hex_file(filename):
           continue
       if line.strip() == '':
           continue
+      if line[4] == ':':
+        line = line[5:]
       parts = line.strip().split()[0:3]
       parts.append('00')
       # print(list(hex(int(b, 16)) for b in parts))

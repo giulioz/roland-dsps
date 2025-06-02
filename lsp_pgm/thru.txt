@@ -1,16 +1,16 @@
-0080: 20 78 7f  // opcode:20 write:0 reg:78 scaler:0    accA = ($78 * 0x7f) >> 7
+0080: 20 78 7f  // opcode:20         reg:78 scaler:0    accA = ($78 * 0x7f) >> 7
 0081: c8 7e 7f  // opcode:c0 write:8 reg:7e scaler:0    accA = (inputL * 0x7f) >> 7
 0082: 00 00 00
 0083: 28 f5 7f  // opcode:20 write:8 reg:75 scaler:1    $75 = accA@0080 (($78 * 0x7f) >> 7); accA = ($75 * 0x7f) >> 5
 0084: 28 75 20  // opcode:20 write:8 reg:75 scaler:0    $75 = accA@0081 ((inputL * 0x7f) >> 7); accA = ($75 * 0x20) >> 7
-0085: 20 81 20  // opcode:20 write:0 reg:01 scaler:1    accA = 0x20 << 2
+0085: 20 81 20  // opcode:20         reg:01 scaler:1    accA = 0x20 << 2
 0086: 08 75 7f  // opcode:00 write:8 reg:75 scaler:0    $75 = accA@0083 (($75 * 0x7f) >> 5); accA = $7
 0087: 08 7e 00  // opcode:00 write:8 reg:7e scaler:0    $7e = accA@0084 (($75 * 0x20) >> 7)
 0088: 00 00 00
 0089: c8 58 00  // opcode:c0 write:8 reg:58 scaler:0    $58 = accA@0086; outputL = accA@0086 ()
 
-008a: 20 ff 20  // opcode:20 write:0 reg:7f scaler:1    accA = $7f
-008b: 20 fe 20  // opcode:20 write:0 reg:7e scaler:1    accA = $7e
+008a: 20 ff 20  // opcode:20         reg:7f scaler:1    accA = $7f
+008b: 20 fe 20  // opcode:20         reg:7e scaler:1    accA = $7e
 008c: 00 00 00
 008d: 08 79 00  // opcode:00 write:8 reg:79 scaler:0    $79 = accA@008a ($7f)
 008e: 08 77 00  // opcode:00 write:8 reg:77 scaler:0    $77 = accA@008b ($7e)
@@ -372,12 +372,12 @@
 01f1: 00 00 00
 
 
-01f2: 20 79 7f  // opcode:20 write:0 reg:79 scaler:0
+01f2: 20 79 7f  // opcode:20         reg:79 scaler:0
 01f3: c8 7e 7f  // opcode:c0 write:8 reg:7e scaler:0    accA = (inputR * 0x7f) >> 7
 01f4: 00 00 00
 01f5: 28 f5 7f  // opcode:20 write:8 reg:75 scaler:1
 01f6: 28 75 20  // opcode:20 write:8 reg:75 scaler:0
-01f7: 20 81 20  // opcode:20 write:0 reg:01 scaler:1
+01f7: 20 81 20  // opcode:20         reg:01 scaler:1
 01f8: 08 75 7f  // opcode:00 write:8 reg:75 scaler:0
 01f9: 08 7e 00  // opcode:00 write:8 reg:7e scaler:0
 01fa: 00 00 00

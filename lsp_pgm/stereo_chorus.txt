@@ -1,221 +1,221 @@
-0080: 20 78 61  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:78
-0081: c8 7e 7f  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:7e
+0080: 20 78 61  // opcode:20 write:00 eram:0 scale:0 ofst:78
+0081: c8 7e 7f  // opcode:c0 write:08 eram:0 scale:0 ofst:7e
 0082: 00 00 00
-0083: 28 f5 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:000 scale:1 ofst:75
-0084: 28 75 20  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-0085: 20 81 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:01
-0086: 08 75 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-0087: 08 7e 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:7e
+0083: 28 f5 7f  // opcode:20 write:08 eram:0 scale:1 ofst:75
+0084: 28 75 20  // opcode:20 write:08 eram:0 scale:0 ofst:75
+0085: 20 81 20  // opcode:20 write:00 eram:0 scale:1 ofst:01
+0086: 08 75 7f  // opcode:00 write:08 eram:0 scale:0 ofst:75
+0087: 08 7e 00  // opcode:00 write:08 eram:0 scale:0 ofst:7e
 0088: 00 00 00
-0089: c8 58 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:58
+0089: c8 58 00  // opcode:c0 write:08 eram:0 scale:0 ofst:58
 
 
-008a: 20 10 00  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:10
-008b: 00 7f 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:7f
+008a: 20 10 00  // opcode:20 write:00 eram:0 scale:0 ofst:10
+008b: 00 7f 7f  // opcode:00 write:00 eram:0 scale:0 ofst:7f
 008c: 00 00 00
-008d: 20 88 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:08
-008e: 08 75 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-008f: c0 50 c0  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+008d: 20 88 20  // opcode:20 write:00 eram:0 scale:1 ofst:08
+008e: 08 75 7f  // opcode:00 write:08 eram:0 scale:0 ofst:75
+008f: c0 50 c0  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 0090: 00 00 00
-0091: 20 88 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:08
-0092: 08 20 ff  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:20
-0093: c0 50 80  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+0091: 20 88 20  // opcode:20 write:00 eram:0 scale:1 ofst:08
+0092: 08 20 ff  // opcode:00 write:08 eram:0 scale:0 ofst:20
+0093: c0 50 80  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 0094: 00 00 00
 0095: 00 00 00
-0096: 08 07 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:07
-0097: 20 12 00  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:12
-0098: 00 7e 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:7e
+0096: 08 07 00  // opcode:00 write:08 eram:0 scale:0 ofst:07
+0097: 20 12 00  // opcode:20 write:00 eram:0 scale:0 ofst:12
+0098: 00 7e 7f  // opcode:00 write:00 eram:0 scale:0 ofst:7e
 0099: 00 00 00
-009a: 20 8a 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:0a
-009b: 08 75 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-009c: c0 50 c0  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+009a: 20 8a 20  // opcode:20 write:00 eram:0 scale:1 ofst:0a
+009b: 08 75 7f  // opcode:00 write:08 eram:0 scale:0 ofst:75
+009c: c0 50 c0  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 009d: 00 00 00
-009e: 20 8a 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:0a
-009f: 08 23 ff  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:23
-00a0: c0 50 80  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+009e: 20 8a 20  // opcode:20 write:00 eram:0 scale:1 ofst:0a
+009f: 08 23 ff  // opcode:00 write:08 eram:0 scale:0 ofst:23
+00a0: c0 50 80  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 00a1: 00 00 00
 00a2: 00 00 00
-00a3: 08 09 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:09
+00a3: 08 09 00  // opcode:00 write:08 eram:0 scale:0 ofst:09
 
 // pre filter l
-00a4: 26 20 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:110 scale:0 ofst:20
-00a5: 00 21 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:21
-00a6: 00 22 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:22
+00a4: 26 20 7f  // opcode:20 write:00 eram:6 scale:0 ofst:20
+00a5: 00 21 00  // opcode:00 write:00 eram:0 scale:0 ofst:21
+00a6: 00 22 00  // opcode:00 write:00 eram:0 scale:0 ofst:22
 00a7: 00 00 00
 00a8: 00 00 00
 
-00a9: 28 21 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:000 scale:0 ofst:21
+00a9: 28 21 7f  // opcode:20 write:08 eram:0 scale:0 ofst:21
 00aa: 00 00 00
 00ab: 00 00 00
-00ac: c8 50 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:50
+00ac: c8 50 00  // opcode:c0 write:08 eram:0 scale:0 ofst:50
 
 // pre filter r
-00ad: 26 23 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:110 scale:0 ofst:23
-00ae: 00 24 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:24
-00af: 00 25 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:25
+00ad: 26 23 7f  // opcode:20 write:00 eram:6 scale:0 ofst:23
+00ae: 00 24 00  // opcode:00 write:00 eram:0 scale:0 ofst:24
+00af: 00 25 00  // opcode:00 write:00 eram:0 scale:0 ofst:25
 00b0: 00 00 00
 00b1: 00 00 00
 
-00b2: 2c 24 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:100 scale:0 ofst:24
+00b2: 2c 24 7f  // opcode:20 write:08 eram:4 scale:0 ofst:24
 00b3: 00 00 00
 00b4: 00 00 00
-00b5: c8 50 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:50
+00b5: c8 50 00  // opcode:c0 write:08 eram:0 scale:0 ofst:50
 
 // rate
-00b6: 20 96 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:16
-00b7: 00 82 01  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:02
-00b8: c0 d0 d6  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
+00b6: 20 96 20  // opcode:20 write:00 eram:0 scale:1 ofst:16
+00b7: 00 82 01  // opcode:00 write:00 eram:0 scale:1 ofst:02
+00b8: c0 d0 d6  // opcode:c0 write:00 eram:0 scale:1 ofst:50
 00b9: 00 00 00
 00ba: 00 00 00
 
-00bb: b8 15 80  // bus:1 acc:0 repl:1 str_b:1 str_a:1 eram:000 scale:0 ofst:15
+00bb: b8 15 80  // opcode:a0 write:18 eram:0 scale:0 ofst:15
 00bc: 00 00 00
 00bd: 00 00 00
-00be: c8 54 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:54
-00bf: 88 75 09  // bus:1 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-00c0: 80 75 41  // bus:1 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:75
+00be: c8 54 00  // opcode:c0 write:08 eram:0 scale:0 ofst:54
+00bf: 88 75 09  // opcode:80 write:08 eram:0 scale:0 ofst:75
+00c0: 80 75 41  // opcode:80 write:00 eram:0 scale:0 ofst:75
 00c1: 00 00 00
-00c2: 20 f5 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:75
-00c3: 08 f6 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:76
-00c4: 20 84 00  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:04
+00c2: 20 f5 20  // opcode:20 write:00 eram:0 scale:1 ofst:75
+00c3: 08 f6 00  // opcode:00 write:08 eram:0 scale:1 ofst:76
+00c4: 20 84 00  // opcode:20 write:00 eram:0 scale:1 ofst:04
 // pre-delay 1
-00c5: c0 d0 20  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
+00c5: c0 d0 20  // opcode:c0 write:00 eram:0 scale:1 ofst:50
 // depth
-00c6: 08 75 05  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-00c7: c0 50 2a  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+00c6: 08 75 05  // opcode:00 write:08 eram:0 scale:0 ofst:75
+00c7: c0 50 2a  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 00c8: 00 00 00
-00c9: 00 84 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:04
+00c9: 00 84 00  // opcode:00 write:00 eram:0 scale:1 ofst:04
 // pre-delay 1
-00ca: c0 d0 20  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
+00ca: c0 d0 20  // opcode:c0 write:00 eram:0 scale:1 ofst:50
 00cb: 00 00 00
 00cc: 00 00 00
-00cd: d8 53 00  // bus:1 acc:1 repl:0 str_b:1 str_a:1 eram:000 scale:0 ofst:53
-00ce: 04 00 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:100 scale:0 ofst:00
-00cf: 02 00 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:010 scale:0 ofst:00
+00cd: d8 53 00  // opcode:c0 write:18 eram:0 scale:0 ofst:53
+00ce: 04 00 00  // opcode:00 write:00 eram:4 scale:0 ofst:00
+00cf: 02 00 00  // opcode:00 write:00 eram:2 scale:0 ofst:00
 00d0: 00 00 00
 00d1: 00 00 00
 00d2: 00 00 00
 00d3: 00 00 00
-00d4: 04 00 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:100 scale:0 ofst:00
+00d4: 04 00 00  // opcode:00 write:00 eram:4 scale:0 ofst:00
 00d5: 00 00 00
 00d6: 00 00 00
 00d7: 00 00 00
 00d8: 00 00 00
 00d9: 00 00 00
-00da: c8 7b 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:7b
+00da: c8 7b 00  // opcode:c0 write:08 eram:0 scale:0 ofst:7b
 00db: 00 00 00
 00dc: 00 00 00
 00dd: 00 00 00
 00de: 00 00 00
-00df: 80 7b 09  // bus:1 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:7b
-00e0: c8 da 20  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:5a
-00e1: 80 7a 05  // bus:1 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:7a
+00df: 80 7b 09  // opcode:80 write:00 eram:0 scale:0 ofst:7b
+00e0: c8 da 20  // opcode:c0 write:08 eram:0 scale:1 ofst:5a
+00e1: 80 7a 05  // opcode:80 write:00 eram:0 scale:0 ofst:7a
 00e2: 00 00 00
 00e3: 00 00 00
-00e4: 28 f5 20  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:000 scale:1 ofst:75
+00e4: 28 f5 20  // opcode:20 write:08 eram:0 scale:1 ofst:75
 00e5: 00 00 00
 // balance
-00e6: 20 7f 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:7f
-00e7: 08 0f 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:0f
+00e6: 20 7f 7f  // opcode:20 write:00 eram:0 scale:0 ofst:7f
+00e7: 08 0f 7f  // opcode:00 write:08 eram:0 scale:0 ofst:0f
 
 // low shelf l
-00e8: 20 61 85  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:61
-00e9: c0 50 86  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
-00ea: 08 e0 20  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:60
-00eb: c0 d0 00  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
-00ec: 00 62 7a  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:62
-00ed: c0 50 7a  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+00e8: 20 61 85  // opcode:20 write:00 eram:0 scale:0 ofst:61
+00e9: c0 50 86  // opcode:c0 write:00 eram:0 scale:0 ofst:50
+00ea: 08 e0 20  // opcode:00 write:08 eram:0 scale:1 ofst:60
+00eb: c0 d0 00  // opcode:c0 write:00 eram:0 scale:1 ofst:50
+00ec: 00 62 7a  // opcode:00 write:00 eram:0 scale:0 ofst:62
+00ed: c0 50 7a  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 
 // high shelf l
-00ee: 20 62 ca  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:62
-00ef: c0 50 7f  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
-00f0: 08 e1 20  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:61
-00f1: c0 d0 00  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
-00f2: 00 63 35  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:63
-00f3: c0 50 81  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+00ee: 20 62 ca  // opcode:20 write:00 eram:0 scale:0 ofst:62
+00ef: c0 50 7f  // opcode:c0 write:00 eram:0 scale:0 ofst:50
+00f0: 08 e1 20  // opcode:00 write:08 eram:0 scale:1 ofst:61
+00f1: c0 d0 00  // opcode:c0 write:00 eram:0 scale:1 ofst:50
+00f2: 00 63 35  // opcode:00 write:00 eram:0 scale:0 ofst:63
+00f3: c0 50 81  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 
 // out L
 00f4: 00 00 00
 00f5: 00 00 00
-00f6: 08 62 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:62
-00f7: 08 79 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:79
+00f6: 08 62 00  // opcode:00 write:08 eram:0 scale:0 ofst:62
+00f7: 08 79 00  // opcode:00 write:08 eram:0 scale:0 ofst:79
 
 // phase
-00f8: 20 95 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:15
-00f9: 00 84 40  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:04
-00fa: c0 d0 00  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
+00f8: 20 95 20  // opcode:20 write:00 eram:0 scale:1 ofst:15
+00f9: 00 84 40  // opcode:00 write:00 eram:0 scale:1 ofst:04
+00fa: c0 d0 00  // opcode:c0 write:00 eram:0 scale:1 ofst:50
 00fb: 00 00 00
 00fc: 00 00 00
-00fd: b8 75 80  // bus:1 acc:0 repl:1 str_b:1 str_a:1 eram:000 scale:0 ofst:75
+00fd: b8 75 80  // opcode:a0 write:18 eram:0 scale:0 ofst:75
 00fe: 00 00 00
 00ff: 00 00 00
-0100: c8 54 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:54
-0101: 88 75 09  // bus:1 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-0102: 80 75 41  // bus:1 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:75
+0100: c8 54 00  // opcode:c0 write:08 eram:0 scale:0 ofst:54
+0101: 88 75 09  // opcode:80 write:08 eram:0 scale:0 ofst:75
+0102: 80 75 41  // opcode:80 write:00 eram:0 scale:0 ofst:75
 0103: 00 00 00
-0104: 20 f5 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:75
-0105: 08 f6 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:76
-0106: 20 84 40  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:04
-0107: c0 d0 20  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
-0108: 08 75 05  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-0109: c0 50 2a  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+0104: 20 f5 20  // opcode:20 write:00 eram:0 scale:1 ofst:75
+0105: 08 f6 00  // opcode:00 write:08 eram:0 scale:1 ofst:76
+0106: 20 84 40  // opcode:20 write:00 eram:0 scale:1 ofst:04
+0107: c0 d0 20  // opcode:c0 write:00 eram:0 scale:1 ofst:50
+0108: 08 75 05  // opcode:00 write:08 eram:0 scale:0 ofst:75
+0109: c0 50 2a  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 010a: 00 00 00
-010b: 00 84 40  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:04
-010c: c0 d0 20  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
+010b: 00 84 40  // opcode:00 write:00 eram:0 scale:1 ofst:04
+010c: c0 d0 20  // opcode:c0 write:00 eram:0 scale:1 ofst:50
 010d: 00 00 00
 010e: 00 00 00
 010f: 00 00 00
-0110: d8 53 00  // bus:1 acc:1 repl:0 str_b:1 str_a:1 eram:000 scale:0 ofst:53
-0111: 04 00 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:100 scale:0 ofst:00
-0112: 02 00 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:010 scale:0 ofst:00
+0110: d8 53 00  // opcode:c0 write:18 eram:0 scale:0 ofst:53
+0111: 04 00 00  // opcode:00 write:00 eram:4 scale:0 ofst:00
+0112: 02 00 00  // opcode:00 write:00 eram:2 scale:0 ofst:00
 0113: 00 00 00
 0114: 00 00 00
 0115: 00 00 00
 0116: 00 00 00
-0117: 04 00 00  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:100 scale:0 ofst:00
+0117: 04 00 00  // opcode:00 write:00 eram:4 scale:0 ofst:00
 0118: 00 00 00
 0119: 00 00 00
 011a: 00 00 00
 011b: 00 00 00
 011c: 00 00 00
-011d: c8 7b 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:7b
+011d: c8 7b 00  // opcode:c0 write:08 eram:0 scale:0 ofst:7b
 011e: 00 00 00
 011f: 00 00 00
 0120: 00 00 00
 0121: 00 00 00
-0122: 80 7b 09  // bus:1 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:7b
-0123: c8 da 20  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:5a
-0124: 80 7a 05  // bus:1 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:7a
+0122: 80 7b 09  // opcode:80 write:00 eram:0 scale:0 ofst:7b
+0123: c8 da 20  // opcode:c0 write:08 eram:0 scale:1 ofst:5a
+0124: 80 7a 05  // opcode:80 write:00 eram:0 scale:0 ofst:7a
 0125: 00 00 00
 0126: 00 00 00
-0127: 28 f5 20  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:000 scale:1 ofst:75
+0127: 28 f5 20  // opcode:20 write:08 eram:0 scale:1 ofst:75
 0128: 00 00 00
 
 // balance
-0129: 20 7e 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:7e
-012a: 08 11 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:11
+0129: 20 7e 7f  // opcode:20 write:00 eram:0 scale:0 ofst:7e
+012a: 08 11 7f  // opcode:00 write:08 eram:0 scale:0 ofst:11
 
 // low shelf r
-012b: 20 65 85  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:65
-012c: c0 50 86  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
-012d: 08 e4 20  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:64
-012e: c0 d0 00  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
-012f: 00 66 7a  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:66
-0130: c0 50 7a  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+012b: 20 65 85  // opcode:20 write:00 eram:0 scale:0 ofst:65
+012c: c0 50 86  // opcode:c0 write:00 eram:0 scale:0 ofst:50
+012d: 08 e4 20  // opcode:00 write:08 eram:0 scale:1 ofst:64
+012e: c0 d0 00  // opcode:c0 write:00 eram:0 scale:1 ofst:50
+012f: 00 66 7a  // opcode:00 write:00 eram:0 scale:0 ofst:66
+0130: c0 50 7a  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 
 // high shelf r
-0131: 20 66 ca  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:66
-0132: c0 50 7f  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
-0133: 08 e5 20  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:1 ofst:65
-0134: c0 d0 00  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:1 ofst:50
-0135: 00 67 35  // bus:0 acc:0 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:67
-0136: c0 50 81  // bus:1 acc:1 repl:0 str_b:0 str_a:0 eram:000 scale:0 ofst:50
+0131: 20 66 ca  // opcode:20 write:00 eram:0 scale:0 ofst:66
+0132: c0 50 7f  // opcode:c0 write:00 eram:0 scale:0 ofst:50
+0133: 08 e5 20  // opcode:00 write:08 eram:0 scale:1 ofst:65
+0134: c0 d0 00  // opcode:c0 write:00 eram:0 scale:1 ofst:50
+0135: 00 67 35  // opcode:00 write:00 eram:0 scale:0 ofst:67
+0136: c0 50 81  // opcode:c0 write:00 eram:0 scale:0 ofst:50
 
 // out R
 0137: 00 00 00
 0138: 00 00 00
-0139: 08 66 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:66
-013a: 08 77 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:77
+0139: 08 66 00  // opcode:00 write:08 eram:0 scale:0 ofst:66
+013a: 08 77 00  // opcode:00 write:08 eram:0 scale:0 ofst:77
 
 
 013b: 00 00 00
@@ -403,17 +403,17 @@
 01f1: 00 00 00
 
 
-01f2: 20 79 61  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:0 ofst:79
-01f3: c8 7e 7f  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:7e
+01f2: 20 79 61  // opcode:20 write:00 eram:0 scale:0 ofst:79
+01f3: c8 7e 7f  // opcode:c0 write:08 eram:0 scale:0 ofst:7e
 01f4: 00 00 00
-01f5: 28 f5 7f  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:000 scale:1 ofst:75
-01f6: 28 75 20  // bus:0 acc:0 repl:1 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-01f7: 20 81 20  // bus:0 acc:0 repl:1 str_b:0 str_a:0 eram:000 scale:1 ofst:01
-01f8: 08 75 7f  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:75
-01f9: 08 7e 00  // bus:0 acc:0 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:7e
+01f5: 28 f5 7f  // opcode:20 write:08 eram:0 scale:1 ofst:75
+01f6: 28 75 20  // opcode:20 write:08 eram:0 scale:0 ofst:75
+01f7: 20 81 20  // opcode:20 write:00 eram:0 scale:1 ofst:01
+01f8: 08 75 7f  // opcode:00 write:08 eram:0 scale:0 ofst:75
+01f9: 08 7e 00  // opcode:00 write:08 eram:0 scale:0 ofst:7e
 01fa: 00 00 00
-01fb: c8 58 00  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:58
-01fc: c8 6f fe  // bus:1 acc:1 repl:0 str_b:0 str_a:1 eram:000 scale:0 ofst:6f
+01fb: c8 58 00  // opcode:c0 write:08 eram:0 scale:0 ofst:58
+01fc: c8 6f fe  // opcode:c0 write:08 eram:0 scale:0 ofst:6f
 01fd: 00 00 00
 01fe: 00 00 00
 01ff: 00 00 00

@@ -117,8 +117,12 @@ int main() {
   int iramIdx = 0x80;
   while (fgets(line, sizeof(line), pgmFile)) {
     int b1, b2, b3;
-    if (sscanf(line, "%*[^:]: %2x %2x %2x", &b1, &b2, &b3) == 3) {
-    // if (sscanf(line, "%2x %2x %2x", &b1, &b2, &b3) == 3) {
+    const char *format = "%2x %2x %2x";
+    if (line[4] == ':') {
+      format = "%*[^:]: %2x %2x %2x";
+    }
+    if (sscanf(line, format, &b1, &b2, &b3) == 3) {
+      // if (sscanf(line, "%2x %2x %2x", &b1, &b2, &b3) == 3) {
       int32_t value = (b1 << 16) | (b2 << 8) | b3;
       state.iram[iramIdx++] = value;
     }
@@ -129,7 +133,7 @@ int main() {
   std::vector<int16_t> audioSamples;
   int sampleRate = 0;
   int numChannels = 0;
-  read_wav("input_guit.wav", audioSamples, sampleRate, numChannels);
+  read_wav("input_piano.wav", audioSamples, sampleRate, numChannels);
 
   std::vector<int16_t> audioOutput;
 

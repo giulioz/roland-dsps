@@ -66,31 +66,55 @@ void testIo() {
 }
 
 void testAbs() {
-  LspState state;
-  state.iram[1 + 0x80] = 0x200101;
-  state.iram[4 + 0x80] = 0x080000;
-  state.iram[11 + 0x80] = 0x2003ff;
-  state.iram[14 + 0x80] = 0x081500;
-  state.iram[23 + 0x80] = 0x200142;
-  state.iram[24 + 0x80] = 0x600143;
-  state.iram[28 + 0x80] = 0xa0157f;
-  state.iram[32 + 0x80] = 0x080400;
-  state.iram[33 + 0x80] = 0x100500;
-  state.iram[34 + 0x80] = 0x180600;
-  state.runProgram();
-  for (size_t i = 0; i < 0x80; i++) {
-    if (i == 0x00)
-      expectEqual("testAbs", state.iram[i], sign_extend_24(0x000001));
-    else if (i == 0x04)
-      expectEqual("testAbs", state.iram[i], sign_extend_24(0x0003f8));
-    else if (i == 0x05)
-      expectEqual("testAbs", state.iram[i], sign_extend_24(0x000043));
-    else if (i == 0x06)
-      expectEqual("testAbs", state.iram[i], sign_extend_24(0x0003f8));
-    else if (i == 0x15)
-      expectEqual("testAbs", state.iram[i], sign_extend_24(0xfffc00));
-    else
-      expectEqual("testAbs", state.iram[i], 0x000000);
+  {
+    LspState state;
+    state.iram[1 + 0x80] = 0x200101;
+    state.iram[4 + 0x80] = 0x080000;
+    state.iram[11 + 0x80] = 0x2003ff;
+    state.iram[14 + 0x80] = 0x081500;
+    state.iram[23 + 0x80] = 0x200142;
+    state.iram[24 + 0x80] = 0x600143;
+    state.iram[28 + 0x80] = 0xa0157f;
+    state.iram[32 + 0x80] = 0x080400;
+    state.iram[33 + 0x80] = 0x100500;
+    state.iram[34 + 0x80] = 0x180600;
+    state.runProgram();
+    for (size_t i = 0; i < 0x80; i++) {
+      if (i == 0x00)
+        expectEqual("testAbs", state.iram[i], sign_extend_24(0x000001));
+      else if (i == 0x04)
+        expectEqual("testAbs", state.iram[i], sign_extend_24(0x0003f8));
+      else if (i == 0x05)
+        expectEqual("testAbs", state.iram[i], sign_extend_24(0x000043));
+      else if (i == 0x06)
+        expectEqual("testAbs", state.iram[i], sign_extend_24(0x0003f8));
+      else if (i == 0x15)
+        expectEqual("testAbs", state.iram[i], sign_extend_24(0xfffc00));
+      else
+        expectEqual("testAbs", state.iram[i], 0x000000);
+    }
+  }
+  {
+    LspState state;
+    state.iram[15 + 0x80] = 0x2004a4;
+    state.iram[23 + 0x80] = 0xb80580;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("testAbs", state.iram[0x01], sign_extend_24(0x2e0000));
+    expectEqual("testAbs", state.iram[0x02], sign_extend_24(0x2e0000));
+    expectEqual("testAbs", state.iram[0x05], sign_extend_24(0xd20000));
+  }
+  {
+    LspState state;
+    state.iram[15 + 0x80] = 0x2001a4;
+    state.iram[23 + 0x80] = 0xb80580;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("testAbs", state.iram[0x01], sign_extend_24(0x00005c));
+    expectEqual("testAbs", state.iram[0x02], sign_extend_24(0x00005c));
+    expectEqual("testAbs", state.iram[0x05], sign_extend_24(0xffffa4));
   }
 }
 
@@ -266,11 +290,33 @@ void testMultStaged() {
   }
 }
 
+void test50() {
+  {
+    LspState state;
+    state.iram[15 + 0x80] = 0x20022f;
+    state.iram[16 + 0x80] = 0xc05060;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("test50", state.iram[0x01], sign_extend_24(0x0005ec));
+  }
+  {
+    LspState state;
+    state.iram[15 + 0x80] = 0x20022f;
+    state.iram[16 + 0x80] = 0xc05090;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("test50", state.iram[0x01], sign_extend_24(0x0005f2));
+  }
+}
+
 int main() {
   testBasic();
   testIo();
   testAbs();
   testMultSimple();
   testMultStaged();
+  test50();
   return 0;
 }

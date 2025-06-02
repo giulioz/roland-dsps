@@ -108,16 +108,30 @@ b8 mm cc  $mm = accA_unsat; accA = abc(($mm * cc) >> 7)
 
 ## Instructions c0-ff
 
-// TODO: rounding seems 1-off on cc
-// uses the accumulator value from the prev instruction
-c0 50 cc  accA = accA + ((accA * cc) >> 15)
-c0 d0 cc  accA = accA + ((accA * cc) >> 13)
-e0 50 cc  accB = accB + ((accB * cc) >> 15)
-e0 d0 cc  accB = accB + ((accB * cc) >> 13)
-c0 70 cc  accA = ((accA * cc) >> 15)
-c0 f0 cc  accA = ((accA * cc) >> 13)
-e0 70 cc  accB = ((accB * cc) >> 15)
-e0 f0 cc  accB = ((accB * cc) >> 13)
+// WRONG! --------------------------
+  // TODO: rounding seems 1-off on cc
+  // uses the accumulator value from the prev instruction
+  c0 50 cc  accA = accA + ((accA * cc) >> 15)
+  c0 d0 cc  accA = accA + ((accA * cc) >> 13)
+  e0 50 cc  accB = accB + ((accB * cc) >> 15)
+  e0 d0 cc  accB = accB + ((accB * cc) >> 13)
+  c0 70 cc  accA = ((accA * cc) >> 15)
+  c0 f0 cc  accA = ((accA * cc) >> 13)
+  e0 70 cc  accB = ((accB * cc) >> 15)
+  e0 f0 cc  accB = ((accB * cc) >> 13)
+// ---------------------------------
+
+
+// after a load/mac immediate
+c0 50 cc  accA = accA + ((unsigned(cc) << prev_shift) >> 7 >> 1)
+c0 d0 cc  accA = accA + ((unsigned(cc) << prev_shift) >> 5 >> 1)
+e0 50 cc  accB = accB + ((unsigned(cc) << prev_shift) >> 7 >> 1)
+e0 d0 cc  accB = accB + ((unsigned(cc) << prev_shift) >> 5 >> 1)
+c0 70 cc  accA = ((unsigned(cc) << prev_shift) >> 7 >> 1)
+c0 f0 cc  accA = ((unsigned(cc) << prev_shift) >> 5 >> 1)
+e0 70 cc  accB = ((unsigned(cc) << prev_shift) >> 7 >> 1)
+e0 f0 cc  accB = ((unsigned(cc) << prev_shift) >> 5 >> 1)
+
 
 // uses the acc value from the pipeline 3 before
 c8 58 cc  $78 = accA; audio_out = accA; accA = accA + (accA * cc) >> 7
