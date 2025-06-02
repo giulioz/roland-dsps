@@ -256,14 +256,11 @@ private:
     // special case 50/d0
     if (writeCtrl == 0x00) {
       if (specialSlot == 0x10) {
-        // TODO: check if it uses sat or not
-        // TODO: this should only get the acc value from the prev instruction
-        // result (does this also mean the ram write latch is set this way?)
-        int32_t incr = accDest.sat24() * cc;
-        incr >>= mulScaler;
-        incr >>= 8;
-
         uint8_t prevMem = prevRR & 0x7f;
+
+        int32_t incr = readMemOffs(prevMem) * (uint8_t)cc;
+        incr >>= 7;
+
         if (prevMem == 1 || prevMem == 2 || prevMem == 3 || prevMem == 4) {
           int prevShift = 0;
           if (prevMem == 2)
@@ -273,9 +270,10 @@ private:
           else if (prevMem == 4)
             prevShift = 15;
           incr = ((uint8_t)cc) << prevShift;
-          incr >>= mulScaler;
-          incr >>= 1;
         }
+
+        incr >>= 1;
+        incr >>= mulScaler;
 
         if (replaceAcc) {
           accDest.set(incr);

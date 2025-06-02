@@ -148,6 +148,8 @@ int main() {
 
     // state.audioInL <<= 6;
     // state.audioInR <<= 6;
+    state.audioInL >>= 1;
+    state.audioInR >>= 1;
 
     state.runProgram();
 

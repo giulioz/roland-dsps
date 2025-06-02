@@ -291,23 +291,66 @@ void testMultStaged() {
 }
 
 void test50() {
+  // With immediate
   {
     LspState state;
     state.iram[15 + 0x80] = 0x20022f;
     state.iram[16 + 0x80] = 0xc05060;
     state.iram[31 + 0x80] = 0x080100;
-    state.iram[32 + 0x80] = 0x180200;
     state.runProgram();
-    expectEqual("test50", state.iram[0x01], sign_extend_24(0x0005ec));
+    expectEqual("test50_imm", state.iram[0x01], sign_extend_24(0x0005ec));
   }
   {
     LspState state;
     state.iram[15 + 0x80] = 0x20022f;
     state.iram[16 + 0x80] = 0xc05090;
     state.iram[31 + 0x80] = 0x080100;
+    state.runProgram();
+    expectEqual("test50_imm", state.iram[0x01], sign_extend_24(0x0005f2));
+  }
+  {
+    LspState state;
+    state.iram[15 + 0x80] = 0x20032f;
+    state.iram[16 + 0x80] = 0xc0d0f0;
+    state.iram[31 + 0x80] = 0x080100;
+    state.runProgram();
+    expectEqual("test50_imm", state.iram[0x01], sign_extend_24(0x00cb00));
+  }
+
+  // With mem
+  {
+    LspState state;
+    state.iram[9 + 0x80] = 0x200235;
+    state.iram[13 + 0x80] = 0x083000;
+    state.iram[24 + 0x80] = 0x20302f;
+    state.iram[25 + 0x80] = 0xc0d0f0;
+    state.iram[31 + 0x80] = 0x080100;
+    state.runProgram();
+    expectEqual("test50_mem", state.iram[0x01], sign_extend_24(0x00029f));
+  }
+  {
+    LspState state;
+    state.iram[9 + 0x80] = 0x200349;
+    state.iram[13 + 0x80] = 0x083000;
+    state.iram[24 + 0x80] = 0x203010;
+    state.iram[25 + 0x80] = 0xc0504f;
+    state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
     state.runProgram();
-    expectEqual("test50", state.iram[0x01], sign_extend_24(0x0005f2));
+    expectEqual("test50_mem", state.iram[0x01], sign_extend_24(0x002534));
+    expectEqual("test50_mem", state.iram[0x02], sign_extend_24(0x002534));
+  }
+  {
+    LspState state;
+    state.iram[9 + 0x80] = 0x200449;
+    state.iram[13 + 0x80] = 0x083000;
+    state.iram[24 + 0x80] = 0x203010;
+    state.iram[25 + 0x80] = 0xc0d0ff;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("test50_mem", state.iram[0x01], sign_extend_24(0x05b2dc));
+    expectEqual("test50_mem", state.iram[0x02], sign_extend_24(0x05b2dc));
   }
 }
 
