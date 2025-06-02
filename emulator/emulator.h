@@ -53,7 +53,7 @@ public:
   }
 
   void fwdPipeline() { head = (head + 1) & 7; }
-  void ensurePipeline() { hist[head] = acc; }
+  void storePipeline() { hist[head] = acc; }
 };
 
 static constexpr int pipelineWriteDelay = 3;
@@ -75,8 +75,8 @@ public:
   // Special regs
   int32_t eramWriteLatch = 0;    // 0x10
   int32_t eramSecondTapOffs = 0; // 0x13
-  int32_t multiplVal1 = 0;       // 0x14
-  int32_t multiplVal2 = 0;       // 0x15
+  int32_t multiplCoef1 = 0;      // 0x14
+  int32_t multiplCoef2 = 0;      // 0x15
   int32_t audioOut = 0;          // 0x18
   int32_t eramRead1 = 0;         // 0x1a
   int32_t eramRead2 = 0;         // 0x1b
@@ -95,8 +95,8 @@ public:
       accA.fwdPipeline();
       accB.fwdPipeline();
       step(instr);
-      accA.ensurePipeline();
-      accB.ensurePipeline();
+      accA.storePipeline();
+      accB.storePipeline();
 
       if (pc >= (0x80 + 384 / 2))
         audioOutL = audioOut;
@@ -129,7 +129,12 @@ private:
   }
 
   void commonDoEram(uint8_t command) {
-    // TODO
+    if (command == 0x00) {
+      // nop
+    } else {
+      // TODO
+      printf("UNIMPLEMENTED RAM %x\n", command);
+    }
   }
 
   void commonDoStore(uint8_t ii, uint8_t rr) {
@@ -182,13 +187,49 @@ private:
   }
 
   void doInstrMul(uint8_t ii, uint8_t rr, int8_t cc) {
-    // TODO
-    printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
-
     uint8_t memOffs = rr & 0x7f;
     uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
 
     commonDoStore(ii, memOffs);
+
+    int32_t opA = readMemOffs(memOffs);
+    if (memOffs == 1)
+      opA = cc << 7;
+    if (memOffs == 2)
+      opA = cc << 12;
+    if (memOffs == 3)
+      opA = cc << 17;
+    if (memOffs == 4)
+      opA = cc << 22;
+
+    int32_t result = 0;
+    if (cc < 0x10) {
+      bool replaceAcc = (cc & 0x8) != 0;
+      bool negate = (cc & 0x4) != 0;
+      int32_t opB = (cc & 0x2) != 0 ? multiplCoef2 : multiplCoef1;
+
+      if (cc == 0x00) {
+        result = 0;
+      } else if (cc == 0x04 || cc == 0x08 || cc == 0xc) {
+        printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+      } else {
+        result = opA * (opB >> 16);
+      }
+
+      // TODO: before or after adding acc?
+      if (negate) {
+        result = -result;
+      }
+
+      result >>= mulScaler;
+
+      if (!replaceAcc) {
+        result += accA.sat24();
+      }
+      accA.set(result);
+    } else {
+      printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+    }
   }
 
   void doInstrSpecialReg(uint8_t ii, uint8_t rr, int8_t cc) {
@@ -225,16 +266,25 @@ private:
       return;
     }
 
+    int32_t src = 0;
+    if (writeCtrl == 0x08) {
+      src = accA.historySat24(pipelineWriteDelay);
+    } else if (writeCtrl == 0x10) {
+      src = accB.historySat24(pipelineWriteDelay);
+    } else if (writeCtrl == 0x18) {
+      src = accA.historyRaw24(pipelineWriteDelay);
+    }
+
     // acc -> special
-    if (specialSlot == 0x18) { // audio out
-      int32_t src = 0;
-      if (writeCtrl == 0x08) {
-        src = accA.historySat24(pipelineWriteDelay);
-      } else if (writeCtrl == 0x10) {
-        src = accB.historySat24(pipelineWriteDelay);
-      } else if (writeCtrl == 0x18) {
-        src = accA.historyRaw24(pipelineWriteDelay);
-      }
+    if (specialSlot == 0x0e) { // unknown
+      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    } else if (specialSlot == 0x0f) { // unknown
+      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    } else if (specialSlot == 0x14) { // multiplCoef1
+      multiplCoef1 = src;
+    } else if (specialSlot == 0x15) { // multiplCoef2
+      multiplCoef2 = src;
+    } else if (specialSlot == 0x18) { // audio out
       writeMemOffs(0x78, src);
       audioOut = src;
 
@@ -246,7 +296,7 @@ private:
         accDest.add(src);
       }
     } else if (specialSlot == 0x1e) { // audio in
-      int32_t src = audioIn;
+      src = audioIn;
       writeMemOffs(0x7e, src);
 
       src *= cc;
@@ -256,10 +306,8 @@ private:
       } else {
         accDest.add(src);
       }
-    } else if (specialSlot == 0x0f) { // unknown
-      // printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
     } else {
-      printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+      printf("unknown special write %02x=%06x\n", specialSlot, src);
       return;
     }
   }

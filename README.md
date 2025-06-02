@@ -95,7 +95,7 @@ Some instructions also access some special internal variables:
 0a   (unused)   accA?
 0b   (unused)   accA?
 0c   accA?
-0d   accA?
+0d   accA 3 slots before?
 0e   constant 0?  some enable (if set to 0 stuff breaks and dram stops writing)
 0f   constant 0?  some enable (if set to 0 stuff breaks and dram stops writing)
 10   ERAM write latch, accA? (shift=15)  NOTE: breaks if you put a nop before

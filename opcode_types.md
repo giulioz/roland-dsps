@@ -129,10 +129,15 @@ c0 7e cc  $7e = special[0x7e]_old; accA = (special[0x7e] * cc) >> 7
 c8 7e cc  $7e = special[0x7e]_old; accA = (special[0x7e] * cc) >> 7
 e8 7e cc  $7e = special[0x7e]_old; accB = (special[0x7e] * cc) >> 7
 
+c8 54 00  mult_a = accA
+d0 54 00  mult_a = accB
+d8 54 00  mult_a = accA_unsat
+
+
 specials:
   4d  rep  ??
-  4e  rep  ??
-  4f  rep  ??
+  4e  rep  ?? some timer/logic? used for square wave gen
+  4f  rep  ?? some timer/logic? used for square wave gen
   50  inc  eram write latch
   53  inc  eram tap offs
   54  inc  mult a
