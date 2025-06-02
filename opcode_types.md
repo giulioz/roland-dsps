@@ -50,43 +50,28 @@
 3. perform mul
 
 coefs
-    00  acc += 00
-    01  acc += ($mem * (special $54 >> 16)) >> 7
-    02  acc += ($mem * (special $55 >> 16)) >> 7
- u  03  acc += ($mem * (special $55 >> 16)) >> 7
+    00  accA += 00
+    01  accA += ($mem * (special $54 >> 16)) >> 7
+    02  accA += ($mem * (special $55 >> 16)) >> 7
+ u  03  accA += ($mem * (special $55 >> 16)) >> 7
 
- u  04  acc += (($mem * 0x40) >> 7) * -1
-    05  acc += ($mem * (special $54 >> 16)) >> 7 * -1
- u  06  acc += ($mem * (special $55 >> 16)) >> 7 * -1
- u  07  acc += ($mem * (special $55 >> 16)) >> 7 * -1
+ u  04  accA += (($mem * 0x40) >> 7) * -1
+    05  accA += ($mem * (special $54 >> 16)) >> 7 * -1
+ u  06  accA += ($mem * (special $55 >> 16)) >> 7 * -1
+ u  07  accA += ($mem * (special $55 >> 16)) >> 7 * -1
 
- u  08  acc  = ($mem * 0x08) >> 7
-    09  acc  = ($mem * (special $54 >> 16)) >> 7
-    0a  acc  = ($mem * (special $55 >> 16)) >> 7
- u  0b  acc  = ($mem * (special $55 >> 16)) >> 7
+ u  08  accA  = ($mem * 0x08) >> 7
+    09  accA  = ($mem * (special $54 >> 16)) >> 7
+    0a  accA  = ($mem * (special $55 >> 16)) >> 7
+ u  0b  accA  = ($mem * (special $55 >> 16)) >> 7
 
- u  0c  acc  = (($mem * 0xc0) >> 7) * -1
-    0d  acc  = ($mem * (special $54 >> 16)) >> 7 * -1
-    0e  acc  = ($mem * (special $55 >> 16)) >> 7 * -1
- u  0f  acc  = ($mem * (special $55 >> 16)) >> 7 * -1
-
- u  10
-    11  special $54
- u  12
- u  13
- u  14
-    15  special $54
- u  16
- u  17
- u  18
-    19  special $54
-    1a  special $55
- u  1b
- u  1c
-    1d  special $54
- u  1e
- u  1f
+ u  0c  accA  = (($mem * 0xc0) >> 7) * -1
+    0d  accA  = ($mem * (special $54 >> 16)) >> 7 * -1
+    0e  accA  = ($mem * (special $55 >> 16)) >> 7 * -1
+ u  0f  accA  = ($mem * (special $55 >> 16)) >> 7 * -1
+    1x  -> same but accB
     
+  (4x/5x) commands only work after a (0x/1x)
  u  40
     41  acc += ($mem * ((special $54 & 0xffff) >> 15)) >> 1 >> 7
     42  acc += ($mem * ((special $55 & 0xffff) >> 15)) >> 1 >> 7
@@ -94,14 +79,7 @@ coefs
  u  44
     45  acc += ($mem * ((special $54 & 0xffff) >> 15)) >> 1 >> 7 * -1
     46  acc += ($mem * ((special $55 & 0xffff) >> 15)) >> 1 >> 7 * -1
-    
- u  50
-    51  special $54  after 19
-    52  special $55  after 1a
- u  53
- u  54
-    55  special $54  after 1d
-
+    5x  -> same but accB
 
 
 ## Instructions a0-b8

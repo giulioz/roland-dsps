@@ -189,8 +189,20 @@ private:
   void doInstrMul(uint8_t ii, uint8_t rr, int8_t cc) {
     uint8_t memOffs = rr & 0x7f;
     uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
+    bool lower = (cc & 0x40) != 0;
+    DspAccumulator &acc = (cc & 0x10) != 0 ? accB : accA;
+    bool negate = (cc & 0x4) != 0;
+    bool replaceAcc = (cc & 0x8) != 0;
+    int32_t opB = (cc & 0x2) != 0 ? multiplCoef2 : multiplCoef1;
 
     commonDoStore(ii, memOffs);
+
+    if (lower) {
+      opB &= 0xffff;
+      opB >>= 9;
+    } else {
+      opB >>= 16;
+    }
 
     int32_t opA = readMemOffs(memOffs);
     if (memOffs == 1)
@@ -202,34 +214,27 @@ private:
     if (memOffs == 4)
       opA = cc << 22;
 
-    int32_t opB = (cc & 0x2) != 0 ? multiplCoef2 : multiplCoef1;
-    bool negate = (cc & 0x4) != 0;
-
     int32_t result = 0;
-    if (cc < 0x10) {
-      bool replaceAcc = (cc & 0x8) != 0;
-      opB >>= 16;
-
-      if (cc == 0x00) {
-        result = 0;
-      } else if (cc == 0x04 || cc == 0x08 || cc == 0xc) {
-        printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
-      } else {
-        result = opA * opB;
-      }
-
-      result >>= mulScaler;
-
-      if (negate) {
-        result = -result;
-      }
-      if (!replaceAcc) {
-        result += accA.sat24();
-      }
-      accA.set(result);
-    } else {
+    if (cc == 0x00) {
+      result = 0;
+    } else if (cc == 0x04 || cc == 0x08 || cc == 0xc) {
       printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+    } else {
+      result = opA * opB;
     }
+
+    result >>= mulScaler;
+    if (lower) {
+      result >>= 7;
+    }
+
+    if (negate) {
+      result = -result;
+    }
+    if (!replaceAcc || lower) {
+      result += acc.sat24();
+    }
+    acc.set(result);
   }
 
   void doInstrSpecialReg(uint8_t ii, uint8_t rr, int8_t cc) {

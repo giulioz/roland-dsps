@@ -181,14 +181,89 @@ void testMultSimple() {
 }
 
 void testMultStaged() {
-  LspState state;
-  state.iram[9 + 0x80] = 0x20037f;
-  state.iram[13 + 0x80] = 0x082000;
-  state.iram[17 + 0x80] = 0x20043f;
-  state.iram[21 + 0x80] = 0xc85400;
-  state.iram[25 + 0x80] = 0x80a009;
-  state.iram[31 + 0x80] = 0x080100;
-  state.iram[32 + 0x80] = 0x180200;
+  {
+    // 09-41
+    LspState state;
+    state.iram[9 + 0x80] = 0x20037f;
+    state.iram[13 + 0x80] = 0x082000;
+    state.iram[17 + 0x80] = 0x20043f;
+    state.iram[21 + 0x80] = 0xc85400;
+    state.iram[25 + 0x80] = 0x802009;
+    state.iram[26 + 0x80] = 0x802041;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x007d04));
+    expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x007d04));
+  }
+
+  {
+    // 09-41
+    LspState state;
+    state.iram[9 + 0x80] = 0x20037f;
+    state.iram[13 + 0x80] = 0x082000;
+    state.iram[17 + 0x80] = 0x20043f;
+    state.iram[18 + 0x80] = 0x000355;
+    state.iram[22 + 0x80] = 0xc85400;
+    state.iram[25 + 0x80] = 0x802009;
+    state.iram[26 + 0x80] = 0x802041;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x008249));
+    expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x008249));
+  }
+
+  {
+    // 09-41
+    LspState state;
+    state.iram[9 + 0x80] = 0x20037f;
+    state.iram[13 + 0x80] = 0x082000;
+    state.iram[17 + 0x80] = 0x20043f;
+    state.iram[18 + 0x80] = 0x000355;
+    state.iram[22 + 0x80] = 0xc85400;
+    state.iram[25 + 0x80] = 0x80a009;
+    state.iram[26 + 0x80] = 0x80a041;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x020925));
+    expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x020925));
+  }
+
+  {
+    // 19-51
+    LspState state;
+    state.iram[9 + 0x80] = 0x20037f;
+    state.iram[13 + 0x80] = 0x082000;
+    state.iram[17 + 0x80] = 0x20043f;
+    state.iram[18 + 0x80] = 0x000355;
+    state.iram[22 + 0x80] = 0xc85400;
+    state.iram[25 + 0x80] = 0x802019;
+    state.iram[26 + 0x80] = 0x802051;
+    state.iram[31 + 0x80] = 0x100100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x008249));
+    expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x20d400));
+  }
+
+  {
+    // 0d-45
+    LspState state;
+    state.iram[9 + 0x80] = 0x20037f;
+    state.iram[13 + 0x80] = 0x082000;
+    state.iram[17 + 0x80] = 0x20043f;
+    state.iram[18 + 0x80] = 0x000355;
+    state.iram[22 + 0x80] = 0xc85400;
+    state.iram[25 + 0x80] = 0x80200d;
+    state.iram[26 + 0x80] = 0x802045;
+    state.iram[31 + 0x80] = 0x080100;
+    state.iram[32 + 0x80] = 0x180200;
+    state.runProgram();
+    expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0xff7db7));
+    expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0xff7db7));
+  }
 }
 
 int main() {
