@@ -25,13 +25,11 @@ static constexpr int32_t clamp_24(int64_t v) {
 }
 
 class DspAccumulator {
-
   int64_t acc = 0;
   std::array<int64_t, 8> hist{};
   std::size_t head = 0;
 
 public:
-  // TODO: should we sign extend here?
   void set(int32_t v) { acc = v; }
   void add(int32_t v) { acc += v; }
 
@@ -71,6 +69,12 @@ public:
   DspAccumulator accB;
   uint8_t bufferPos = 0;
   int32_t iram[0x200] = {0};
+
+  // External RAM
+  int16_t eram[0x10000] = {0};
+  uint16_t eramPos = 0;
+
+  // Pipeline
   uint8_t prevRR = 0;
 
   // Special regs
@@ -106,6 +110,7 @@ public:
     }
 
     bufferPos = (bufferPos - 1) & 0x7f;
+    eramPos -= 1;
   }
 
 private:
@@ -134,6 +139,13 @@ private:
   void commonDoEram(uint8_t command) {
     if (command == 0x00) {
       // nop
+    } else if (command == 0x02) {
+      eramRead1 = eram[eramPos] << 8;
+    } else if (command == 0x04) {
+      eramRead2 = eram[((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff]
+                  << 8;
+    } else if (command == 0x06) {
+      eram[eramPos] = eramWriteLatch >> 8;
     } else {
       // TODO
       printf("UNIMPLEMENTED RAM %x\n", command);
@@ -295,40 +307,84 @@ private:
       src = accA.historyRaw24(pipelineWriteDelay);
     }
 
-    // acc -> special
-    if (specialSlot == 0x0e) { // unknown
-      printf("unknown special write %02x=%06x\n", specialSlot, src);
-    } else if (specialSlot == 0x0f) { // unknown
-      printf("unknown special write %02x=%06x\n", specialSlot, src);
-    } else if (specialSlot == 0x14) { // multiplCoef1
-      multiplCoef1 = clamp_24(src);
-    } else if (specialSlot == 0x15) { // multiplCoef2
-      multiplCoef2 = clamp_24(src);
-    } else if (specialSlot == 0x18) { // audio out
-      writeMemOffs(0x78, src);
-      audioOut = src;
+    bool updatesAcc = 0;
 
-      src *= cc;
-      src >>= mulScaler;
-      if (replaceAcc) {
-        accDest.set(src);
-      } else {
-        accDest.add(src);
-      }
-    } else if (specialSlot == 0x1e) { // audio in
+    // acc -> special
+    if (specialSlot == 0x0d) { // unknown
+      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    }
+
+    else if (specialSlot == 0x0e) { // unknown
+      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    }
+
+    else if (specialSlot == 0x0f) { // unknown
+      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    }
+
+    else if (specialSlot == 0x10) { // eram write latch
+      eramWriteLatch = src;
+    }
+
+    else if (specialSlot == 0x13) { // eram second tap offset
+      eramSecondTapOffs = src;
+    }
+
+    else if (specialSlot == 0x14) { // multiplCoef1
+      multiplCoef1 = src;
+    }
+
+    else if (specialSlot == 0x15) { // multiplCoef2
+      multiplCoef2 = src;
+    }
+
+    else if (specialSlot == 0x18) { // audio out
+      audioOut = src;
+      writeMemOffs(0x78, src);
+      updatesAcc = true;
+    }
+
+    else if (specialSlot == 0x1a) { // eram read 1
+      src = eramRead1;
+      writeMemOffs(0x7a, src);
+      updatesAcc = true;
+    }
+
+    else if (specialSlot == 0x1b) { // eram read 2
+      src = eramRead2;
+      writeMemOffs(0x7b, src);
+      updatesAcc = true;
+    }
+
+    else if (specialSlot == 0x1c) { // eram read 3
+      src = eramRead3;
+      writeMemOffs(0x7c, src);
+      updatesAcc = true;
+    }
+
+    else if (specialSlot == 0x1d) { // eram read 4
+      src = eramRead4;
+      writeMemOffs(0x7d, src);
+      updatesAcc = true;
+    }
+
+    else if (specialSlot == 0x1e) { // audio in
       src = audioIn;
       writeMemOffs(0x7e, src);
-
-      src *= cc;
-      src >>= mulScaler;
-      if (replaceAcc) {
-        accDest.set(src);
-      } else {
-        accDest.add(src);
-      }
+      updatesAcc = true;
     } else {
       printf("unknown special write %02x=%06x\n", specialSlot, src);
       return;
+    }
+
+    if (updatesAcc) {
+      src *= cc;
+      src >>= mulScaler;
+      if (replaceAcc) {
+        accDest.set(src);
+      } else {
+        accDest.add(src);
+      }
     }
   }
 

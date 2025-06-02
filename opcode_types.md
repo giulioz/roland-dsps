@@ -108,21 +108,17 @@ b8 mm cc  $mm = accA_unsat; accA = abc(($mm * cc) >> 7)
 
 ## Instructions c0-ff
 
-// WRONG! --------------------------
-  // TODO: rounding seems 1-off on cc
-  // uses the accumulator value from the prev instruction
-  c0 50 cc  accA = accA + ((accA * cc) >> 15)
-  c0 d0 cc  accA = accA + ((accA * cc) >> 13)
-  e0 50 cc  accB = accB + ((accB * cc) >> 15)
-  e0 d0 cc  accB = accB + ((accB * cc) >> 13)
-  c0 70 cc  accA = ((accA * cc) >> 15)
-  c0 f0 cc  accA = ((accA * cc) >> 13)
-  e0 70 cc  accB = ((accB * cc) >> 15)
-  e0 f0 cc  accB = ((accB * cc) >> 13)
-// ---------------------------------
+// immediately after a mem read
+c0 50 cc  accA = accA + ((prevMemRead * unsigned(cc>>1)) >> 7 >> 7)
+c0 d0 cc  accA = accA + ((prevMemRead * unsigned(cc>>1)) >> 7 >> 5)
+e0 50 cc  accB = accB + ((prevMemRead * unsigned(cc>>1)) >> 7 >> 7)
+e0 d0 cc  accB = accB + ((prevMemRead * unsigned(cc>>1)) >> 7 >> 5)
+c0 70 cc  accA = ((prevMemRead * unsigned(cc>>1)) >> 7 >> 7)
+c0 f0 cc  accA = ((prevMemRead * unsigned(cc>>1)) >> 7 >> 5)
+e0 70 cc  accB = ((prevMemRead * unsigned(cc>>1)) >> 7 >> 7)
+e0 f0 cc  accB = ((prevMemRead * unsigned(cc>>1)) >> 7 >> 5)
 
-
-// after a load/mac immediate
+// immediately after a load/mac immediate
 c0 50 cc  accA = accA + ((unsigned(cc) << prev_shift) >> 7 >> 1)
 c0 d0 cc  accA = accA + ((unsigned(cc) << prev_shift) >> 5 >> 1)
 e0 50 cc  accB = accB + ((unsigned(cc) << prev_shift) >> 7 >> 1)
@@ -162,10 +158,14 @@ specials:
   4d  rep  ??
   4e  rep  ?? some timer/logic? used for square wave gen
   4f  rep  ?? some timer/logic? used for square wave gen
+  
+  acc unaffected:
   50  inc  eram write latch
   53  inc  eram tap offs
   54  inc  mult a
   55  inc  mult b
+
+  update acc:
   58  inc  audio out
   5a  inc  eram tap 1
   5b  inc  eram tap 2

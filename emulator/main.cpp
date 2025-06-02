@@ -133,6 +133,7 @@ int main() {
   std::vector<int16_t> audioSamples;
   int sampleRate = 0;
   int numChannels = 0;
+  // read_wav("input_guit.wav", audioSamples, sampleRate, numChannels);
   read_wav("input_piano.wav", audioSamples, sampleRate, numChannels);
 
   std::vector<int16_t> audioOutput;
@@ -146,29 +147,19 @@ int main() {
       state.audioInR = audioSamples[i + 1];
     }
 
-    // state.audioInL <<= 6;
-    // state.audioInR <<= 6;
-    state.audioInL >>= 1;
-    state.audioInR >>= 1;
+    state.audioInL <<= 6;
+    state.audioInR <<= 6;
 
     state.runProgram();
 
-    // state.audioOutL >>= 8;
-    // state.audioOutR >>= 8;
+    state.audioOutL >>= 8;
+    state.audioOutR >>= 8;
 
     audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
     audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
   }
 
   write_wav("output.wav", audioOutput, sampleRate, 2);
-
-  // state.audioInL = state.audioInR = sign_extend_24(0xffffc0);
-  // for (size_t i = 0; i < 1; i++)
-  //   state.runProgram();
-
-  // for (size_t i = 0; i < 0x80; i++) {
-  //   printf("%04x: %06x\n", i, state.iram[i] & 0xffffff);
-  // }
 
   return 0;
 }
