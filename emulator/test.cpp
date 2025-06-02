@@ -94,35 +94,108 @@ void testAbs() {
   }
 }
 
-void testMult() {
-  {
-    LspState state;
-    state.iram[9 + 0x80] = 0x200242;
-    state.iram[13 + 0x80] = 0x082000;
-    state.iram[17 + 0x80] = 0x20043f;
-    state.iram[21 + 0x80] = 0xc85400;
-    state.iram[25 + 0x80] = 0x80a009;
-    state.iram[31 + 0x80] = 0x080100;
+void testMultSimple() {
+  LspState state;
+  state.iram[9 + 0x80] = 0x200242;
+  state.iram[13 + 0x80] = 0x082000;
+  state.iram[17 + 0x80] = 0x20043f;
+  state.iram[21 + 0x80] = 0xc85400;
+  state.iram[25 + 0x80] = 0x80a009;
+  state.iram[31 + 0x80] = 0x080100;
+  state.iram[32 + 0x80] = 0x180200;
 
-    state.runProgram();
-    expectEqual("testMult", state.iram[0x01], sign_extend_24(0x0007fe));
+  // 09: replace pos >> 5
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x0007fe));
 
-    state.iram[25 + 0x80] = 0x802009;
-    state.bufferPos = 0;
-    state.runProgram();
-    expectEqual("testMult", state.iram[0x01], sign_extend_24(0x0001ff));
+  // 09: replace pos >> 7
+  state.iram[25 + 0x80] = 0x802009;
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x0001ff));
 
-    state.iram[25 + 0x80] = 0x802001;
-    state.bufferPos = 0;
-    state.runProgram();
-    expectEqual("testMult", state.iram[0x01], sign_extend_24(0x1f81ff));
-  }
+  // 01: accumulate pos
+  state.iram[25 + 0x80] = 0x802001;
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x1f81ff));
+  expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x1f81ff));
+
+  // 05: accumulate neg
+  state.iram[25 + 0x80] = 0x802005;
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x1f7e01));
+  expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x1f7e01));
+
+  // 0a: accumulate other reg 0
+  state.iram[25 + 0x80] = 0x80200a;
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x000000));
+
+  // 0a: accumulate other reg valid
+  state.iram[21 + 0x80] = 0xc85500;
+  state.iram[25 + 0x80] = 0x80200a;
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x0001ff));
+  state.iram[21 + 0x80] = 0xc85400;
+
+  // overflow multiplier
+  state.iram[9 + 0x80] = 0x200142;  // base
+  state.iram[17 + 0x80] = 0x208442; // multiplier
+  state.iram[25 + 0x80] = 0x802009; // mult command
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x000041));
+  expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x000041));
+
+  // overflow result
+  state.iram[9 + 0x80] = 0x200442;  // base
+  state.iram[17 + 0x80] = 0x208442; // multiplier
+  state.iram[25 + 0x80] = 0x802009; // mult command
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x20be00));
+  expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x20be00));
+
+  // overflow value 1
+  state.iram[9 + 0x80] = 0x208410;  // base
+  state.iram[17 + 0x80] = 0x200442; // multiplier
+  state.iram[25 + 0x80] = 0x802009; // mult command
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x084000));
+  expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x084000));
+
+  // overflow value 2
+  state.iram[9 + 0x80] = 0x20847f;  // base
+  state.iram[17 + 0x80] = 0x200442; // multiplier
+  state.iram[25 + 0x80] = 0x802009; // mult command
+  state.bufferPos = 0;
+  state.runProgram();
+  expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x20ffff));
+  expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x20ffff));
+}
+
+void testMultStaged() {
+  LspState state;
+  state.iram[9 + 0x80] = 0x20037f;
+  state.iram[13 + 0x80] = 0x082000;
+  state.iram[17 + 0x80] = 0x20043f;
+  state.iram[21 + 0x80] = 0xc85400;
+  state.iram[25 + 0x80] = 0x80a009;
+  state.iram[31 + 0x80] = 0x080100;
+  state.iram[32 + 0x80] = 0x180200;
 }
 
 int main() {
   testBasic();
   testIo();
   testAbs();
-  testMult();
+  testMultSimple();
+  testMultStaged();
   return 0;
 }

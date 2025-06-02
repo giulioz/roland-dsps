@@ -12,28 +12,28 @@ static constexpr int32_t sign_extend_24(int32_t x) {
   return x;
 }
 
+static constexpr int DATA_BITS = 24;
+static constexpr int64_t MIN_VAL = -(1LL << (DATA_BITS - 1));
+static constexpr int64_t MAX_VAL = (1LL << (DATA_BITS - 1)) - 1;
+static constexpr int64_t MASK = (1LL << DATA_BITS) - 1;
+static constexpr int32_t clamp_24(int64_t v) {
+  if (v > MAX_VAL)
+    return static_cast<int32_t>(MAX_VAL);
+  if (v < MIN_VAL)
+    return static_cast<int32_t>(MIN_VAL);
+  return static_cast<int32_t>(v);
+}
+
 class DspAccumulator {
-  static constexpr int DATA_BITS = 24;
-  static constexpr int64_t MIN_VAL = -(1LL << (DATA_BITS - 1));
-  static constexpr int64_t MAX_VAL = (1LL << (DATA_BITS - 1)) - 1;
-  static constexpr int64_t MASK = (1LL << DATA_BITS) - 1;
 
   int64_t acc = 0;
   std::array<int64_t, 8> hist{};
   std::size_t head = 0;
 
-  static constexpr int32_t clamp_24(int64_t v) {
-    if (v > MAX_VAL)
-      return static_cast<int32_t>(MAX_VAL);
-    if (v < MIN_VAL)
-      return static_cast<int32_t>(MIN_VAL);
-    return static_cast<int32_t>(v);
-  }
-
 public:
-  void set(int32_t v) { acc = sign_extend_24(v); }
-
-  void add(int32_t v) { acc += sign_extend_24(v); }
+  // TODO: should we sign extend here?
+  void set(int32_t v) { acc = v; }
+  void add(int32_t v) { acc += v; }
 
   void abs() {
     if (acc < 0)
@@ -202,27 +202,27 @@ private:
     if (memOffs == 4)
       opA = cc << 22;
 
+    int32_t opB = (cc & 0x2) != 0 ? multiplCoef2 : multiplCoef1;
+    bool negate = (cc & 0x4) != 0;
+
     int32_t result = 0;
     if (cc < 0x10) {
       bool replaceAcc = (cc & 0x8) != 0;
-      bool negate = (cc & 0x4) != 0;
-      int32_t opB = (cc & 0x2) != 0 ? multiplCoef2 : multiplCoef1;
+      opB >>= 16;
 
       if (cc == 0x00) {
         result = 0;
       } else if (cc == 0x04 || cc == 0x08 || cc == 0xc) {
         printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
       } else {
-        result = opA * (opB >> 16);
-      }
-
-      // TODO: before or after adding acc?
-      if (negate) {
-        result = -result;
+        result = opA * opB;
       }
 
       result >>= mulScaler;
 
+      if (negate) {
+        result = -result;
+      }
       if (!replaceAcc) {
         result += accA.sat24();
       }
@@ -281,9 +281,9 @@ private:
     } else if (specialSlot == 0x0f) { // unknown
       printf("unknown special write %02x=%06x\n", specialSlot, src);
     } else if (specialSlot == 0x14) { // multiplCoef1
-      multiplCoef1 = src;
+      multiplCoef1 = clamp_24(src);
     } else if (specialSlot == 0x15) { // multiplCoef2
-      multiplCoef2 = src;
+      multiplCoef2 = clamp_24(src);
     } else if (specialSlot == 0x18) { // audio out
       writeMemOffs(0x78, src);
       audioOut = src;

@@ -70,6 +70,38 @@ coefs
     0e  acc  = ($mem * (special $55 >> 16)) >> 7 * -1
  u  0f  acc  = ($mem * (special $55 >> 16)) >> 7 * -1
 
+ u  10
+    11  special $54
+ u  12
+ u  13
+ u  14
+    15  special $54
+ u  16
+ u  17
+ u  18
+    19  special $54
+    1a  special $55
+ u  1b
+ u  1c
+    1d  special $54
+ u  1e
+ u  1f
+    
+ u  40
+    41  acc += ($mem * ((special $54 & 0xffff) >> 15)) >> 1 >> 7
+    42  acc += ($mem * ((special $55 & 0xffff) >> 15)) >> 1 >> 7
+ u  43
+ u  44
+    45  acc += ($mem * ((special $54 & 0xffff) >> 15)) >> 1 >> 7 * -1
+    46  acc += ($mem * ((special $55 & 0xffff) >> 15)) >> 1 >> 7 * -1
+    
+ u  50
+    51  special $54  after 19
+    52  special $55  after 1a
+ u  53
+ u  54
+    55  special $54  after 1d
+
 
 
 ## Instructions a0-b8
