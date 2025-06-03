@@ -75,12 +75,13 @@ public:
   // TODO: this should be 16 bit, not 32
   int32_t eram[0x10000] = {0};
   uint16_t eramPos = 0;
-  uint16_t eramTempPtr = 0;
+  int32_t eramRead = 0;
 
   // Pipeline
   uint8_t prevRR = 0;
-  bool eramTransaction = false;
+  uint8_t eramTransaction = 0;
   uint8_t eramStage = 0;
+  uint16_t eramTempPtr = 0;
 
   // Special regs
   int32_t eramWriteLatch = 0;    // 0x10
@@ -145,45 +146,56 @@ private:
   void commonDoEram(uint8_t command) {
     static constexpr int32_t eramShift = 0; // actually 8
 
-    if (command == 0x00) {
+    if (eramTransaction != 0) {
+      // printf("ERAM transaction %02x stage %d: %x\n", eramTransaction,
+      // eramStage, command);
+
+      uint32_t incr = 0;
+      if (eramStage == 1)
+        incr = command;
+      else if (eramStage == 2)
+        incr = command << 3;
+      else if (eramStage == 3)
+        incr = command << 6;
+      else if (eramStage == 4)
+        incr = command << 12;
+      else if (eramStage == 5)
+        incr = command << 17;
+
+      eramTempPtr = (eramTempPtr + incr) & 0xffff;
+
+      eramStage += 1;
+
+      if (eramStage == 6) {
+        if (eramTransaction == 0x02 || eramTransaction == 0x04) {
+          eramRead = eram[eramTempPtr];
+        } else if (eramTransaction == 0x06) {
+          eram[eramTempPtr] = eramWriteLatch;
+        }
+
+        eramTransaction = 0;
+        eramStage = 0;
+      }
+    }
+
+    else if (command == 0x00) {
       // nop
     }
 
-    else if (command == 0x01) {
-      // TODO
-      printf("UNIMPLEMENTED RAM %x\n", command);
+    else if (command == 0x02 || command == 0x04 || command == 0x06) {
+      eramTransaction = command;
+      eramStage = 1;
+      // printf("ERAM start %02x\n", command);
+
+      if (command == 0x04) {
+        eramTempPtr = ((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff;
+      } else {
+        eramTempPtr = eramPos;
+      }
     }
 
-    else if (command == 0x02) {
-      eramRead1 = eram[eramPos] << eramShift;
-    }
-
-    else if (command == 0x03) {
-      // TODO
-      printf("UNIMPLEMENTED RAM %x\n", command);
-      eramRead1 = eram[eramPos] << eramShift;
-    }
-
-    else if (command == 0x04) {
-      eramRead2 = eram[((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff]
-                  << eramShift;
-    }
-
-    else if (command == 0x05) {
-      // TODO
-      printf("UNIMPLEMENTED RAM %x\n", command);
-      eramRead2 = eram[((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff]
-                  << eramShift;
-    }
-
-    else if (command == 0x06) {
-      eram[eramPos] = eramWriteLatch >> eramShift;
-    }
-
-    else if (command == 0x07) {
-      // TODO
-      printf("UNIMPLEMENTED RAM %x\n", command);
-      eram[eramPos] = eramWriteLatch >> eramShift;
+    else {
+      printf("ERAM invalid stage: %02x\n", command);
     }
   }
 
@@ -386,24 +398,28 @@ private:
     }
 
     else if (specialSlot == 0x1a) { // eram read 1
+      eramRead1 = eramRead;
       src = eramRead1;
       writeMemOffs(0x7a, src);
       updatesAcc = true;
     }
 
     else if (specialSlot == 0x1b) { // eram read 2
+      eramRead2 = eramRead;
       src = eramRead2;
       writeMemOffs(0x7b, src);
       updatesAcc = true;
     }
 
     else if (specialSlot == 0x1c) { // eram read 3
+      eramRead3 = eramRead;
       src = eramRead3;
       writeMemOffs(0x7c, src);
       updatesAcc = true;
     }
 
     else if (specialSlot == 0x1d) { // eram read 4
+      eramRead4 = eramRead;
       src = eramRead4;
       writeMemOffs(0x7d, src);
       updatesAcc = true;

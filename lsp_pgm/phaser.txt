@@ -44,18 +44,18 @@
 00a6: 00 00 00
 00a7: 08 09 00  // opcode:00 write:08 eram:0 reg:09
 
-// sine wave gen
-00a8: 20 86 20  // opcode:20 write:00 eram:0 reg:06
-00a9: 00 82 03 // RATE MSB  // opcode:00 write:00 eram:0 reg:02
-00aa: c0 d0 7a // RATE LSB  // opcode:c0 write:00 eram:0 reg:50
+// triangle wave gen
+00a8: 20 86 20 // acc = prev    // opcode:20 write:00 eram:0 reg:06
+00a9: 00 82 03 // acc += imm    // RATE MSB  // opcode:00 write:00 eram:0 reg:02
+00aa: c0 d0 7a // acc += imm    // RATE LSB   // opcode:c0 write:00 eram:0 reg:50
 00ab: 00 00 00
 00ac: 00 00 00
-00ad: b8 05 80  // opcode:a0 write:18 eram:0 reg:05
+00ad: b8 05 80 // $05 = unsigned(acc); acc = abs(acc*coef)  // opcode:a0 write:18 eram:0 reg:05
 00ae: 00 00 00
 00af: 00 00 00
 
 // scale sine wave with depth
-00b0: 28 75 29 // DEPTH MSB  // opcode:20 write:08 eram:0 reg:75
+00b0: 28 75 29 // $75 = acc;    // DEPTH MSB  // opcode:20 write:08 eram:0 reg:75
 00b1: c0 50 7f // DEPTH LSB  // opcode:c0 write:00 eram:0 reg:50
 00b2: 00 00 00
 00b3: 00 00 00

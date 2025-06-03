@@ -30,16 +30,18 @@
 009b: 00 00 00
 
 // modulation speed
-009c: 20 8a 20  // opcode:20          mem_offs:0a shift:1
-009d: 00 82 0c  // opcode:00          mem_offs:02 shift:1
-009e: c0 d0 7e  // opcode:c0          mem_offs:50 shift:1
+009c: 20 8a 20  // get prev phase      // opcode:20          mem_offs:0a shift:1
+009d: 00 82 0c  // sum increment lsb   // opcode:00          mem_offs:02 shift:1
+009e: c0 d0 7e  // sum increment msb   // opcode:c0          mem_offs:50 shift:1
 009f: 00 00 00
 
-00a0: 20 84 40  // opcode:20          mem_offs:04 shift:1
-00a1: 18 89 20  // opcode:00 write:18 mem_offs:09 shift:1
-00a2: a0 09 80  // opcode:a0          mem_offs:09 shift:0
+// gen saw 1
+00a0: 20 84 40  // load immediate      // opcode:20          mem_offs:04 shift:1
+00a1: 18 89 20  // store phase; accA=imm+prev_phase   // opcode:00 write:18 mem_offs:09 shift:1
+00a2: a0 09 80  // accA=abs(phase)*coeff // opcode:a0          mem_offs:09 shift:0
 00a3: 00 00 00
 00a4: d8 54 00  // opcode:c0 write:18 mem_offs:54 shift:0
+
 00a5: 88 11 09  // opcode:80 write:08 mem_offs:11 shift:0
 00a6: 80 11 41  // opcode:80          mem_offs:11 shift:0
 00a7: 60 91 20  // opcode:60          mem_offs:11 shift:1
@@ -49,17 +51,19 @@
 00ab: 70 91 40  // opcode:60 write:10 mem_offs:11 shift:1
 00ac: 00 00 00
 00ad: 08 10 00  // opcode:00 write:08 mem_offs:10 shift:0
-00ae: c8 6e 5a  // opcode:c0 write:08 mem_offs:6e shift:0
+
+00ae: c8 6e 5a  // square on(jmp b4)  // opcode:c0 write:08 mem_offs:6e shift:0
 00af: 10 11 00  // opcode:00 write:10 mem_offs:11 shift:0
 00b0: 60 84 c0  // opcode:60          mem_offs:04 shift:1
 00b1: 00 00 00
-00b2: c8 6f 5b  // opcode:c0 write:08 mem_offs:6f shift:0
+
+00b2: c8 6f 5b  // square off(jmp b6)  // opcode:c0 write:08 mem_offs:6f shift:0
 00b3: 00 00 00
 00b4: 60 84 40  // opcode:60          mem_offs:04 shift:1
 00b5: 00 00 00
-00b6: 20 09 80  // opcode:20          mem_offs:09 shift:0
 
 // select modulation wave
+00b6: 20 09 80  // opcode:20          mem_offs:09 shift:0
 00b7: 30 92 20  // opcode:20 write:10 mem_offs:12 shift:1 // sqr
 00b8: 00 89 00  // opcode:00          mem_offs:09 shift:1 // saw 1
 00b9: 08 f5 00  // opcode:00 write:08 mem_offs:75 shift:1 // saw 2
