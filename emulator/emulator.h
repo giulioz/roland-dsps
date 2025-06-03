@@ -96,7 +96,7 @@ public:
   int32_t audioIn = 0;           // 0x1e
 
   void runProgram() {
-    uint8_t total = 0;
+    int total = 0;
     for (pc = 0x80; pc < 0x200 && total < 384; pc++, total++) {
       if (pc >= (0x80 + 384 / 2))
         audioIn = audioInL;
@@ -357,22 +357,23 @@ private:
     bool updatesAcc = 0;
 
     if (specialSlot == 0x0d) { // jmp if <0
-      // TODO: does it also compute something?
+      // TODO: probably wrong
       if (src < 0) {
         pc = (((uint8_t)cc) << 1) - 1;
       }
+      updatesAcc = true; // TODO: check
     }
 
     else if (specialSlot == 0x0e) { // jmp if >=0
-      // TODO: does it also compute something?
       if (src >= 0) {
         pc = (((uint8_t)cc) << 1) - 1;
       }
+      updatesAcc = true; // TODO: check
     }
 
     else if (specialSlot == 0x0f) { // jmp
-      // TODO: does it also compute something?
-      pc = ((uint8_t)cc) << 1;
+      pc = (((uint8_t)cc) << 1) - 1;
+      updatesAcc = true; // TODO: check
     }
 
     else if (specialSlot == 0x10) { // eram write latch
