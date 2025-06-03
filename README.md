@@ -2,6 +2,46 @@
 
 Emulation for the Boss MB87837 (LSP) chip, used in the SC-88Pro, SC-8850, ME-6, ME-6b, ME-X, and others.
 
+## Effect emulation status
+
+Most stuff works, external ram support is not complete.
+
+- [x] Thru
+- [x] Stereo-EQ
+- [x] Spectrum
+- [x] Enhancer
+- [x] Humanizer
+- [x] Overdrive
+- [x] Distortion
+- [x] Phaser
+- [x] Auto Wah
+- [ ] Rotary (where low freqs?)
+- [ ] Stereo Flanger (working but no interp)
+- [ ] Step Flanger (working but no interp)
+- [x] Tremolo
+- [x] Auto Pan
+- [x] Compressor
+- [x] Limiter
+- [ ] Hexa Chorus (working but no interp)
+- [ ] Tremolo Chorus (working but no interp, also causes a weird delay)
+- [ ] Stereo Chorus (working but no interp)
+- [ ] Space D (working but no interp)
+- [ ] 3D Chorus (invalid eram opcode)
+- [ ] Stereo Delay (working but invalid eram opcode)
+- [ ] Mod Delay (invalid eram opcode, no effect)
+- [x] 3 Tap Delay
+- [x] 4 Tap Delay
+- [ ] Tm Ctrl Delay (wrong time)
+- [ ] Reverb (just screams)
+- [ ] Gate Reverb (no effect)
+- [ ] 3D Delay (no effect)
+- [ ] 2 Pitch Shifter (working but no interp)
+- [ ] Fb Pitch Shifter (working but no interp)
+- [ ] 3D Auto (broken when going back)
+- [ ] 3D Manual (broken when going back)
+- [x] Lo-Fi 1
+- [x] Lo-Fi 2
+
 ## Chip Info
 
 The LSP is a custom DSP which can execute 384 instructions programs for each sample. It can work with multiple sample rates (32k or 44.1k) and multiple bit depths. It supports two stereo outputs and one stereo input. It has a small internal ram for instructions, parameters and delay lines, but it also supports a bigger external one, used for more complex effects.
