@@ -84,26 +84,26 @@ coefs
 
 ## Instructions a0-b8
 
-a0 01 cc  accA = abc(cc)
-a0 02 cc  accA = abc(cc << 5)
-a0 03 cc  accA = abc(cc << 10)
-a0 04 cc  accA = abc(cc << 15)
-a0 mm cc  accA = abc(($mm * cc) >> 7)
-a8 01 cc  $mm = accA; accA = abc(cc)
-a8 02 cc  $mm = accA; accA = abc(cc << 5)
-a8 03 cc  $mm = accA; accA = abc(cc << 10)
-a8 04 cc  $mm = accA; accA = abc(cc << 15)
-a8 mm cc  $mm = accA; accA = abc(($mm * cc) >> 7)
-b0 01 cc  $mm = accB; accA = abc(cc)
-b0 02 cc  $mm = accB; accA = abc(cc << 5)
-b0 03 cc  $mm = accB; accA = abc(cc << 10)
-b0 04 cc  $mm = accB; accA = abc(cc << 15)
-b0 mm cc  $mm = accB; accA = abc(($mm * cc) >> 7)
-b8 01 cc  $mm = accA_unsat; accA = abc(cc)
-b8 02 cc  $mm = accA_unsat; accA = abc(cc << 5)
-b8 03 cc  $mm = accA_unsat; accA = abc(cc << 10)
-b8 04 cc  $mm = accA_unsat; accA = abc(cc << 15)
-b8 mm cc  $mm = accA_unsat; accA = abc(($mm * cc) >> 7)
+a0 01 cc  accA = abs(cc)
+a0 02 cc  accA = abs(cc << 5)
+a0 03 cc  accA = abs(cc << 10)
+a0 04 cc  accA = abs(cc << 15)
+a0 mm cc  accA = abs(($mm * cc) >> 7)
+a8 01 cc  $mm = accA; accA = abs(cc)
+a8 02 cc  $mm = accA; accA = abs(cc << 5)
+a8 03 cc  $mm = accA; accA = abs(cc << 10)
+a8 04 cc  $mm = accA; accA = abs(cc << 15)
+a8 mm cc  $mm = accA; accA = abs(($mm * cc) >> 7)
+b0 01 cc  $mm = accB; accA = abs(cc)
+b0 02 cc  $mm = accB; accA = abs(cc << 5)
+b0 03 cc  $mm = accB; accA = abs(cc << 10)
+b0 04 cc  $mm = accB; accA = abs(cc << 15)
+b0 mm cc  $mm = accB; accA = abs(($mm * cc) >> 7)
+b8 01 cc  $mm = accA_unsat; accA = abs(cc)
+b8 02 cc  $mm = accA_unsat; accA = abs(cc << 5)
+b8 03 cc  $mm = accA_unsat; accA = abs(cc << 10)
+b8 04 cc  $mm = accA_unsat; accA = abs(cc << 15)
+b8 mm cc  $mm = accA_unsat; accA = abs(($mm * cc) >> 7)
 
 
 ## Instructions c0-ff
@@ -155,9 +155,9 @@ d8 54 00  mult_a = accA_unsat
 
 
 specials:
-  4d  rep  ??
-  4e  rep  ?? some timer/logic? used for square wave gen
-  4f  rep  ?? some timer/logic? used for square wave gen
+  4d  rep  jump pc=cc<<1  if ??
+  4e  rep  jump pc=cc<<1  if accA>=0
+  4f  rep  jump pc=cc<<1  always?
   
   acc unaffected:
   50  inc  eram write latch

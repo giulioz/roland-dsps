@@ -124,6 +124,25 @@ DRAM address does -1 every sample.
 
 
 
+#### ERAM sequences
+
+Each ram command takes 6 slots.
+
+- 06(0)->06(9)->04(e) -> writes to ptr, then to ptr+0x7fc0?
+- 02(0)->04(5)->02(6) -> reads ptr, ptr+0x7fc0? 0x8040?
+- after a 02, the next 02 read can happen 6 slots later
+
+the c8-50 to fill the write latch is instr06 + 8?
+
+pos   incr(01)    incr(02)    incr(03)      incr(04)      incr(05)      incr(06)      incr(07)
+00    ?           ?           ?             ?
+01    +0x01       +0x02       +0x03         +0x4
+02    +0x08       +0x10       +0x18         +0x20         +0x728?       +0x730?       +0x738?
+03    +0x40       +0x80       +0x7c0?
+04    +0x1000     +0x2000     +0x3000
+05    +0x20000    +0xff00(s)  +0x28100(s)
+
+
 ## DSP instructions format
 
 Each DSP instruction is 3 bytes long, using a format like `ii rr cc`.
@@ -194,13 +213,13 @@ ii[2:0] (0x07):  external ram opcode? (TODO)
     written value is in special $10
     read result is in special $1a/$1b/$1c/$1d
   00  (none)
-  01  do nothing?
+  01  apply shift to addr (while in frame depending on the position)
   02  read ptr
   03  read ptr (?)
   04  read ptr+shift
   05  read ptr+some other shift?
   06  write ptr
-  07  write ptr (?)
+  07  write ptr (and apply shift 0x100?)
 
 rr[7]:         scale select (<<2 after multiplier)
 rr[6:0]:       mem offset/immediate shifter
