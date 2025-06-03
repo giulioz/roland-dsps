@@ -155,15 +155,18 @@ d8 54 00  mult_a = accA_unsat
 
 
 specials:
-  4d  rep  jump pc=cc<<1  if ??
-  4e  rep  jump pc=cc<<1  if accA>=0
+  4c  inc  ??
+  4d  rep  jump pc=cc<<1  if accA < 0
+  4e  rep  jump pc=cc<<1  if accA >= 0
   4f  rep  jump pc=cc<<1  always?
   
   acc unaffected:
   50  inc  eram write latch
+  51  rep  ??
   53  inc  eram tap offs
   54  inc  mult a
   55  inc  mult b
+  56  inc  ??
 
   update acc:
   58  inc  audio out

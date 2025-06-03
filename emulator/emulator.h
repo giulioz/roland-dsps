@@ -69,13 +69,18 @@ public:
   DspAccumulator accB;
   uint8_t bufferPos = 0;
   int32_t iram[0x200] = {0};
+  size_t pc = 0x80;
 
   // External RAM
-  int16_t eram[0x10000] = {0};
+  // TODO: this should be 16 bit, not 32
+  int32_t eram[0x10000] = {0};
   uint16_t eramPos = 0;
+  uint16_t eramTempPtr = 0;
 
   // Pipeline
   uint8_t prevRR = 0;
+  bool eramTransaction = false;
+  uint8_t eramStage = 0;
 
   // Special regs
   int32_t eramWriteLatch = 0;    // 0x10
@@ -90,7 +95,8 @@ public:
   int32_t audioIn = 0;           // 0x1e
 
   void runProgram() {
-    for (size_t pc = 0x80; pc < 0x200; pc++) {
+    uint8_t total = 0;
+    for (pc = 0x80; pc < 0x200 && total < 384; pc++, total++) {
       if (pc >= (0x80 + 384 / 2))
         audioIn = audioInL;
       else
@@ -137,18 +143,47 @@ private:
   }
 
   void commonDoEram(uint8_t command) {
+    static constexpr int32_t eramShift = 0; // actually 8
+
     if (command == 0x00) {
       // nop
-    } else if (command == 0x02) {
-      eramRead1 = eram[eramPos] << 8;
-    } else if (command == 0x04) {
-      eramRead2 = eram[((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff]
-                  << 8;
-    } else if (command == 0x06) {
-      eram[eramPos] = eramWriteLatch >> 8;
-    } else {
+    }
+
+    else if (command == 0x01) {
       // TODO
       printf("UNIMPLEMENTED RAM %x\n", command);
+    }
+
+    else if (command == 0x02) {
+      eramRead1 = eram[eramPos] << eramShift;
+    }
+
+    else if (command == 0x03) {
+      // TODO
+      printf("UNIMPLEMENTED RAM %x\n", command);
+      eramRead1 = eram[eramPos] << eramShift;
+    }
+
+    else if (command == 0x04) {
+      eramRead2 = eram[((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff]
+                  << eramShift;
+    }
+
+    else if (command == 0x05) {
+      // TODO
+      printf("UNIMPLEMENTED RAM %x\n", command);
+      eramRead2 = eram[((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff]
+                  << eramShift;
+    }
+
+    else if (command == 0x06) {
+      eram[eramPos] = eramWriteLatch >> eramShift;
+    }
+
+    else if (command == 0x07) {
+      // TODO
+      printf("UNIMPLEMENTED RAM %x\n", command);
+      eram[eramPos] = eramWriteLatch >> eramShift;
     }
   }
 
@@ -169,7 +204,7 @@ private:
   int32_t commonGetMemOrImmediate(uint8_t rr, int8_t cc) {
     uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
     uint8_t memOffs = rr & 0x7f;
-    int32_t incr = readMemOffs(memOffs) * cc;
+    int64_t incr = readMemOffs(memOffs) * cc;
     if (memOffs == 1)
       incr = cc << 7;
     if (memOffs == 2)
@@ -219,7 +254,7 @@ private:
       opB >>= 16;
     }
 
-    int32_t opA = readMemOffs(memOffs);
+    int64_t opA = readMemOffs(memOffs);
     if (memOffs == 1)
       opA = cc << 7;
     if (memOffs == 2)
@@ -229,7 +264,7 @@ private:
     if (memOffs == 4)
       opA = cc << 22;
 
-    int32_t result = 0;
+    int64_t result = 0;
     if (cc == 0x00) {
       result = 0;
     } else if (cc == 0x04 || cc == 0x08 || cc == 0xc) {
@@ -270,7 +305,7 @@ private:
       if (specialSlot == 0x10) {
         uint8_t prevMem = prevRR & 0x7f;
 
-        int32_t incr = readMemOffs(prevMem) * (uint8_t)cc;
+        int64_t incr = readMemOffs(prevMem) * (uint8_t)cc;
         incr >>= 7;
 
         if (prevMem == 1 || prevMem == 2 || prevMem == 3 || prevMem == 4) {
@@ -298,7 +333,7 @@ private:
       return;
     }
 
-    int32_t src = 0;
+    int64_t src = 0;
     if (writeCtrl == 0x08) {
       src = accA.historySat24(pipelineWriteDelay);
     } else if (writeCtrl == 0x10) {
@@ -309,17 +344,23 @@ private:
 
     bool updatesAcc = 0;
 
-    // acc -> special
-    if (specialSlot == 0x0d) { // unknown
-      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    if (specialSlot == 0x0d) { // jmp if <0
+      // TODO: does it also compute something?
+      if (src < 0) {
+        pc = (((uint8_t)cc) << 1) - 1;
+      }
     }
 
-    else if (specialSlot == 0x0e) { // unknown
-      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    else if (specialSlot == 0x0e) { // jmp if >=0
+      // TODO: does it also compute something?
+      if (src >= 0) {
+        pc = (((uint8_t)cc) << 1) - 1;
+      }
     }
 
-    else if (specialSlot == 0x0f) { // unknown
-      printf("unknown special write %02x=%06x\n", specialSlot, src);
+    else if (specialSlot == 0x0f) { // jmp
+      // TODO: does it also compute something?
+      pc = ((uint8_t)cc) << 1;
     }
 
     else if (specialSlot == 0x10) { // eram write latch
@@ -373,7 +414,7 @@ private:
       writeMemOffs(0x7e, src);
       updatesAcc = true;
     } else {
-      printf("unknown special write %02x=%06x\n", specialSlot, src);
+      printf("%04x: unknown special write %02x=%06x\n", pc, specialSlot, src);
       return;
     }
 
@@ -393,7 +434,7 @@ private:
     iram[ramPos] = value;
   }
 
-  int32_t readMemOffs(uint8_t memOffs) {
+  int64_t readMemOffs(uint8_t memOffs) {
     uint32_t ramPos = ((uint32_t)memOffs + bufferPos) & 0x7f;
     return iram[ramPos];
   }

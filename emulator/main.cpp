@@ -104,11 +104,6 @@ LspState state;
 int main() {
   // Load program
   FILE *pgmFile = fopen("spectrum_test.txt", "r");
-  // FILE *pgmFile = fopen("../lsp_pgm/stereo_eq.txt", "r");
-  // FILE *pgmFile = fopen("../lsp_pgm/enhancer.txt", "r");
-  // FILE *pgmFile = fopen("../lsp_pgm/thru.txt", "r");
-  // FILE *pgmFile = fopen("lsp_square.txt", "r");
-  // FILE *pgmFile = fopen("../test.txt", "r");
   if (!pgmFile) {
     fprintf(stderr, "Error opening program file.\n");
     return 1;
@@ -122,7 +117,6 @@ int main() {
       format = "%*[^:]: %2x %2x %2x";
     }
     if (sscanf(line, format, &b1, &b2, &b3) == 3) {
-      // if (sscanf(line, "%2x %2x %2x", &b1, &b2, &b3) == 3) {
       int32_t value = (b1 << 16) | (b2 << 8) | b3;
       state.iram[iramIdx++] = value;
     }
@@ -133,8 +127,8 @@ int main() {
   std::vector<int16_t> audioSamples;
   int sampleRate = 0;
   int numChannels = 0;
-  // read_wav("input_guit.wav", audioSamples, sampleRate, numChannels);
-  read_wav("input_piano.wav", audioSamples, sampleRate, numChannels);
+  read_wav("input_guit.wav", audioSamples, sampleRate, numChannels);
+  // read_wav("input_piano.wav", audioSamples, sampleRate, numChannels);
 
   std::vector<int16_t> audioOutput;
 
