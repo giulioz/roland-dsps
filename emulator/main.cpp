@@ -127,7 +127,9 @@ int main() {
   std::vector<int16_t> audioSamples;
   int sampleRate = 0;
   int numChannels = 0;
-  read_wav("input_guit.wav", audioSamples, sampleRate, numChannels);
+  read_wav("input.wav", audioSamples, sampleRate, numChannels);
+  // read_wav("input_guit.wav", audioSamples, sampleRate, numChannels);
+  // read_wav("input_guit2.wav", audioSamples, sampleRate, numChannels);
   // read_wav("input_piano.wav", audioSamples, sampleRate, numChannels);
 
   std::vector<int16_t> audioOutput;

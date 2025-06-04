@@ -163,16 +163,49 @@ Seems to be 16bits wide (4 bit x 4 reads in fast page mode, LSB first, >> 9).
 DRAM address does -1 every sample.
 
 
+#### ERAM addresses
+
+16 bit data is stored in 4 slots, using doing +0/+1/+2/+3 on the Col addr
+
+Every sample:
+Row: 0x0ff->0x000  and 0x1ff->0x100 (high bit stays)
+every wrap from Row 0x0ff-0x000 Col does -4 (go to next 4 slots)
+every wrap from Col 0x000-0x1fc Row inverts msb
+
+row   col
+1ff   1fc-1fd-1fe-1ff
+1fe   1fc-1fd-1fe-1ff
+...
+100   1fc-1fd-1fe-1ff
+1ff   1f8-1f9-1fa-1fb
+1fe   1f8-1f9-1fa-1fb
+...
+100   100-101-102-103
+0ff   1fc-1fd-1fe-1ff
+...
+000   100-101-102-103
+1ff   0fc-0fd-0fe-0ff
+
+def row_col_to_linear(row, col):
+  col_msb = col >> 8
+  row_msb = row >> 8
+  col_low = (col & 0xff) >> 2
+  row_low = row & 0xff
+  return (col_msb<<15) | (row_msb<<14) | (col_low<<8) | row_low
+
+
 
 #### ERAM sequences
 
-Each ram command takes 6 slots.
+Each ram command takes at least 6 slots, during which other commands can be issues which affect the current transaction.
+The write content (s50) can be set on the the +8 slot after the write command (06)?
+The read content (s7a...) can be read on the the +12 slot after the read command?
+The tap 04 offset (s53) is always populated with d8 (unsigned accA).
+
 
 - 06(0)->06(9)->04(e) -> writes to ptr, then to ptr+0x7fc0?
 - 02(0)->04(5)->02(6) -> reads ptr, ptr+0x7fc0? 0x8040?
 - after a 02, the next 02 read can happen 6 slots later
-
-the c8-50 to fill the write latch is instr06 + 8?
 
 pos   incr(01)    incr(02)    incr(03)      incr(04)      incr(05)      incr(06)      incr(07)
 00    ?           ?           ?             ?
@@ -181,6 +214,26 @@ pos   incr(01)    incr(02)    incr(03)      incr(04)      incr(05)      incr(06)
 03    +0x40       +0x80       +0x7c0?
 04    +0x1000     +0x2000     +0x3000
 05    +0x20000    +0xff00(s)  +0x28100(s)
+
+
+pos    incr (01)   incr (03)   incr (07)    shift
+00     
+01     1           3                        0
+02     8                                    3
+03     40                                   6
+04     200                                  9
+05     1000        3000        7000         12
+06     8000                                 15
+-> putting commands on +06 can only sum 0x8000 if command&1, but if it's not 01 it will also start a new transaction
+
+-> special case: starting with 05 does weird stuff
+
+
+06-00-00-00-00-06     does 1 write only
+06-00-00-00-00-00-06  does 2 writes
+06-00-00-00-00-00-01  does 1 write only, sum(toggle) 0x100 to col addr
+adding more spaces then does nothing
+
 
 
 ## DSP instructions format

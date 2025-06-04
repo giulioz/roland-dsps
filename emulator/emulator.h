@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <fstream>
 #include <limits>
+#include <queue>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -54,6 +55,101 @@ public:
   void storePipeline() { hist[head] = acc; }
 };
 
+struct RamOperationStage2 {
+  bool isWrite = false;
+  uint16_t addr = 0;
+  int32_t writeData = 0;
+  bool active = false;
+  uint8_t stage = 0;
+
+  int32_t *eram;
+  std::queue<int32_t> *eramReadFifo;
+
+  RamOperationStage2(int32_t *eram, std::queue<int32_t> *eramReadFifo)
+      : eram(eram), eramReadFifo(eramReadFifo) {}
+
+  void start(bool isWrite, uint16_t addr, uint8_t stage) {
+    this->isWrite = isWrite;
+    this->addr = addr;
+    this->active = true;
+    this->stage = stage;
+  }
+
+  void tick(int32_t eramWriteLatch) {
+    writeData = eramWriteLatch;
+
+    if (active) {
+      if (stage == 11 && isWrite) {
+        active = false;
+        eram[addr] = writeData >> 4;
+      }
+
+      if (stage == 11 && !isWrite) {
+        active = false;
+        eramReadFifo->push(eram[addr] << 4);
+      }
+
+      stage += 1;
+    }
+  }
+};
+
+struct RamOperationStage1 {
+  uint16_t addr = 0;
+  uint8_t stage = 0;
+  bool isWrite = false;
+  bool active = false;
+
+  void startTransaction(uint8_t command, uint16_t baseAddr,
+                        uint16_t offsetAddr) {
+    if (active) {
+      printf("stage 1 already active: %02x\n", command);
+    }
+
+    bool shouldUseOffset = (command & 0x06) == 0x04;
+    addr = (baseAddr + (shouldUseOffset ? (offsetAddr >> 10) : 0)) & 0xffff;
+    stage = 0;
+    isWrite = (command & 0x06) == 0x06;
+    active = true;
+  }
+
+  bool sendCommand(RamOperationStage2 &ramStage2, uint8_t command,
+                   uint16_t baseAddr, uint16_t offsetAddr) {
+    if (active) {
+      stage += 1;
+      uint16_t incr = command << ((stage - 1) * 3);
+
+      if (stage < 6) {
+        addr = (addr + incr) & 0xffff;
+      } else {
+        if ((command & 1 && stage == 6)) {
+          addr = (addr + incr) & 0xffff;
+        }
+
+        // pass to next stage
+        ramStage2.start(isWrite, addr, stage);
+        active = false;
+
+        if (command > 0x1) {
+          startTransaction(command, baseAddr, offsetAddr);
+        }
+
+        return true;
+      }
+    } else {
+      if (command == 0x00) {
+        // nop
+      } else if (command > 0x01) {
+        startTransaction(command, baseAddr, offsetAddr);
+      } else {
+        printf("ERAM invalid stage: %02x\n", command);
+      }
+    }
+
+    return false;
+  }
+};
+
 static constexpr int pipelineWriteDelay = 3;
 
 class LspState {
@@ -69,19 +165,18 @@ public:
   DspAccumulator accB;
   uint8_t bufferPos = 0;
   int32_t iram[0x200] = {0};
-  size_t pc = 0x80;
+  uint16_t pc = 0x80;
 
   // External RAM
   // TODO: this should be 16 bit, not 32
   int32_t eram[0x10000] = {0};
   uint16_t eramPos = 0;
-  int32_t eramRead = 0;
+  std::queue<int32_t> eramReadFifo;
+  RamOperationStage1 ramStage1;
+  RamOperationStage2 ramStage2;
 
   // Pipeline
   uint8_t prevRR = 0;
-  uint8_t eramTransaction = 0;
-  uint8_t eramStage = 0;
-  uint16_t eramTempPtr = 0;
 
   // Special regs
   int32_t eramWriteLatch = 0;    // 0x10
@@ -89,11 +184,9 @@ public:
   int32_t multiplCoef1 = 0;      // 0x14
   int32_t multiplCoef2 = 0;      // 0x15
   int32_t audioOut = 0;          // 0x18
-  int32_t eramRead1 = 0;         // 0x1a
-  int32_t eramRead2 = 0;         // 0x1b
-  int32_t eramRead3 = 0;         // 0x1c
-  int32_t eramRead4 = 0;         // 0x1d
   int32_t audioIn = 0;           // 0x1e
+
+  LspState() : ramStage2{RamOperationStage2(eram, &eramReadFifo)} {}
 
   void runProgram() {
     int total = 0;
@@ -118,6 +211,10 @@ public:
 
     bufferPos = (bufferPos - 1) & 0x7f;
     eramPos -= 1;
+
+    if (eramReadFifo.size() > 0) {
+      printf("ERAM read FIFO overflow: %zu\n", eramReadFifo.size());
+    }
   }
 
 private:
@@ -129,8 +226,6 @@ private:
     uint8_t opcode = ii & 0xe0;
     uint8_t extRamCtrl = ii & 0x7;
 
-    commonDoEram(extRamCtrl);
-
     if (opcode == 0x00 || opcode == 0x20 || opcode == 0x40 || opcode == 0x60 ||
         opcode == 0xa0) {
       doInstrMac(ii, rr, cc);
@@ -140,63 +235,14 @@ private:
       doInstrSpecialReg(ii, rr, cc);
     }
 
+    commonDoEram(extRamCtrl);
+
     prevRR = rr;
   }
 
   void commonDoEram(uint8_t command) {
-    static constexpr int32_t eramShift = 0; // actually 8
-
-    if (eramTransaction != 0) {
-      // printf("ERAM transaction %02x stage %d: %x\n", eramTransaction,
-      // eramStage, command);
-
-      uint32_t incr = 0;
-      if (eramStage == 1)
-        incr = command;
-      else if (eramStage == 2)
-        incr = command << 3;
-      else if (eramStage == 3)
-        incr = command << 6;
-      else if (eramStage == 4)
-        incr = command << 12;
-      else if (eramStage == 5)
-        incr = command << 17;
-
-      eramTempPtr = (eramTempPtr + incr) & 0xffff;
-
-      eramStage += 1;
-
-      if (eramStage == 6) {
-        if (eramTransaction == 0x02 || eramTransaction == 0x04) {
-          eramRead = eram[eramTempPtr];
-        } else if (eramTransaction == 0x06) {
-          eram[eramTempPtr] = eramWriteLatch;
-        }
-
-        eramTransaction = 0;
-        eramStage = 0;
-      }
-    }
-
-    else if (command == 0x00) {
-      // nop
-    }
-
-    else if (command == 0x02 || command == 0x04 || command == 0x06) {
-      eramTransaction = command;
-      eramStage = 1;
-      // printf("ERAM start %02x\n", command);
-
-      if (command == 0x04) {
-        eramTempPtr = ((int32_t)eramPos + (eramSecondTapOffs >> 10)) & 0xffff;
-      } else {
-        eramTempPtr = eramPos;
-      }
-    }
-
-    else {
-      printf("ERAM invalid stage: %02x\n", command);
-    }
+    ramStage1.sendCommand(ramStage2, command, eramPos, eramSecondTapOffs);
+    ramStage2.tick(eramWriteLatch);
   }
 
   void commonDoStore(uint8_t ii, uint8_t rr) {
@@ -354,7 +400,7 @@ private:
       src = accA.historyRaw24(pipelineWriteDelay);
     }
 
-    bool updatesAcc = 0;
+    bool updatesAcc = false;
 
     if (specialSlot == 0x0d) { // jmp if <0
       // TODO: probably wrong
@@ -399,29 +445,45 @@ private:
     }
 
     else if (specialSlot == 0x1a) { // eram read 1
-      eramRead1 = eramRead;
-      src = eramRead1;
+      if (!eramReadFifo.empty()) {
+        src = eramReadFifo.front();
+        eramReadFifo.pop();
+      } else {
+        printf("%04x: eram read 1 empty\n", pc);
+      }
       writeMemOffs(0x7a, src);
       updatesAcc = true;
     }
 
     else if (specialSlot == 0x1b) { // eram read 2
-      eramRead2 = eramRead;
-      src = eramRead2;
+      if (!eramReadFifo.empty()) {
+        src = eramReadFifo.front();
+        eramReadFifo.pop();
+      } else {
+        printf("%04x: eram read 2 empty\n", pc);
+      }
       writeMemOffs(0x7b, src);
       updatesAcc = true;
     }
 
     else if (specialSlot == 0x1c) { // eram read 3
-      eramRead3 = eramRead;
-      src = eramRead3;
+      if (!eramReadFifo.empty()) {
+        src = eramReadFifo.front();
+        eramReadFifo.pop();
+      } else {
+        printf("%04x: eram read 3 empty\n", pc);
+      }
       writeMemOffs(0x7c, src);
       updatesAcc = true;
     }
 
     else if (specialSlot == 0x1d) { // eram read 4
-      eramRead4 = eramRead;
-      src = eramRead4;
+      if (!eramReadFifo.empty()) {
+        src = eramReadFifo.front();
+        eramReadFifo.pop();
+      } else {
+        printf("%04x: eram read 4 empty\n", pc);
+      }
       writeMemOffs(0x7d, src);
       updatesAcc = true;
     }
@@ -430,8 +492,11 @@ private:
       src = audioIn;
       writeMemOffs(0x7e, src);
       updatesAcc = true;
-    } else {
-      printf("%04x: unknown special write %02x=%06x\n", pc, specialSlot, src);
+    }
+
+    else {
+      printf("%04x: unknown special write %02x=%06x\n", pc, specialSlot,
+             (int32_t)src);
       return;
     }
 
