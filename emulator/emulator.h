@@ -95,13 +95,13 @@ struct RamOperationStage2 {
 };
 
 struct RamOperationStage1 {
-  uint16_t addr = 0;
+  uint32_t addr = 0;
   uint8_t stage = 0;
   bool isWrite = false;
   bool active = false;
 
   void startTransaction(uint8_t command, uint16_t baseAddr,
-                        uint16_t offsetAddr) {
+                        int32_t offsetAddr) {
     if (active) {
       printf("stage 1 already active: %02x\n", command);
     }
@@ -114,16 +114,16 @@ struct RamOperationStage1 {
   }
 
   bool sendCommand(RamOperationStage2 &ramStage2, uint8_t command,
-                   uint16_t baseAddr, uint16_t offsetAddr) {
+                   uint16_t baseAddr, int32_t offsetAddr) {
     if (active) {
       stage += 1;
       uint16_t incr = command << ((stage - 1) * 3);
 
       if (stage < 6) {
-        addr = (addr + incr) & 0xffff;
+        addr = addr + incr;
       } else {
         if ((command & 1 && stage == 6)) {
-          addr = (addr + incr) & 0xffff;
+          addr = addr + incr;
         }
 
         // pass to next stage

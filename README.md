@@ -15,28 +15,28 @@ Most stuff works, external ram support is not complete.
 - [x] Distortion
 - [x] Phaser
 - [x] Auto Wah
-- [ ] Rotary (where low freqs?)
-- [ ] Stereo Flanger (working but no interp)
-- [ ] Step Flanger (working but no interp)
+- [ ] Rotary (works but glitches)
+- [ ] Stereo Flanger (working but glitches)
+- [ ] Step Flanger (working but glitches)
 - [x] Tremolo
 - [x] Auto Pan
 - [x] Compressor
 - [x] Limiter
-- [ ] Hexa Chorus (working but no interp)
-- [ ] Tremolo Chorus (working but no interp, also causes a weird delay)
-- [ ] Stereo Chorus (working but no interp)
-- [ ] Space D (working but no interp)
-- [ ] 3D Chorus (invalid eram opcode)
-- [ ] Stereo Delay (working but invalid eram opcode)
-- [ ] Mod Delay (invalid eram opcode, no effect)
+- [ ] Hexa Chorus (working but glitches)
+- [ ] Tremolo Chorus (working but glitches, also causes a weird delay)
+- [ ] Stereo Chorus (working but glitches)
+- [ ] Space D (working but glitches)
+- [ ] 3D Chorus (working but glitches)
+- [x] Stereo Delay
+- [ ] Mod Delay (working but glitches)
 - [x] 3 Tap Delay
 - [x] 4 Tap Delay
 - [ ] Tm Ctrl Delay (wrong time)
-- [ ] Reverb (just screams)
-- [ ] Gate Reverb (no effect)
-- [ ] 3D Delay (no effect)
-- [ ] 2 Pitch Shifter (working but no interp)
-- [ ] Fb Pitch Shifter (working but no interp)
+- [x] Reverb
+- [ ] Gate Reverb (working but sounds weird?)
+- [x] 3D Delay
+- [ ] 2 Pitch Shifter (working but glitches)
+- [ ] Fb Pitch Shifter (working but glitches)
 - [ ] 3D Auto (broken when going back)
 - [ ] 3D Manual (broken when going back)
 - [x] Lo-Fi 1
