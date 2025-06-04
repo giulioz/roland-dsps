@@ -107,7 +107,7 @@ struct RamOperationStage1 {
     }
 
     bool shouldUseOffset = (command & 0x06) == 0x04;
-    addr = (baseAddr + (shouldUseOffset ? (offsetAddr >> 10) : 0)) & 0xffff;
+    addr = baseAddr + (shouldUseOffset ? (offsetAddr >> 10) : 0);
     stage = 0;
     isWrite = (command & 0x06) == 0x06;
     active = true;
