@@ -1,158 +1,185 @@
-0080: 20 78 57  // opcode:2 write:0 reg:78 scaler:0 coef:0.679688
-0081: c8 7e 7f  // opcode:c write:8 reg:7e scaler:0 coef:0.992188
+0080: 20 78 57  // opcode:20                 reg:78
+0081: c8 7e 7f  // opcode:c0 write:08        reg:7e
 0082: 00 00 00
-0083: 28 f5 7f  // opcode:2 write:8 reg:75 scaler:1 coef:3.968750
-0084: 28 75 20  // opcode:2 write:8 reg:75 scaler:0 coef:0.250000
-0085: 20 81 20  // opcode:2 write:0 reg:01 scaler:1 coef:20
-0086: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
-0087: 08 7e 00  // opcode:0 write:8 reg:7e scaler:0 coef:0.000000
+0083: 28 f5 7f  // opcode:20 write:08        reg:75
+0084: 28 75 20  // opcode:20 write:08        reg:75
+0085: 20 81 20  // opcode:20                 reg:01
+0086: 08 75 7f  // opcode:00 write:08        reg:75
+0087: 08 7e 00  // opcode:00 write:08        reg:7e
 0088: 00 00 00
-0089: c8 58 00  // opcode:c write:8 reg:58 scaler:0 coef:0.000000
-008a: 26 7f 7f  // opcode:2 write:6 reg:7f scaler:0 coef:0.992188
-008b: 60 7e 7f  // opcode:6 write:0 reg:7e scaler:0 coef:0.992188
-008c: 20 88 20  // opcode:2 write:0 reg:08 scaler:1 coef:1.000000
-008d: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
-008e: c0 50 c0  // opcode:c write:0 reg:50 scaler:0 coef:-0.500000
-008f: 60 8a 20  // opcode:6 write:0 reg:0a scaler:1 coef:1.000000
-0090: 56 75 7f  // opcode:5 write:6 reg:75 scaler:0 coef:0.992188
-0091: e0 50 c0  // opcode:e write:0 reg:50 scaler:0 coef:-0.500000
-0092: c8 50 00  // opcode:c write:8 reg:50 scaler:0 coef:0.000000
-0093: 28 75 ff  // opcode:2 write:8 reg:75 scaler:0 coef:-0.992188
-0094: c0 50 80  // opcode:c write:0 reg:50 scaler:0 coef:0.000000
-0095: 04 88 20  // opcode:0 write:4 reg:08 scaler:1 coef:1.000000
-0096: 70 75 ff  // opcode:7 write:0 reg:75 scaler:0 coef:-0.992188
-0097: e0 50 80  // opcode:e write:0 reg:50 scaler:0 coef:0.000000
-0098: d0 50 00  // opcode:d write:0 reg:50 scaler:0 coef:0.000000
-0099: 40 8a 20  // opcode:4 write:0 reg:0a scaler:1 coef:1.000000
-009a: 08 07 00  // opcode:0 write:8 reg:07 scaler:0 coef:0.000000
+0089: c8 58 00  // opcode:c0 write:08        reg:58
+
+// write ram L/R
+008a: 26 7f 7f  // opcode:20          eram:6 reg:7f  ERAM WRITE L
+008b: 60 7e 7f  // opcode:60                 reg:7e
+008c: 20 88 20  // opcode:20                 reg:08
+008d: 08 75 7f  // opcode:00 write:08        reg:75
+008e: c0 50 c0  // opcode:c0                 reg:50
+008f: 60 8a 20  // opcode:60                 reg:0a
+0090: 56 75 7f  // opcode:40 write:10 eram:6 reg:75  ERAM WRITE R
+0091: e0 50 c0  // opcode:e0                 reg:50
+0092: c8 50 00  // opcode:c0 write:08        reg:50  eram write value L
+0093: 28 75 ff  // opcode:20 write:08        reg:75
+0094: c0 50 80  // opcode:c0                 reg:50
+0095: 04 88 20  // opcode:00          eram:4 reg:08  eram shift
+0096: 70 75 ff  // opcode:60 write:10        reg:75
+0097: e0 50 80  // opcode:e0                 reg:50
+0098: d0 50 00  // opcode:c0 write:10        reg:50  eram write value R
+0099: 40 8a 20  // opcode:40                 reg:0a
+009a: 08 07 00  // opcode:00 write:08        reg:07
 009b: 00 00 00
-009c: 10 09 00  // opcode:1 write:0 reg:09 scaler:0 coef:0.000000
-009d: 20 96 20  // opcode:2 write:0 reg:16 scaler:1 coef:1.000000
-009e: 00 82 01  // opcode:0 write:0 reg:02 scaler:1 coef:01
-009f: c0 d0 d6  // opcode:c write:0 reg:50 scaler:1 coef:-2.687500
+009c: 10 09 00  // opcode:00 write:10        reg:09
+
+// gen mod wave L
+009d: 20 96 20  // opcode:20                 reg:16
+009e: 00 82 01 // RATE MSB  // opcode:00                 reg:02
+009f: c0 d0 d6 // RATE LSB  // opcode:c0                 reg:50
 00a0: 00 00 00
 00a1: 00 00 00
-00a2: b8 15 80  // opcode:b write:8 reg:15 scaler:0 coef:0.000000
-00a3: 20 84 00  // opcode:2 write:0 reg:04 scaler:1 coef:00
-00a4: c0 d0 66  // opcode:c write:0 reg:50 scaler:1 coef:3.187500
-00a5: 08 75 01  // opcode:0 write:8 reg:75 scaler:0 coef:0.007812
-00a6: c0 50 8d  // opcode:c write:0 reg:50 scaler:0 coef:-0.101562
+00a2: b8 15 80  // opcode:a0 write:18        reg:15  compute abs, store phase
+00a3: 20 84 00  // opcode:20                 reg:04
+00a4: c0 d0 66  // opcode:c0                 reg:50
+00a5: 08 75 01 // DEPTH MSB // opcode:00 write:08        reg:75
+00a6: c0 50 8d // DEPTH LSB  // opcode:c0                 reg:50
 00a7: 00 00 00
-00a8: 00 84 00  // opcode:0 write:0 reg:04 scaler:1 coef:00
-00a9: c0 d0 66  // opcode:c write:0 reg:50 scaler:1 coef:3.187500
+00a8: 00 84 00  // opcode:00                 reg:04
+00a9: c0 d0 66  // opcode:c0                 reg:50
 00aa: 00 00 00
 00ab: 00 00 00
-00ac: d8 53 00  // opcode:d write:8 reg:53 scaler:0 coef:0.000000
-00ad: 04 00 00  // opcode:0 write:4 reg:00 scaler:0 coef:0.000000
-00ae: 02 00 00  // opcode:0 write:2 reg:00 scaler:0 coef:0.000000
+
+// ram read and interpolate L
+00ac: d8 53 00  // opcode:c0 write:18        reg:53  load ram offs
+00ad: 04 00 00  // opcode:00          eram:4 reg:00  ERAM READ OFFS
+00ae: 02 00 00  // opcode:00          eram:2 reg:00  eram shift
 00af: 00 00 00
 00b0: 00 00 00
 00b1: 00 00 00
 00b2: 00 00 00
-00b3: 04 00 00  // opcode:0 write:4 reg:00 scaler:0 coef:0.000000
+00b3: 04 00 00  // opcode:00          eram:4 reg:00  ERAM READ OFFS
 00b4: 00 00 00
 00b5: 00 00 00
 00b6: 00 00 00
 00b7: 00 00 00
 00b8: 00 00 00
-00b9: c8 7b 00  // opcode:c write:8 reg:7b scaler:0 coef:0.000000
+00b9: c8 7b 00  // opcode:c0 write:08        reg:7b  mem[0x7b] = ram_read
 00ba: 00 00 00
 00bb: 00 00 00
 00bc: 00 00 00
 00bd: 00 00 00
-00be: 80 7b 09  // opcode:8 write:0 reg:7b scaler:0 coef:0.070312
-00bf: c8 da 20  // opcode:c write:8 reg:5a scaler:1 coef:1.000000
-00c0: 80 7a 05  // opcode:8 write:0 reg:7a scaler:0 coef:0.039062
+00be: 80 7b 09  // opcode:80                 reg:7b
+00bf: c8 da 20  // opcode:c0 write:08        reg:5a  mem[0x7b] = ram_read, accA += ram_read
+00c0: 80 7a 05  // opcode:80                 reg:7a
 00c1: 00 00 00
 00c2: 00 00 00
-00c3: 08 10 00  // opcode:0 write:8 reg:10 scaler:0 coef:0.000000
-00c4: 20 95 20  // opcode:2 write:0 reg:15 scaler:1 coef:1.000000
-00c5: 00 84 40  // opcode:0 write:0 reg:04 scaler:1 coef:40
-00c6: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
+00c3: 08 10 00  // opcode:00 write:08        reg:10
+
+// gen mod wave R
+00c4: 20 95 20  // opcode:20                 reg:15
+00c5: 00 84 40 // PHASE MSB  // opcode:00                 reg:04
+00c6: c0 d0 00 // PHASE LSB  // opcode:c0                 reg:50
 00c7: 00 00 00
 00c8: 00 00 00
-00c9: b8 75 80  // opcode:b write:8 reg:75 scaler:0 coef:0.000000
-00ca: 20 84 40  // opcode:2 write:0 reg:04 scaler:1 coef:40
-00cb: c0 d0 76  // opcode:c write:0 reg:50 scaler:1 coef:3.687500
-00cc: 08 75 01  // opcode:0 write:8 reg:75 scaler:0 coef:0.007812
-00cd: c0 50 8d  // opcode:c write:0 reg:50 scaler:0 coef:-0.101562
+00c9: b8 75 80  // opcode:a0 write:18        reg:75
+00ca: 20 84 40  // opcode:20                 reg:04
+00cb: c0 d0 76  // opcode:c0                 reg:50
+00cc: 08 75 01 // DEPTH MSB  // opcode:00 write:08        reg:75
+00cd: c0 50 8d // DEPTH LSB  // opcode:c0                 reg:50
 00ce: 00 00 00
-00cf: 00 84 40  // opcode:0 write:0 reg:04 scaler:1 coef:40
-00d0: c0 d0 76  // opcode:c write:0 reg:50 scaler:1 coef:3.687500
+00cf: 00 84 40  // opcode:00                 reg:04
+00d0: c0 d0 76  // opcode:c0                 reg:50
 00d1: 00 00 00
 00d2: 00 00 00
-00d3: d8 53 00  // opcode:d write:8 reg:53 scaler:0 coef:0.000000
-00d4: 04 00 00  // opcode:0 write:4 reg:00 scaler:0 coef:0.000000
-00d5: 02 00 00  // opcode:0 write:2 reg:00 scaler:0 coef:0.000000
+
+// ram read and interpolate R
+00d3: d8 53 00  // opcode:c0 write:18        reg:53  load ram offs
+00d4: 04 00 00  // opcode:00          eram:4 reg:00  ERAM READ OFFS
+00d5: 02 00 00  // opcode:00          eram:2 reg:00  eram shift
 00d6: 00 00 00
 00d7: 00 00 00
 00d8: 00 00 00
 00d9: 00 00 00
-00da: 04 00 00  // opcode:0 write:4 reg:00 scaler:0 coef:0.000000
+00da: 04 00 00  // opcode:00          eram:4 reg:00  ERAM READ OFFS
 00db: 00 00 00
 00dc: 00 00 00
 00dd: 00 00 00
 00de: 00 00 00
 00df: 00 00 00
-00e0: c8 7b 00  // opcode:c write:8 reg:7b scaler:0 coef:0.000000
+00e0: c8 7b 00  // opcode:c0 write:08        reg:7b
 00e1: 00 00 00
 00e2: 00 00 00
 00e3: 00 00 00
 00e4: 00 00 00
-00e5: 80 7b 09  // opcode:8 write:0 reg:7b scaler:0 coef:0.070312
-00e6: c8 da 20  // opcode:c write:8 reg:5a scaler:1 coef:1.000000
-00e7: 80 7a 05  // opcode:8 write:0 reg:7a scaler:0 coef:0.039062
+00e5: 80 7b 09  // opcode:80                 reg:7b
+00e6: c8 da 20  // opcode:c0 write:08        reg:5a
+00e7: 80 7a 05  // opcode:80                 reg:7a
 00e8: 00 00 00
 00e9: 00 00 00
-00ea: 08 11 00  // opcode:0 write:8 reg:11 scaler:0 coef:0.000000
-00eb: 20 90 20  // opcode:2 write:0 reg:10 scaler:1 coef:1.000000
-00ec: 00 11 80  // opcode:0 write:0 reg:11 scaler:0 coef:0.000000
+00ea: 08 11 00  // opcode:00 write:08        reg:11
+
+
+00eb: 20 90 20  // opcode:20                 reg:10  load L
+00ec: 00 11 80  // opcode:00                 reg:11  sum some R
 00ed: 00 00 00
 00ee: 00 00 00
-00ef: 28 f5 20  // opcode:2 write:8 reg:75 scaler:1 coef:1.000000
+00ef: 28 f5 20  // opcode:20 write:08        reg:75
 00f0: 00 00 00
-00f1: 20 7f 7f  // opcode:2 write:0 reg:7f scaler:0 coef:0.992188
-00f2: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
-00f3: 20 61 8a  // opcode:2 write:0 reg:61 scaler:0 coef:-0.078125
-00f4: c0 50 43  // opcode:c write:0 reg:50 scaler:0 coef:0.523438
-00f5: 08 e0 20  // opcode:0 write:8 reg:60 scaler:1 coef:1.000000
-00f6: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
-00f7: 00 62 75  // opcode:0 write:0 reg:62 scaler:0 coef:0.914062
-00f8: c0 50 bd  // opcode:c write:0 reg:50 scaler:0 coef:-0.476562
-00f9: 20 62 ca  // opcode:2 write:0 reg:62 scaler:0 coef:-0.578125
-00fa: c0 50 7f  // opcode:c write:0 reg:50 scaler:0 coef:0.992188
-00fb: 08 e1 20  // opcode:0 write:8 reg:61 scaler:1 coef:1.000000
-00fc: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
-00fd: 00 63 35  // opcode:0 write:0 reg:63 scaler:0 coef:0.414062
-00fe: c0 50 81  // opcode:c write:0 reg:50 scaler:0 coef:-0.007812
+00f1: 20 7f 7f  // opcode:20                 reg:7f
+00f2: 08 75 7f  // opcode:00 write:08        reg:75
+
+// low shelf l
+00f3: 20 61 8a  // opcode:20                 reg:61
+00f4: c0 50 43  // opcode:c0                 reg:50
+00f5: 08 e0 20  // opcode:00 write:08        reg:60
+00f6: c0 d0 00  // opcode:c0                 reg:50
+00f7: 00 62 75  // opcode:00                 reg:62
+00f8: c0 50 bd  // opcode:c0                 reg:50
+
+// high shelf l
+00f9: 20 62 ca  // opcode:20                 reg:62
+00fa: c0 50 7f  // opcode:c0                 reg:50
+00fb: 08 e1 20  // opcode:00 write:08        reg:61
+00fc: c0 d0 00  // opcode:c0                 reg:50
+00fd: 00 63 35  // opcode:00                 reg:63
+00fe: c0 50 81  // opcode:c0                 reg:50
+
+// write output l
 00ff: 00 00 00
 0100: 00 00 00
-0101: 08 62 00  // opcode:0 write:8 reg:62 scaler:0 coef:0.000000
-0102: 08 79 00  // opcode:0 write:8 reg:79 scaler:0 coef:0.000000
-0103: 20 10 80  // opcode:2 write:0 reg:10 scaler:0 coef:0.000000
-0104: 00 91 20  // opcode:0 write:0 reg:11 scaler:1 coef:1.000000
+0101: 08 62 00  // opcode:00 write:08        reg:62
+0102: 08 79 00  // opcode:00 write:08        reg:79
+
+0103: 20 10 80  // opcode:20                 reg:10
+0104: 00 91 20  // opcode:00                 reg:11
 0105: 00 00 00
 0106: 00 00 00
-0107: 28 f5 20  // opcode:2 write:8 reg:75 scaler:1 coef:1.000000
+0107: 28 f5 20  // opcode:20 write:08        reg:75
 0108: 00 00 00
-0109: 20 7e 7f  // opcode:2 write:0 reg:7e scaler:0 coef:0.992188
-010a: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
-010b: 20 65 8a  // opcode:2 write:0 reg:65 scaler:0 coef:-0.078125
-010c: c0 50 43  // opcode:c write:0 reg:50 scaler:0 coef:0.523438
-010d: 08 e4 20  // opcode:0 write:8 reg:64 scaler:1 coef:1.000000
-010e: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
-010f: 00 66 75  // opcode:0 write:0 reg:66 scaler:0 coef:0.914062
-0110: c0 50 bd  // opcode:c write:0 reg:50 scaler:0 coef:-0.476562
-0111: 20 66 ca  // opcode:2 write:0 reg:66 scaler:0 coef:-0.578125
-0112: c0 50 7f  // opcode:c write:0 reg:50 scaler:0 coef:0.992188
-0113: 08 e5 20  // opcode:0 write:8 reg:65 scaler:1 coef:1.000000
-0114: c0 d0 00  // opcode:c write:0 reg:50 scaler:1 coef:0.000000
-0115: 00 67 35  // opcode:0 write:0 reg:67 scaler:0 coef:0.414062
-0116: c0 50 81  // opcode:c write:0 reg:50 scaler:0 coef:-0.007812
+0109: 20 7e 7f  // opcode:20                 reg:7e
+010a: 08 75 7f  // opcode:00 write:08        reg:75
+
+// low shelf r
+010b: 20 65 8a  // opcode:20                 reg:65
+010c: c0 50 43  // opcode:c0                 reg:50
+010d: 08 e4 20  // opcode:00 write:08        reg:64
+010e: c0 d0 00  // opcode:c0                 reg:50
+010f: 00 66 75  // opcode:00                 reg:66
+0110: c0 50 bd  // opcode:c0                 reg:50
+
+// high shelf r
+0111: 20 66 ca  // opcode:20                 reg:66
+0112: c0 50 7f  // opcode:c0                 reg:50
+0113: 08 e5 20  // opcode:00 write:08        reg:65
+0114: c0 d0 00  // opcode:c0                 reg:50
+0115: 00 67 35  // opcode:00                 reg:67
+0116: c0 50 81  // opcode:c0                 reg:50
+
+// write output r
 0117: 00 00 00
 0118: 00 00 00
-0119: 08 66 00  // opcode:0 write:8 reg:66 scaler:0 coef:0.000000
-011a: 08 77 00  // opcode:0 write:8 reg:77 scaler:0 coef:0.000000
+0119: 08 66 00  // opcode:00 write:08        reg:66
+011a: 08 77 00  // opcode:00 write:08        reg:77
+
+
 011b: 00 00 00
 011c: 00 00 00
 011d: 00 00 00
@@ -368,17 +395,18 @@
 01ef: 00 00 00
 01f0: 00 00 00
 01f1: 00 00 00
-01f2: 20 79 57  // opcode:2 write:0 reg:79 scaler:0 coef:0.679688
-01f3: c8 7e 7f  // opcode:c write:8 reg:7e scaler:0 coef:0.992188
+
+01f2: 20 79 57  // opcode:20                 reg:79
+01f3: c8 7e 7f  // opcode:c0 write:08        reg:7e
 01f4: 00 00 00
-01f5: 28 f5 7f  // opcode:2 write:8 reg:75 scaler:1 coef:3.968750
-01f6: 28 75 20  // opcode:2 write:8 reg:75 scaler:0 coef:0.250000
-01f7: 20 81 20  // opcode:2 write:0 reg:01 scaler:1 coef:20
-01f8: 08 75 7f  // opcode:0 write:8 reg:75 scaler:0 coef:0.992188
-01f9: 08 7e 00  // opcode:0 write:8 reg:7e scaler:0 coef:0.000000
+01f5: 28 f5 7f  // opcode:20 write:08        reg:75
+01f6: 28 75 20  // opcode:20 write:08        reg:75
+01f7: 20 81 20  // opcode:20                 reg:01
+01f8: 08 75 7f  // opcode:00 write:08        reg:75
+01f9: 08 7e 00  // opcode:00 write:08        reg:7e
 01fa: 00 00 00
-01fb: c8 58 00  // opcode:c write:8 reg:58 scaler:0 coef:0.000000
-01fc: c8 6f fe  // opcode:c write:8 reg:6f scaler:0 coef:-0.984375
+01fb: c8 58 00  // opcode:c0 write:08        reg:58
+01fc: c8 6f fe  // opcode:c0 write:08        reg:6f
 01fd: 00 00 00
 01fe: 00 00 00
 01ff: 00 00 00

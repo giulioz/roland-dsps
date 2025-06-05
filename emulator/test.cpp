@@ -354,6 +354,26 @@ void test50() {
   }
 }
 
+void testRamWeird() {
+  LspState state;
+  state.iram[7 + 0x80] = 0x200100;
+  state.iram[10 + 0x80] = 0xc85400;
+  state.iram[14 + 0x80] = 0x200340;
+  state.iram[15 + 0x80] = 0x060000;
+  state.iram[23 + 0x80] = 0xc85000;
+  state.iram[27 + 0x80] = 0x020000;
+  state.iram[33 + 0x80] = 0x020000;
+  state.iram[39 + 0x80] = 0xc87b00;
+  state.iram[44 + 0x80] = 0x807b09;
+  state.iram[45 + 0x80] = 0xc8da20;
+  state.iram[46 + 0x80] = 0x807a05;
+  state.iram[46 + 0x80] = 0x080100;
+  for (size_t i = 0; i < 0x1ffff; i++) {
+    state.runProgram();
+  }
+  expectEqual("testRamWeird", state.iram[0x01], sign_extend_24(0x010000));
+}
+
 int main() {
   testBasic();
   testIo();
@@ -361,5 +381,6 @@ int main() {
   testMultSimple();
   testMultStaged();
   test50();
+  testRamWeird();
   return 0;
 }

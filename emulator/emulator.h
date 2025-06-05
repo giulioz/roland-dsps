@@ -26,8 +26,8 @@ static constexpr int32_t clamp_24(int64_t v) {
 }
 
 class DspAccumulator {
-  int64_t acc = 0;
-  std::array<int64_t, 8> hist{};
+  int32_t acc = 0;
+  std::array<int32_t, 8> hist{};
   std::size_t head = 0;
 
 public:
@@ -99,6 +99,7 @@ struct RamOperationStage1 {
   uint8_t stage = 0;
   bool isWrite = false;
   bool active = false;
+  uint8_t startCommand = 0;
 
   void startTransaction(uint8_t command, uint16_t baseAddr,
                         int32_t offsetAddr) {
@@ -111,6 +112,7 @@ struct RamOperationStage1 {
     stage = 0;
     isWrite = (command & 0x06) == 0x06;
     active = true;
+    startCommand = command;
   }
 
   bool sendCommand(RamOperationStage2 &ramStage2, uint8_t command,
@@ -118,6 +120,14 @@ struct RamOperationStage1 {
     if (active) {
       stage += 1;
       uint16_t incr = command << ((stage - 1) * 3);
+      if (startCommand == 0x04) {
+        incr = 0x00;
+        if (command == 0x02 && stage == 1) {
+          incr = 0x01;
+        } else if (command != 0x00 && stage != 6) {
+          printf("ERAM invalid command: %02x\n", command);
+        }
+      }
 
       if (stage < 6) {
         addr = addr + incr;
@@ -168,7 +178,6 @@ public:
   uint16_t pc = 0x80;
 
   // External RAM
-  // TODO: this should be 16 bit, not 32
   int32_t eram[0x10000] = {0};
   uint16_t eramPos = 0;
   std::queue<int32_t> eramReadFifo;

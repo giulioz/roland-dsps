@@ -89,6 +89,8 @@
 00ca: c0 d0 20  // opcode:c0                 reg:50
 00cb: 00 00 00
 00cc: 00 00 00
+
+// read and interpolate L
 00cd: d8 53 00  // opcode:c0 write:18        reg:53  prepare tap offs
 00ce: 04 00 00  // opcode:00          eram:4 reg:00  ERAM READ OFFS
 00cf: 02 00 00  // opcode:00          eram:2 reg:00  eram shift
@@ -112,9 +114,9 @@
 00e1: 80 7a 05  // opcode:80                 reg:7a
 00e2: 00 00 00
 00e3: 00 00 00
-00e4: 28 f5 20  // opcode:20 write:08        reg:75
 00e5: 00 00 00
 // balance
+00e4: 28 f5 20  // opcode:20 write:08        reg:75
 00e6: 20 7f 7f  // opcode:20                 reg:7f
 00e7: 08 0f 7f  // opcode:00 write:08        reg:0f
 
@@ -165,6 +167,8 @@
 010d: 00 00 00
 010e: 00 00 00
 010f: 00 00 00
+
+// read and interpolate R
 0110: d8 53 00  // opcode:c0 write:18        reg:53  prepare tap offs
 0111: 04 00 00  // opcode:00          eram:4 reg:00  ERAM READ OFFS
 0112: 02 00 00  // opcode:00          eram:2 reg:00
@@ -189,9 +193,9 @@
 0125: 00 00 00
 0126: 00 00 00
 0127: 28 f5 20  // opcode:20 write:08        reg:75
-0128: 00 00 00
 
 // balance
+0128: 00 00 00
 0129: 20 7e 7f  // opcode:20                 reg:7e
 012a: 08 11 7f  // opcode:00 write:08        reg:11
 

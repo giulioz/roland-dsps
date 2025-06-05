@@ -229,6 +229,17 @@ pos    incr (01)   incr (03)   incr (07)    shift
 -> special case: starting with 05 does weird stuff
 
 
+-> different with 04?
+pos    incr (01)   incr (02)
+00     
+01     ??          1
+02     ??          0
+03     
+04     
+05     
+06     
+
+
 06-00-00-00-00-06     does 1 write only
 06-00-00-00-00-00-06  does 2 writes
 06-00-00-00-00-00-01  does 1 write only, sum(toggle) 0x100 to col addr
