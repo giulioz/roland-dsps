@@ -141,13 +141,15 @@ void LspState::step(uint32_t instr) {
   uint8_t opcode = ii & 0xe0;
   uint8_t extRamCtrl = ii & 0x7;
 
-  if (opcode == 0x00 || opcode == 0x20 || opcode == 0x40 || opcode == 0x60 ||
-      opcode == 0xa0) {
-    doInstrMac(ii, rr, cc);
-  } else if (opcode == 0x80) {
-    doInstrMul(ii, rr, cc);
-  } else if (opcode == 0xc0 || opcode == 0xe0) {
-    doInstrSpecialReg(ii, rr, cc);
+  if (instr != 0x000000) {
+    if (opcode == 0x00 || opcode == 0x20 || opcode == 0x40 || opcode == 0x60 ||
+        opcode == 0xa0) {
+      doInstrMac(ii, rr, cc);
+    } else if (opcode == 0x80) {
+      doInstrMul(ii, rr, cc);
+    } else if (opcode == 0xc0 || opcode == 0xe0) {
+      doInstrSpecialReg(ii, rr, cc);
+    }
   }
 
   commonDoEram(extRamCtrl);
@@ -163,14 +165,18 @@ void LspState::commonDoEram(uint8_t command) {
 void LspState::commonDoStore(uint8_t ii, uint8_t rr) {
   uint8_t memOffs = rr & 0x7f;
   uint8_t writeCtrl = ii & 0x18;
-  if (writeCtrl == 0x00) {
-    // nop
-  } else if (writeCtrl == 0x08) {
+  switch (writeCtrl) {
+  case 0x08:
     writeMemOffs(memOffs, accA.historySat24(pipelineWriteDelay));
-  } else if (writeCtrl == 0x10) {
+    return;
+  case 0x10:
     writeMemOffs(memOffs, accB.historySat24(pipelineWriteDelay));
-  } else if (writeCtrl == 0x18) {
+    return;
+  case 0x18:
     writeMemOffs(memOffs, accA.historyRaw24(pipelineWriteDelay));
+    return;
+  default:
+    return;
   }
 }
 
@@ -178,16 +184,18 @@ int32_t LspState::commonGetMemOrImmediate(uint8_t rr, int8_t cc) {
   uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
   uint8_t memOffs = rr & 0x7f;
   int64_t incr = readMemOffs(memOffs) * cc;
-  if (memOffs == 1)
-    incr = cc << 7;
-  if (memOffs == 2)
-    incr = cc << 12;
-  if (memOffs == 3)
-    incr = cc << 17;
-  if (memOffs == 4)
-    incr = cc << 22;
-  incr >>= mulScaler;
-  return incr;
+  switch (memOffs) {
+  case 1:
+    return incr = (cc << 7) >> mulScaler;
+  case 2:
+    return incr = (cc << 12) >> mulScaler;
+  case 3:
+    return incr = (cc << 17) >> mulScaler;
+  case 4:
+    return incr = (cc << 22) >> mulScaler;
+  default:
+    return (readMemOffs(memOffs) * cc) >> mulScaler;
+  }
 }
 
 void LspState::doInstrMac(uint8_t ii, uint8_t rr, int8_t cc) {

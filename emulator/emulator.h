@@ -29,7 +29,7 @@ static constexpr int32_t clamp_24(int64_t v) {
 
 class DspAccumulator {
   int32_t acc = 0;
-  std::array<int32_t, 8> hist{};
+  int32_t hist[8] = {0};
   std::size_t head = 0;
 
 public:
