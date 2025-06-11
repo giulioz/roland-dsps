@@ -37,8 +37,8 @@ Most stuff works, external ram support is not complete.
 - [x] 3D Delay
 - [ ] 2 Pitch Shifter (working but glitches)
 - [ ] Fb Pitch Shifter (working but glitches)
-- [ ] 3D Auto (broken when going back)
-- [ ] 3D Manual (broken when going back)
+- [x] 3D Auto
+- [x] 3D Manual
 - [x] Lo-Fi 1
 - [x] Lo-Fi 2
 

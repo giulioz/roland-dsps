@@ -1,1 +1,1 @@
-gcc test.cpp --std=c++2a -lstdc++ -g;./a.out
+gcc test.cpp emulator.cpp --std=c++2a -lstdc++ -g;./a.out

@@ -158,7 +158,7 @@ specials:
   4c  inc  ??
   4d  rep  jump pc=cc<<1  if accA < 0
   4e  rep  jump pc=cc<<1  if accA >= 0
-  4f  rep  jump pc=cc<<1  always?
+  4f  rep  jump pc=cc<<1  always
   
   acc unaffected:
   50  inc  eram write latch
