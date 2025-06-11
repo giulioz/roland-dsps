@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "emulator.h"
+#include "wavutils.h"
 
 void expectEqual(const char *where, int32_t actual, int32_t expected) {
   if (actual != expected) {
@@ -374,6 +375,74 @@ void testRamWeird() {
   expectEqual("testRamWeird", state.iram[0x01], sign_extend_24(0x010000));
 }
 
+void testEqualsWav(const char *programFilename, const char *inputFilename, const char *expectFilename) {
+  LspState state;
+
+  // Load the program file
+  FILE *pgmFile = fopen(programFilename, "r");
+  if (!pgmFile) {
+    fprintf(stderr, "Error opening program file: %s\n", programFilename);
+    return;
+  }
+  char line[512] = {0};
+  int iramIdx = 0x80;
+  while (fgets(line, sizeof(line), pgmFile)) {
+    int b1, b2, b3;
+    const char *format = "%2x %2x %2x";
+    if (line[4] == ':') {
+      format = "%*[^:]: %2x %2x %2x";
+    }
+    if (sscanf(line, format, &b1, &b2, &b3) == 3) {
+      int32_t value = (b1 << 16) | (b2 << 8) | b3;
+      state.iram[iramIdx++] = value;
+    }
+  }
+  fclose(pgmFile);
+
+  std::vector<int16_t> audioSamples;
+  int sampleRate = 0;
+  int numChannels = 0;
+  read_wav(inputFilename, audioSamples, sampleRate, numChannels);
+
+  std::vector<int16_t> audioOutput;
+
+  // Process audio samples
+  for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
+    if (numChannels == 1) {
+      state.audioInL = state.audioInR = audioSamples[i];
+    } else if (numChannels == 2) {
+      state.audioInL = audioSamples[i];
+      state.audioInR = audioSamples[i + 1];
+    }
+
+    state.audioInL <<= 6;
+    state.audioInR <<= 6;
+
+    state.runProgram();
+
+    state.audioOutL >>= 8;
+    state.audioOutR >>= 8;
+
+    audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
+    audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
+  }
+
+  std::vector<int16_t> audioSamplesExpected;
+  read_wav(expectFilename, audioSamplesExpected, sampleRate, numChannels);
+  if (audioSamplesExpected.size() != audioOutput.size()) {
+    fprintf(stderr, "Output size mismatch: expected %zu, got %zu\n",
+            audioSamplesExpected.size(), audioOutput.size());
+    return;
+  }
+  for (size_t i = 0; i < audioSamplesExpected.size(); i++) {
+    if (audioSamplesExpected[i] != audioOutput[i]) {
+      fprintf(stderr, "Mismatch at sample %zu: expected %d, got %d\n",
+              i, audioSamplesExpected[i], audioOutput[i]);
+      return;
+    }
+  }
+}
+
 int main() {
   testBasic();
   testIo();
@@ -382,5 +451,9 @@ int main() {
   testMultStaged();
   test50();
   testRamWeird();
+  
+  testEqualsWav("reverb_perftest.txt", "input_guit.wav", "expected_reverb.wav");
+  testEqualsWav("chorus_perftest.txt", "input_guit.wav", "expected_chorus.wav");
+
   return 0;
 }

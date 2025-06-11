@@ -1,0 +1,384 @@
+0080: 20 78 61  // opcode:20 write:00 eram:0 reg:78
+0081: c8 7e 7f  // opcode:c0 write:08 eram:0 reg:7e
+0082: 00 00 00
+0083: 28 f5 7f  // opcode:20 write:08 eram:0 reg:75
+0084: 28 75 20  // opcode:20 write:08 eram:0 reg:75
+0085: 20 81 20  // opcode:20 write:00 eram:0 reg:01
+0086: 08 75 7f  // opcode:00 write:08 eram:0 reg:75
+0087: 08 7e 00  // opcode:00 write:08 eram:0 reg:7e
+0088: 00 00 00
+0089: c8 58 00  // opcode:c0 write:08 eram:0 reg:58
+008a: 20 10 00  // opcode:20 write:00 eram:0 reg:10
+008b: 00 7f 7f  // opcode:00 write:00 eram:0 reg:7f
+008c: 00 00 00
+008d: 20 88 20  // opcode:20 write:00 eram:0 reg:08
+008e: 08 75 7f  // opcode:00 write:08 eram:0 reg:75
+008f: c0 50 c0  // opcode:c0 write:00 eram:0 reg:50
+0090: 00 00 00
+0091: 20 88 20  // opcode:20 write:00 eram:0 reg:08
+0092: 08 20 ff  // opcode:00 write:08 eram:0 reg:20
+0093: c0 50 80  // opcode:c0 write:00 eram:0 reg:50
+0094: 00 00 00
+0095: 00 00 00
+0096: 08 07 00  // opcode:00 write:08 eram:0 reg:07
+0097: 20 12 00  // opcode:20 write:00 eram:0 reg:12
+0098: 00 7e 7f  // opcode:00 write:00 eram:0 reg:7e
+0099: 00 00 00
+009a: 20 8a 20  // opcode:20 write:00 eram:0 reg:0a
+009b: 08 75 7f  // opcode:00 write:08 eram:0 reg:75
+009c: c0 50 c0  // opcode:c0 write:00 eram:0 reg:50
+009d: 00 00 00
+009e: 20 8a 20  // opcode:20 write:00 eram:0 reg:0a
+009f: 08 23 ff  // opcode:00 write:08 eram:0 reg:23
+00a0: c0 50 80  // opcode:c0 write:00 eram:0 reg:50
+00a1: 00 00 00
+00a2: 00 00 00
+00a3: 08 09 00  // opcode:00 write:08 eram:0 reg:09
+00a4: 26 20 7f  // opcode:20 write:00 eram:6 reg:20
+00a5: 00 21 00  // opcode:00 write:00 eram:0 reg:21
+00a6: 00 22 00  // opcode:00 write:00 eram:0 reg:22
+00a7: 00 00 00
+00a8: 00 00 00
+00a9: 28 21 7f  // opcode:20 write:08 eram:0 reg:21
+00aa: 00 00 00
+00ab: 00 00 00
+00ac: c8 50 00  // opcode:c0 write:08 eram:0 reg:50
+00ad: 26 23 7f  // opcode:20 write:00 eram:6 reg:23
+00ae: 00 24 00  // opcode:00 write:00 eram:0 reg:24
+00af: 00 25 00  // opcode:00 write:00 eram:0 reg:25
+00b0: 00 00 00
+00b1: 00 00 00
+00b2: 2c 24 7f  // opcode:20 write:08 eram:4 reg:24
+00b3: 00 00 00
+00b4: 00 00 00
+00b5: c8 50 00  // opcode:c0 write:08 eram:0 reg:50
+00b6: 20 96 20  // opcode:20 write:00 eram:0 reg:16
+00b7: 00 82 01  // opcode:00 write:00 eram:0 reg:02
+00b8: c0 d0 d6  // opcode:c0 write:00 eram:0 reg:50
+00b9: 00 00 00
+00ba: 00 00 00
+00bb: b8 15 80  // opcode:a0 write:18 eram:0 reg:15
+00bc: 00 00 00
+00bd: 00 00 00
+00be: c8 54 00  // opcode:c0 write:08 eram:0 reg:54
+00bf: 88 75 09  // opcode:80 write:08 eram:0 reg:75
+00c0: 80 75 41  // opcode:80 write:00 eram:0 reg:75
+00c1: 00 00 00
+00c2: 20 f5 20  // opcode:20 write:00 eram:0 reg:75
+00c3: 08 f6 00  // opcode:00 write:08 eram:0 reg:76
+00c4: 20 84 00  // opcode:20 write:00 eram:0 reg:04
+00c5: c0 d0 20  // opcode:c0 write:00 eram:0 reg:50
+00c6: 08 75 05  // opcode:00 write:08 eram:0 reg:75
+00c7: c0 50 2a  // opcode:c0 write:00 eram:0 reg:50
+00c8: 00 00 00
+00c9: 00 84 00  // opcode:00 write:00 eram:0 reg:04
+00ca: c0 d0 20  // opcode:c0 write:00 eram:0 reg:50
+00cb: 00 00 00
+00cc: 00 00 00
+00cd: d8 53 00  // opcode:c0 write:18 eram:0 reg:53
+00ce: 04 00 00  // opcode:00 write:00 eram:4 reg:00
+00cf: 02 00 00  // opcode:00 write:00 eram:2 reg:00
+00d0: 00 00 00
+00d1: 00 00 00
+00d2: 00 00 00
+00d3: 00 00 00
+00d4: 04 00 00  // opcode:00 write:00 eram:4 reg:00
+00d5: 00 00 00
+00d6: 00 00 00
+00d7: 00 00 00
+00d8: 00 00 00
+00d9: 00 00 00
+00da: c8 7b 00  // opcode:c0 write:08 eram:0 reg:7b
+00db: 00 00 00
+00dc: 00 00 00
+00dd: 00 00 00
+00de: 00 00 00
+00df: 80 7b 09  // opcode:80 write:00 eram:0 reg:7b
+00e0: c8 da 20  // opcode:c0 write:08 eram:0 reg:5a
+00e1: 80 7a 05  // opcode:80 write:00 eram:0 reg:7a
+00e2: 00 00 00
+00e3: 00 00 00
+00e4: 28 f5 20  // opcode:20 write:08 eram:0 reg:75
+00e5: 00 00 00
+00e6: 20 7f 7f  // opcode:20 write:00 eram:0 reg:7f
+00e7: 08 0f 7f  // opcode:00 write:08 eram:0 reg:0f
+00e8: 20 61 85  // opcode:20 write:00 eram:0 reg:61
+00e9: c0 50 86  // opcode:c0 write:00 eram:0 reg:50
+00ea: 08 e0 20  // opcode:00 write:08 eram:0 reg:60
+00eb: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
+00ec: 00 62 7a  // opcode:00 write:00 eram:0 reg:62
+00ed: c0 50 7a  // opcode:c0 write:00 eram:0 reg:50
+00ee: 20 62 ca  // opcode:20 write:00 eram:0 reg:62
+00ef: c0 50 7f  // opcode:c0 write:00 eram:0 reg:50
+00f0: 08 e1 20  // opcode:00 write:08 eram:0 reg:61
+00f1: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
+00f2: 00 63 35  // opcode:00 write:00 eram:0 reg:63
+00f3: c0 50 81  // opcode:c0 write:00 eram:0 reg:50
+00f4: 00 00 00
+00f5: 00 00 00
+00f6: 08 62 00  // opcode:00 write:08 eram:0 reg:62
+00f7: 08 79 00  // opcode:00 write:08 eram:0 reg:79
+00f8: 20 95 20  // opcode:20 write:00 eram:0 reg:15
+00f9: 00 84 40  // opcode:00 write:00 eram:0 reg:04
+00fa: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
+00fb: 00 00 00
+00fc: 00 00 00
+00fd: b8 75 80  // opcode:a0 write:18 eram:0 reg:75
+00fe: 00 00 00
+00ff: 00 00 00
+0100: c8 54 00  // opcode:c0 write:08 eram:0 reg:54
+0101: 88 75 09  // opcode:80 write:08 eram:0 reg:75
+0102: 80 75 41  // opcode:80 write:00 eram:0 reg:75
+0103: 00 00 00
+0104: 20 f5 20  // opcode:20 write:00 eram:0 reg:75
+0105: 08 f6 00  // opcode:00 write:08 eram:0 reg:76
+0106: 20 84 40  // opcode:20 write:00 eram:0 reg:04
+0107: c0 d0 20  // opcode:c0 write:00 eram:0 reg:50
+0108: 08 75 05  // opcode:00 write:08 eram:0 reg:75
+0109: c0 50 2a  // opcode:c0 write:00 eram:0 reg:50
+010a: 00 00 00
+010b: 00 84 40  // opcode:00 write:00 eram:0 reg:04
+010c: c0 d0 20  // opcode:c0 write:00 eram:0 reg:50
+010d: 00 00 00
+010e: 00 00 00
+010f: 00 00 00
+0110: d8 53 00  // opcode:c0 write:18 eram:0 reg:53
+0111: 04 00 00  // opcode:00 write:00 eram:4 reg:00
+0112: 02 00 00  // opcode:00 write:00 eram:2 reg:00
+0113: 00 00 00
+0114: 00 00 00
+0115: 00 00 00
+0116: 00 00 00
+0117: 04 00 00  // opcode:00 write:00 eram:4 reg:00
+0118: 00 00 00
+0119: 00 00 00
+011a: 00 00 00
+011b: 00 00 00
+011c: 00 00 00
+011d: c8 7b 00  // opcode:c0 write:08 eram:0 reg:7b
+011e: 00 00 00
+011f: 00 00 00
+0120: 00 00 00
+0121: 00 00 00
+0122: 80 7b 09  // opcode:80 write:00 eram:0 reg:7b
+0123: c8 da 20  // opcode:c0 write:08 eram:0 reg:5a
+0124: 80 7a 05  // opcode:80 write:00 eram:0 reg:7a
+0125: 00 00 00
+0126: 00 00 00
+0127: 28 f5 20  // opcode:20 write:08 eram:0 reg:75
+0128: 00 00 00
+0129: 20 7e 7f  // opcode:20 write:00 eram:0 reg:7e
+012a: 08 11 7f  // opcode:00 write:08 eram:0 reg:11
+012b: 20 65 85  // opcode:20 write:00 eram:0 reg:65
+012c: c0 50 86  // opcode:c0 write:00 eram:0 reg:50
+012d: 08 e4 20  // opcode:00 write:08 eram:0 reg:64
+012e: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
+012f: 00 66 7a  // opcode:00 write:00 eram:0 reg:66
+0130: c0 50 7a  // opcode:c0 write:00 eram:0 reg:50
+0131: 20 66 ca  // opcode:20 write:00 eram:0 reg:66
+0132: c0 50 7f  // opcode:c0 write:00 eram:0 reg:50
+0133: 08 e5 20  // opcode:00 write:08 eram:0 reg:65
+0134: c0 d0 00  // opcode:c0 write:00 eram:0 reg:50
+0135: 00 67 35  // opcode:00 write:00 eram:0 reg:67
+0136: c0 50 81  // opcode:c0 write:00 eram:0 reg:50
+0137: 00 00 00
+0138: 00 00 00
+0139: 08 66 00  // opcode:00 write:08 eram:0 reg:66
+013a: 08 77 00  // opcode:00 write:08 eram:0 reg:77
+013b: 00 00 00
+013c: 00 00 00
+013d: 00 00 00
+013e: 00 00 00
+013f: 00 00 00
+0140: 00 00 00
+0141: 00 00 00
+0142: 00 00 00
+0143: 00 00 00
+0144: 00 00 00
+0145: 00 00 00
+0146: 00 00 00
+0147: 00 00 00
+0148: 00 00 00
+0149: 00 00 00
+014a: 00 00 00
+014b: 00 00 00
+014c: 00 00 00
+014d: 00 00 00
+014e: 00 00 00
+014f: 00 00 00
+0150: 00 00 00
+0151: 00 00 00
+0152: 00 00 00
+0153: 00 00 00
+0154: 00 00 00
+0155: 00 00 00
+0156: 00 00 00
+0157: 00 00 00
+0158: 00 00 00
+0159: 00 00 00
+015a: 00 00 00
+015b: 00 00 00
+015c: 00 00 00
+015d: 00 00 00
+015e: 00 00 00
+015f: 00 00 00
+0160: 00 00 00
+0161: 00 00 00
+0162: 00 00 00
+0163: 00 00 00
+0164: 00 00 00
+0165: 00 00 00
+0166: 00 00 00
+0167: 00 00 00
+0168: 00 00 00
+0169: 00 00 00
+016a: 00 00 00
+016b: 00 00 00
+016c: 00 00 00
+016d: 00 00 00
+016e: 00 00 00
+016f: 00 00 00
+0170: 00 00 00
+0171: 00 00 00
+0172: 00 00 00
+0173: 00 00 00
+0174: 00 00 00
+0175: 00 00 00
+0176: 00 00 00
+0177: 00 00 00
+0178: 00 00 00
+0179: 00 00 00
+017a: 00 00 00
+017b: 00 00 00
+017c: 00 00 00
+017d: 00 00 00
+017e: 00 00 00
+017f: 00 00 00
+0180: 00 00 00
+0181: 00 00 00
+0182: 00 00 00
+0183: 00 00 00
+0184: 00 00 00
+0185: 00 00 00
+0186: 00 00 00
+0187: 00 00 00
+0188: 00 00 00
+0189: 00 00 00
+018a: 00 00 00
+018b: 00 00 00
+018c: 00 00 00
+018d: 00 00 00
+018e: 00 00 00
+018f: 00 00 00
+0190: 00 00 00
+0191: 00 00 00
+0192: 00 00 00
+0193: 00 00 00
+0194: 00 00 00
+0195: 00 00 00
+0196: 00 00 00
+0197: 00 00 00
+0198: 00 00 00
+0199: 00 00 00
+019a: 00 00 00
+019b: 00 00 00
+019c: 00 00 00
+019d: 00 00 00
+019e: 00 00 00
+019f: 00 00 00
+01a0: 00 00 00
+01a1: 00 00 00
+01a2: 00 00 00
+01a3: 00 00 00
+01a4: 00 00 00
+01a5: 00 00 00
+01a6: 00 00 00
+01a7: 00 00 00
+01a8: 00 00 00
+01a9: 00 00 00
+01aa: 00 00 00
+01ab: 00 00 00
+01ac: 00 00 00
+01ad: 00 00 00
+01ae: 00 00 00
+01af: 00 00 00
+01b0: 00 00 00
+01b1: 00 00 00
+01b2: 00 00 00
+01b3: 00 00 00
+01b4: 00 00 00
+01b5: 00 00 00
+01b6: 00 00 00
+01b7: 00 00 00
+01b8: 00 00 00
+01b9: 00 00 00
+01ba: 00 00 00
+01bb: 00 00 00
+01bc: 00 00 00
+01bd: 00 00 00
+01be: 00 00 00
+01bf: 00 00 00
+01c0: 00 00 00
+01c1: 00 00 00
+01c2: 00 00 00
+01c3: 00 00 00
+01c4: 00 00 00
+01c5: 00 00 00
+01c6: 00 00 00
+01c7: 00 00 00
+01c8: 00 00 00
+01c9: 00 00 00
+01ca: 00 00 00
+01cb: 00 00 00
+01cc: 00 00 00
+01cd: 00 00 00
+01ce: 00 00 00
+01cf: 00 00 00
+01d0: 00 00 00
+01d1: 00 00 00
+01d2: 00 00 00
+01d3: 00 00 00
+01d4: 00 00 00
+01d5: 00 00 00
+01d6: 00 00 00
+01d7: 00 00 00
+01d8: 00 00 00
+01d9: 00 00 00
+01da: 00 00 00
+01db: 00 00 00
+01dc: 00 00 00
+01dd: 00 00 00
+01de: 00 00 00
+01df: 00 00 00
+01e0: 00 00 00
+01e1: 00 00 00
+01e2: 00 00 00
+01e3: 00 00 00
+01e4: 00 00 00
+01e5: 00 00 00
+01e6: 00 00 00
+01e7: 00 00 00
+01e8: 00 00 00
+01e9: 00 00 00
+01ea: 00 00 00
+01eb: 00 00 00
+01ec: 00 00 00
+01ed: 00 00 00
+01ee: 00 00 00
+01ef: 00 00 00
+01f0: 00 00 00
+01f1: 00 00 00
+01f2: 20 79 61  // opcode:20 write:00 eram:0 reg:79
+01f3: c8 7e 7f  // opcode:c0 write:08 eram:0 reg:7e
+01f4: 00 00 00
+01f5: 28 f5 7f  // opcode:20 write:08 eram:0 reg:75
+01f6: 28 75 20  // opcode:20 write:08 eram:0 reg:75
+01f7: 20 81 20  // opcode:20 write:00 eram:0 reg:01
+01f8: 08 75 7f  // opcode:00 write:08 eram:0 reg:75
+01f9: 08 7e 00  // opcode:00 write:08 eram:0 reg:7e
+01fa: 00 00 00
+01fb: c8 58 00  // opcode:c0 write:08 eram:0 reg:58
+01fc: c8 6f fe  // opcode:c0 write:08 eram:0 reg:6f
+01fd: 00 00 00
+01fe: 00 00 00
+01ff: 00 00 00
