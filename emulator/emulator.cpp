@@ -39,7 +39,7 @@ void RamOperationStage1::startTransaction(uint8_t command, uint16_t baseAddr,
   }
 
   bool shouldUseOffset = (command & 0x06) == 0x04;
-  addr = baseAddr + (shouldUseOffset ? (offsetAddr >> 10) : 0);
+  addr = (int32_t)baseAddr + (shouldUseOffset ? offsetAddr : 0);
   stage = 0;
   isWrite = (command & 0x06) == 0x06;
   active = true;
@@ -118,7 +118,7 @@ void LspState::runProgram() {
       pc = jmpDest;
       jmpStage = 0;
     }
-    
+
     if (pc >= (0x80 + 384 / 2))
       audioOutL = audioOut;
     else
@@ -343,8 +343,10 @@ void LspState::doInstrSpecialReg(uint8_t ii, uint8_t rr, int8_t cc) {
     eramWriteLatch = src;
   }
 
-  else if (specialSlot == 0x13) { // eram second tap offset
-    eramSecondTapOffs = src;
+  else if (specialSlot == 0x13 && writeCtrl == 0x18) { // eram second tap offset
+    int32_t val = accA.historyRaw32(pipelineWriteDelay);
+    eramSecondTapOffs = val >> 10;
+    multiplCoef1 = (val & 0x3ff) << 13;
   }
 
   else if (specialSlot == 0x14) { // multiplCoef1

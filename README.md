@@ -4,8 +4,6 @@ Emulation for the Boss MB87837 (LSP) chip, used in the SC-88Pro, SC-8850, ME-6, 
 
 ## Effect emulation status
 
-Most stuff works, external ram support is not complete.
-
 - [x] Thru
 - [x] Stereo-EQ
 - [x] Spectrum
@@ -15,28 +13,28 @@ Most stuff works, external ram support is not complete.
 - [x] Distortion
 - [x] Phaser
 - [x] Auto Wah
-- [ ] Rotary (works but glitches)
-- [ ] Stereo Flanger (working but glitches)
-- [ ] Step Flanger (working but glitches)
+- [x] Rotary
+- [x] Stereo Flanger
+- [x] Step Flanger
 - [x] Tremolo
 - [x] Auto Pan
 - [x] Compressor
 - [x] Limiter
-- [ ] Hexa Chorus (working but glitches)
-- [ ] Tremolo Chorus (working but glitches, also causes a weird delay)
-- [ ] Stereo Chorus (working but glitches)
-- [ ] Space D (working but glitches)
-- [ ] 3D Chorus (working but glitches)
+- [x] Hexa Chorus
+- [x] Tremolo Chorus
+- [x] Stereo Chorus
+- [x] Space D
+- [x] 3D Chorus
 - [x] Stereo Delay
-- [ ] Mod Delay (working but glitches)
+- [x] Mod Delay
 - [x] 3 Tap Delay
 - [x] 4 Tap Delay
-- [ ] Tm Ctrl Delay (wrong time)
+- [x] Tm Ctrl Delay
 - [x] Reverb
-- [ ] Gate Reverb (working but sounds weird?)
+- [x] Gate Reverb
 - [x] 3D Delay
-- [ ] 2 Pitch Shifter (working but glitches)
-- [ ] Fb Pitch Shifter (working but glitches)
+- [x] 2 Pitch Shifter
+- [x] Fb Pitch Shifter
 - [x] 3D Auto
 - [x] 3D Manual
 - [x] Lo-Fi 1

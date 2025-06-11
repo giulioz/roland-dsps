@@ -53,6 +53,11 @@ public:
     return sign_extend_24(hist[idx] & MASK);
   }
 
+  inline int32_t historyRaw32(std::size_t n) const {
+    std::size_t idx = (head - n) & 7;
+    return hist[idx];
+  }
+
   inline void fwdPipeline() { head = (head + 1) & 7; }
   inline void storePipeline() { hist[head] = acc; }
 };
