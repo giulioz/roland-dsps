@@ -6,10 +6,12 @@
 #include <string>
 #include <vector>
 
+#include "codegen.h"
 #include "emulator.h"
 #include "wavutils.h"
 
 LspState state;
+Runtime runtime;
 
 int main() {
   // Load program
@@ -33,6 +35,13 @@ int main() {
   }
   fclose(pgmFile);
 
+  state.parseProgram();
+
+  FILE *outputFile = fopen("compiled.cpp", "w");
+  std::string code = convertToCode(state.instrCache);
+  fprintf(outputFile, "%s", code.c_str());
+  fclose(outputFile);
+
   // Load audio input
   std::vector<int16_t> audioSamples;
   int sampleRate = 0;
@@ -45,27 +54,38 @@ int main() {
 
   std::vector<int16_t> audioOutput;
 
-  state.optimiseProgram();
-  
   // Process audio samples
   for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
     if (numChannels == 1) {
-      state.audioInL = state.audioInR = audioSamples[i];
+      runtime.audioInL = runtime.audioInR = audioSamples[i];
     } else if (numChannels == 2) {
-      state.audioInL = audioSamples[i];
-      state.audioInR = audioSamples[i + 1];
+      runtime.audioInL = audioSamples[i];
+      runtime.audioInR = audioSamples[i + 1];
     }
 
-    state.audioInL <<= 6;
-    state.audioInR <<= 6;
+    runtime.audioInL <<= 6;
+    runtime.audioInR <<= 6;
+    state.audioInL = runtime.audioInL;
+    state.audioInR = runtime.audioInR;
 
     state.runProgram();
 
+    runtime.runCompiled();
+
+    runtime.audioOutL >>= 8;
+    runtime.audioOutR >>= 8;
     state.audioOutL >>= 8;
     state.audioOutR >>= 8;
 
-    audioOutput.push_back(static_cast<int16_t>(state.audioOutL));
-    audioOutput.push_back(static_cast<int16_t>(state.audioOutR));
+    if (state.audioOutL != runtime.audioOutL ||
+        state.audioOutR != runtime.audioOutR) {
+      printf("Audio output mismatch: %d %d vs %d %d\n", state.audioOutL,
+             state.audioOutR, runtime.audioOutL, runtime.audioOutR);
+      break;
+    }
+
+    audioOutput.push_back(static_cast<int16_t>(runtime.audioOutL));
+    audioOutput.push_back(static_cast<int16_t>(runtime.audioOutR));
   }
 
   write_wav("output.wav", audioOutput, sampleRate, 2);

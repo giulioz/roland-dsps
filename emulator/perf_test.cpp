@@ -8,10 +8,13 @@
 #include <vector>
 
 #include "emulator.h"
+#include "codegen.h"
+#include "runtime.h"
 
 LspState state;
+Runtime runtime;
 
-static constexpr long long testLength = 2000000;
+static constexpr long long testLength = 80000000;
 static constexpr long long nTests = 5;
 
 int main() {
@@ -34,6 +37,12 @@ int main() {
     }
   }
   fclose(pgmFile);
+  
+  // state.parseProgram();
+  // FILE *outputFile = fopen("compiled.cpp", "w");
+  // std::string code = convertToCode(state.instrCache);
+  // fprintf(outputFile, "%s", code.c_str());
+  // fclose(outputFile);
 
   int sumTimes = 0;
 
@@ -41,10 +50,13 @@ int main() {
     auto start = std::chrono::high_resolution_clock::now();
 
     for (size_t i = 0; i < testLength; i += 1) {
-      state.audioInL = rand();
-      state.audioInR = rand();
+      // state.audioInL = rand();
+      runtime.audioInL = rand();
+      // state.audioInR = rand();
+      runtime.audioInR = rand();
 
-      state.runProgram();
+      // state.runProgram();
+      runtime.runCompiled();
     }
 
     auto stop = std::chrono::high_resolution_clock::now();

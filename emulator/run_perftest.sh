@@ -1,1 +1,1 @@
-gcc perf_test.cpp emulator.cpp --std=c++2a -lstdc++ -O3 -g;./a.out
+gcc perf_test.cpp emulator.cpp compiled.cpp codegen.cpp --std=c++2a -lstdc++ -O3 -g;./a.out

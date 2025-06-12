@@ -1,13 +1,13 @@
 #include "emulator.h"
 
-static constexpr int pipelineWriteDelay = 3;
-
-// skip
 LspInstr::LspInstr() {}
 
-LspInstr::LspInstr(uint8_t ii, uint8_t rr, int8_t cc, DspAccumulator *accA,
-                   DspAccumulator *accB)
-    : ii(ii), rr(rr), cc(cc) {
+// skip
+LspInstr::LspInstr(uint16_t pc) : pc(pc) {}
+
+LspInstr::LspInstr(uint16_t pc, uint8_t ii, uint8_t rr, int8_t cc,
+                   DspAccumulator *accA, DspAccumulator *accB)
+    : pc(pc), ii(ii), rr(rr), cc(cc) {
   skip = false;
 
   opcode = ii & 0xe0;
@@ -41,12 +41,14 @@ LspInstr::LspInstr(uint8_t ii, uint8_t rr, int8_t cc, DspAccumulator *accA,
           opcode == 0x60 || opcode == 0xa0;
   macAbsValue = opcode == 0xa0;
   macReplaceAcc = ((ii & 0x20) != 0) || macAbsValue;
-  macAcc = (ii & 0x40) != 0 ? accB : accA;
+  macUseAccB = (ii & 0x40) != 0;
+  macAcc = macUseAccB ? accB : accA;
 
   // mul
   isMul = opcode == 0x80;
   mulLower = (cc & 0x40) != 0;
-  mulAcc = (cc & 0x10) != 0 ? accB : accA;
+  mulUseAccB = (cc & 0x10) != 0;
+  mulAcc = mulUseAccB ? accB : accA;
   mulNegate = (cc & 0x4) != 0;
   mulReplaceAcc = (cc & 0x8) != 0 && !mulLower;
   mulCoefSelect = (cc & 0x2) != 0;
@@ -73,21 +75,49 @@ LspInstr::LspInstr(uint8_t ii, uint8_t rr, int8_t cc, DspAccumulator *accA,
 
   // special
   isSpecial = opcode == 0xc0 || opcode == 0xe0;
-  specialAccDest = (ii & 0x20) != 0 ? accB : accA;
+  specialDestAccB = (ii & 0x20) != 0;
+  specialAccDest = specialDestAccB ? accB : accA;
   useSpecial = (rr & 0x40) != 0;
   specialReplaceAcc = (rr & 0x20) != 0;
   specialSlot = rr & 0x1f;
   specialCase50d0 = writeCtrl == 0x00 && specialSlot == 0x10;
   isAudioOut = isSpecial && specialSlot == 0x18;
   isAudioIn = isSpecial && specialSlot == 0x1e;
+
+  bool specialThatUsesAcc = specialSlot == 0x0d || specialSlot == 0x0e ||
+                            specialSlot == 0x10 || specialSlot == 0x13 ||
+                            specialSlot == 0x14 || specialSlot == 0x15 ||
+                            specialSlot == 0x18;
+
+  usesPrevAccA = (writeCtrl == 0x8 && (isMac || isMul)) ||
+                 (writeCtrl != 0 && isSpecial && specialThatUsesAcc);
+  usesPrevAccB = (writeCtrl == 0x10 && (isMac || isMul)) ||
+                 (writeCtrl != 0 && isSpecial && specialThatUsesAcc);
+  usesPrevAccAUnsat = (writeCtrl == 0x18 && (isMac || isMul)) ||
+                      (writeCtrl != 0 && isSpecial && specialThatUsesAcc);
 }
 
-void LspInstr::setJmp(const LspInstr &prev) {
+void LspInstr::setJmpAndPrevMem(LspInstr instrSoFar[], const LspInstr &prev) {
+  prevMem = prev.memOffs;
+
   jmpOnPositive = prev.isSpecial && prev.specialSlot == 0x0e;
   jmpOnNegative = prev.isSpecial && prev.specialSlot == 0x0d;
   jmpAlways = prev.isSpecial && prev.specialSlot == 0x0f;
   jmp = jmpOnPositive || jmpOnNegative || jmpAlways;
-  jmpDest = (((uint8_t)prev.cc) << 1) - 1 - 0x80;
+  jmpDest = (((uint8_t)prev.cc) << 1) - 0x80;
+
+  // special case infinite loop at the end
+  if (jmpDest == pc - 1) {
+    jmpOnPositive = false;
+    jmpOnNegative = false;
+    jmpAlways = false;
+    jmp = false;
+    jmpDest = 0;
+  }
+
+  if (jmp) {
+    instrSoFar[jmpDest].jumpDest = true;
+  }
 }
 
 void LspInstr::setEram(const LspInstr instrSoFar[], int instrPos) {
@@ -129,23 +159,42 @@ void LspInstr::setEram(const LspInstr instrSoFar[], int instrPos) {
   }
 }
 
-void LspState::optimiseProgram() {
+void LspInstr::findAccRef(LspInstr instrSoFar[], int instrPos) {
+  if (skip || instrPos < pipelineWriteDelay) {
+    return;
+  }
+
+  if (usesPrevAccA) {
+    instrSoFar[instrPos - pipelineWriteDelay].shouldStoreAccA = true;
+  }
+  if (usesPrevAccB) {
+    instrSoFar[instrPos - pipelineWriteDelay].shouldStoreAccB = true;
+  }
+  if (usesPrevAccAUnsat) {
+    instrSoFar[instrPos - pipelineWriteDelay].shouldStoreAccA = true;
+  }
+}
+
+void LspState::parseProgram() {
   for (size_t pc = 0; pc < 384; pc++) {
     uint32_t instr = iram[0x80 + pc];
     if (instr == 0x000000) {
-      instrCache[pc] = LspInstr();
+      instrCache[pc] = LspInstr(pc);
     } else {
       uint8_t ii = (instr >> 16) & 0xff;
       uint8_t rr = (instr >> 8) & 0xff;
       int8_t cc = (int8_t)(instr & 0xff);
-      instrCache[pc] = LspInstr(ii, rr, cc, &accA, &accB);
+      instrCache[pc] = LspInstr(pc, ii, rr, cc, &accA, &accB);
     }
+  }
 
+  for (size_t pc = 0; pc < 384; pc++) {
     if (pc > 0) {
-      instrCache[pc].setJmp(instrCache[pc - 1]);
+      instrCache[pc].setJmpAndPrevMem(instrCache, instrCache[pc - 1]);
     }
 
     instrCache[pc].setEram(instrCache, pc);
+    instrCache[pc].findAccRef(instrCache, pc);
   }
 }
 
@@ -153,6 +202,10 @@ void LspState::runProgram() {
   int total = 0;
   audioIn = audioInR;
   for (pc = 0; total < 384; pc++, total++) {
+    if (pc >= 384) {
+      break;
+    }
+
     const LspInstr &instr = instrCache[pc];
 
     if (instr.isAudioIn && pc >= (384 / 2))
@@ -165,7 +218,7 @@ void LspState::runProgram() {
     accB.storePipeline();
 
     if (instr.jmp && shouldJump) {
-      pc = instr.jmpDest;
+      pc = instr.jmpDest - 1;
       shouldJump = false;
     }
 
@@ -200,8 +253,6 @@ void LspState::step(const LspInstr &instr) {
     uint32_t addr = (eramPos + (int32_t)instr.eramBaseAddr) & 0xffff;
     eram[addr] = eramWriteLatch >> 4;
   }
-
-  prevRR = instr.rr;
 }
 
 void LspState::commonDoStore(const LspInstr &instr) {
@@ -283,18 +334,17 @@ void LspState::doInstrMul(const LspInstr &instr) {
 void LspState::doInstrSpecialReg(const LspInstr &instr) {
   // special case 50/d0
   if (instr.specialCase50d0) {
-    uint8_t prevMem = prevRR & 0x7f;
-
-    int64_t incr = readMemOffs(prevMem) * (uint8_t)instr.cc;
+    int64_t incr = readMemOffs(instr.prevMem) * (uint8_t)instr.cc;
     incr >>= 7;
 
-    if (prevMem == 1 || prevMem == 2 || prevMem == 3 || prevMem == 4) {
+    if (instr.prevMem == 1 || instr.prevMem == 2 || instr.prevMem == 3 ||
+        instr.prevMem == 4) {
       int prevShift = 0;
-      if (prevMem == 2)
+      if (instr.prevMem == 2)
         prevShift = 5;
-      else if (prevMem == 3)
+      else if (instr.prevMem == 3)
         prevShift = 10;
-      else if (prevMem == 4)
+      else if (instr.prevMem == 4)
         prevShift = 15;
       incr = ((uint8_t)instr.cc) << prevShift;
     }
@@ -323,17 +373,17 @@ void LspState::doInstrSpecialReg(const LspInstr &instr) {
 
   if (instr.specialSlot == 0x0d) { // jmp if <0
     shouldJump = src < 0;
-    updatesAcc = true; // TODO: check
+    // updatesAcc = true; // TODO: check
   }
 
   else if (instr.specialSlot == 0x0e) { // jmp if >=0
     shouldJump = src >= 0;
-    updatesAcc = true; // TODO: check
+    // updatesAcc = true; // TODO: check
   }
 
   else if (instr.specialSlot == 0x0f) { // jmp
     shouldJump = true;
-    updatesAcc = true; // TODO: check
+    // updatesAcc = true; // TODO: check
   }
 
   else if (instr.specialSlot == 0x10) { // eram write latch

@@ -1,39 +1,35 @@
 #pragma once
 
 #include <cstdint>
+#include <format>
 #include <fstream>
 #include <limits>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
-static constexpr int32_t sign_extend_24(int32_t x) {
-  x &= 0xffffff;
-  if (x & 0x800000) // If sign bit is set
-    x |= ~0xffffff;
-  return x;
-}
+#include "runtime.h"
 
-static constexpr int DATA_BITS = 24;
-static constexpr int64_t MIN_VAL = -(1LL << (DATA_BITS - 1));
-static constexpr int64_t MAX_VAL = (1LL << (DATA_BITS - 1)) - 1;
-static constexpr int64_t MASK = (1LL << DATA_BITS) - 1;
-static constexpr int32_t clamp_24(int64_t v) {
-  if (v > MAX_VAL)
-    return static_cast<int32_t>(MAX_VAL);
-  if (v < MIN_VAL)
-    return static_cast<int32_t>(MIN_VAL);
-  return static_cast<int32_t>(v);
-}
+static constexpr int pipelineWriteDelay = 3;
 
 class DspAccumulator {
+public:
   int32_t acc = 0;
   int32_t hist[4] = {0};
   std::size_t head = 0;
 
-public:
   inline void set(int32_t v) { acc = v; }
   inline void add(int32_t v) { acc += v; }
+
+  inline int32_t operator=(int32_t v) {
+    acc = v;
+    return acc;
+  }
+
+  inline int32_t operator+=(int32_t v) {
+    acc += v;
+    return acc;
+  }
 
   inline void abs() {
     if (acc < 0)
@@ -41,7 +37,7 @@ public:
   }
 
   inline int32_t sat24() const { return clamp_24(acc); }
-  inline int32_t raw24() const { return sign_extend_24(acc & MASK); }
+  inline int32_t raw24() const { return sign_extend_24(acc & 0xffffff); }
 
   inline int32_t historySat24(std::size_t n) const {
     std::size_t idx = (head - n) & 3;
@@ -49,9 +45,8 @@ public:
   }
   inline int32_t historyRaw24(std::size_t n) const {
     std::size_t idx = (head - n) & 3;
-    return sign_extend_24(hist[idx] & MASK);
+    return sign_extend_24(hist[idx] & 0xffffff);
   }
-
   inline int32_t historyRaw32(std::size_t n) const {
     std::size_t idx = (head - n) & 3;
     return hist[idx];
@@ -64,6 +59,7 @@ public:
 struct LspInstr {
   bool skip = true;
 
+  uint16_t pc = 0;
   uint8_t ii = 0;
   uint8_t rr = 0;
   int8_t cc = 0;
@@ -78,15 +74,25 @@ struct LspInstr {
   bool useImmediate = false;
   int32_t immediateValue = 0;
 
+  // pipeline optimisation
+  bool usesPrevAccA = false;
+  bool usesPrevAccB = false;
+  bool usesPrevAccAUnsat = false;
+  bool shouldStoreAccA = false;
+  bool shouldStoreAccB = false;
+  bool jumpDest = false;
+
   // mac
   bool isMac = false;
   bool macAbsValue = false;
   bool macReplaceAcc = false;
+  bool macUseAccB = false; // true: accB, false: accA
   DspAccumulator *macAcc = nullptr;
 
   // mul
   bool isMul = false;
   bool mulLower = 0;
+  bool mulUseAccB = false; // true: accB, false: accA
   DspAccumulator *mulAcc = nullptr;
   bool mulNegate = false;
   bool mulReplaceAcc = false;
@@ -94,11 +100,13 @@ struct LspInstr {
 
   // special
   bool isSpecial = false;
+  bool specialDestAccB = false; // true: accB, false: accA
   DspAccumulator *specialAccDest = nullptr;
   bool useSpecial = false;
   bool specialReplaceAcc = false;
   uint8_t specialSlot = 0;
   bool specialCase50d0 = false;
+  uint8_t prevMem = 0; // used for special case 50/d0
   bool jmpOnPositive = false;
   bool jmpOnNegative = false;
   bool jmpAlways = false;
@@ -113,15 +121,19 @@ struct LspInstr {
   bool eramUseSecondTap = false;
   uint32_t eramBaseAddr = 0;
 
-  // skip
   LspInstr();
 
-  LspInstr(uint8_t ii, uint8_t rr, int8_t cc, DspAccumulator *accA,
+  // skip
+  LspInstr(uint16_t pc);
+
+  LspInstr(uint16_t pc, uint8_t ii, uint8_t rr, int8_t cc, DspAccumulator *accA,
            DspAccumulator *accB);
 
-  void setJmp(const LspInstr &prev);
+  void setJmpAndPrevMem(LspInstr instrSoFar[], const LspInstr &prev);
 
   void setEram(const LspInstr instrSoFar[], int instrPos);
+
+  void findAccRef(LspInstr instrSoFar[], int instrPos);
 };
 
 class LspState {
@@ -145,7 +157,6 @@ public:
   int32_t eramReadValue;
 
   // Pipeline
-  uint8_t prevRR = 0;
   bool shouldJump = false;
 
   // Special regs
@@ -159,7 +170,7 @@ public:
   LspInstr instrCache[384];
 
   void runProgram();
-  void optimiseProgram();
+  void parseProgram();
 
 private:
   void step(const LspInstr &instr);
