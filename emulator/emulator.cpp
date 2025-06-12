@@ -153,7 +153,7 @@ void LspState::runProgram() {
   int total = 0;
   audioIn = audioInR;
   for (pc = 0; total < 384; pc++, total++) {
-    const LspInstr instr = instrCache[pc];
+    const LspInstr &instr = instrCache[pc];
 
     if (instr.isAudioIn && pc >= (384 / 2))
       audioIn = audioInL;
@@ -408,12 +408,12 @@ void LspState::doInstrSpecialReg(const LspInstr &instr) {
   }
 }
 
-void LspState::writeMemOffs(uint8_t memOffs, int32_t value) {
+inline void LspState::writeMemOffs(uint8_t memOffs, int32_t value) {
   uint32_t ramPos = ((uint32_t)memOffs + bufferPos) & 0x7f;
   iram[ramPos] = value;
 }
 
-int64_t LspState::readMemOffs(uint8_t memOffs) {
+inline int64_t LspState::readMemOffs(uint8_t memOffs) {
   uint32_t ramPos = ((uint32_t)memOffs + bufferPos) & 0x7f;
   return iram[ramPos];
 }
