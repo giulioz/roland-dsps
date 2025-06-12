@@ -21,6 +21,7 @@ void testBasic() {
   state.iram[367 + 0x80] = 0x00000130;
   state.iram[368 + 0x80] = 0x00180500;
   state.iram[370 + 0x80] = 0x00180600;
+  state.optimiseProgram();
   state.runProgram();
   for (size_t i = 0; i < 0x80; i++) {
     if (i == 0x00)
@@ -53,6 +54,7 @@ void testIo() {
   state.iram[9 + 0x80] = 0x00c85800;
   state.iram[17 + 0x80] = 0x00200101;
   state.iram[21 + 0x80] = 0x00080000;
+  state.optimiseProgram();
   state.runProgram();
   for (size_t i = 0; i < 0x80; i++) {
     if (i == 0x00)
@@ -79,6 +81,7 @@ void testAbs() {
     state.iram[32 + 0x80] = 0x080400;
     state.iram[33 + 0x80] = 0x100500;
     state.iram[34 + 0x80] = 0x180600;
+    state.optimiseProgram();
     state.runProgram();
     for (size_t i = 0; i < 0x80; i++) {
       if (i == 0x00)
@@ -101,6 +104,7 @@ void testAbs() {
     state.iram[23 + 0x80] = 0xb80580;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("testAbs", state.iram[0x01], sign_extend_24(0x2e0000));
     expectEqual("testAbs", state.iram[0x02], sign_extend_24(0x2e0000));
@@ -112,6 +116,7 @@ void testAbs() {
     state.iram[23 + 0x80] = 0xb80580;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("testAbs", state.iram[0x01], sign_extend_24(0x00005c));
     expectEqual("testAbs", state.iram[0x02], sign_extend_24(0x00005c));
@@ -131,18 +136,21 @@ void testMultSimple() {
 
   // 09: replace pos >> 5
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x0007fe));
 
   // 09: replace pos >> 7
   state.iram[25 + 0x80] = 0x802009;
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x0001ff));
 
   // 01: accumulate pos
   state.iram[25 + 0x80] = 0x802001;
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x1f81ff));
   expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x1f81ff));
@@ -150,6 +158,7 @@ void testMultSimple() {
   // 05: accumulate neg
   state.iram[25 + 0x80] = 0x802005;
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x1f7e01));
   expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x1f7e01));
@@ -157,6 +166,7 @@ void testMultSimple() {
   // 0a: accumulate other reg 0
   state.iram[25 + 0x80] = 0x80200a;
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x000000));
 
@@ -164,6 +174,7 @@ void testMultSimple() {
   state.iram[21 + 0x80] = 0xc85500;
   state.iram[25 + 0x80] = 0x80200a;
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x0001ff));
   state.iram[21 + 0x80] = 0xc85400;
@@ -173,6 +184,7 @@ void testMultSimple() {
   state.iram[17 + 0x80] = 0x208442; // multiplier
   state.iram[25 + 0x80] = 0x802009; // mult command
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x000041));
   expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x000041));
@@ -182,6 +194,7 @@ void testMultSimple() {
   state.iram[17 + 0x80] = 0x208442; // multiplier
   state.iram[25 + 0x80] = 0x802009; // mult command
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x20be00));
   expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x20be00));
@@ -191,6 +204,7 @@ void testMultSimple() {
   state.iram[17 + 0x80] = 0x200442; // multiplier
   state.iram[25 + 0x80] = 0x802009; // mult command
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x084000));
   expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x084000));
@@ -200,6 +214,7 @@ void testMultSimple() {
   state.iram[17 + 0x80] = 0x200442; // multiplier
   state.iram[25 + 0x80] = 0x802009; // mult command
   state.bufferPos = 0;
+  state.optimiseProgram();
   state.runProgram();
   expectEqual("testMultSimple", state.iram[0x01], sign_extend_24(0x20ffff));
   expectEqual("testMultSimple", state.iram[0x02], sign_extend_24(0x20ffff));
@@ -217,6 +232,7 @@ void testMultStaged() {
     state.iram[26 + 0x80] = 0x802041;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x007d04));
     expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x007d04));
@@ -234,6 +250,7 @@ void testMultStaged() {
     state.iram[26 + 0x80] = 0x802041;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x008249));
     expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x008249));
@@ -251,6 +268,7 @@ void testMultStaged() {
     state.iram[26 + 0x80] = 0x80a041;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x020925));
     expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x020925));
@@ -268,6 +286,7 @@ void testMultStaged() {
     state.iram[26 + 0x80] = 0x802051;
     state.iram[31 + 0x80] = 0x100100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0x008249));
     expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0x20d400));
@@ -285,6 +304,7 @@ void testMultStaged() {
     state.iram[26 + 0x80] = 0x802045;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("testMultStaged", state.iram[0x01], sign_extend_24(0xff7db7));
     expectEqual("testMultStaged", state.iram[0x02], sign_extend_24(0xff7db7));
@@ -298,6 +318,7 @@ void test50() {
     state.iram[15 + 0x80] = 0x20022f;
     state.iram[16 + 0x80] = 0xc05060;
     state.iram[31 + 0x80] = 0x080100;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("test50_imm", state.iram[0x01], sign_extend_24(0x0005ec));
   }
@@ -306,6 +327,7 @@ void test50() {
     state.iram[15 + 0x80] = 0x20022f;
     state.iram[16 + 0x80] = 0xc05090;
     state.iram[31 + 0x80] = 0x080100;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("test50_imm", state.iram[0x01], sign_extend_24(0x0005f2));
   }
@@ -314,6 +336,7 @@ void test50() {
     state.iram[15 + 0x80] = 0x20032f;
     state.iram[16 + 0x80] = 0xc0d0f0;
     state.iram[31 + 0x80] = 0x080100;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("test50_imm", state.iram[0x01], sign_extend_24(0x00cb00));
   }
@@ -326,6 +349,7 @@ void test50() {
     state.iram[24 + 0x80] = 0x20302f;
     state.iram[25 + 0x80] = 0xc0d0f0;
     state.iram[31 + 0x80] = 0x080100;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("test50_mem", state.iram[0x01], sign_extend_24(0x00029f));
   }
@@ -337,6 +361,7 @@ void test50() {
     state.iram[25 + 0x80] = 0xc0504f;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("test50_mem", state.iram[0x01], sign_extend_24(0x002534));
     expectEqual("test50_mem", state.iram[0x02], sign_extend_24(0x002534));
@@ -349,6 +374,7 @@ void test50() {
     state.iram[25 + 0x80] = 0xc0d0ff;
     state.iram[31 + 0x80] = 0x080100;
     state.iram[32 + 0x80] = 0x180200;
+    state.optimiseProgram();
     state.runProgram();
     expectEqual("test50_mem", state.iram[0x01], sign_extend_24(0x05b2dc));
     expectEqual("test50_mem", state.iram[0x02], sign_extend_24(0x05b2dc));
@@ -370,12 +396,14 @@ void testRamWeird() {
   state.iram[46 + 0x80] = 0x807a05;
   state.iram[46 + 0x80] = 0x080100;
   for (size_t i = 0; i < 0x1ffff; i++) {
+    state.optimiseProgram();
     state.runProgram();
   }
   expectEqual("testRamWeird", state.iram[0x01], sign_extend_24(0x010000));
 }
 
-void testEqualsWav(const char *programFilename, const char *inputFilename, const char *expectFilename) {
+void testEqualsWav(const char *programFilename, const char *inputFilename,
+                   const char *expectFilename) {
   LspState state;
 
   // Load the program file
@@ -418,6 +446,7 @@ void testEqualsWav(const char *programFilename, const char *inputFilename, const
     state.audioInL <<= 6;
     state.audioInR <<= 6;
 
+    state.optimiseProgram();
     state.runProgram();
 
     state.audioOutL >>= 8;
@@ -430,14 +459,14 @@ void testEqualsWav(const char *programFilename, const char *inputFilename, const
   std::vector<int16_t> audioSamplesExpected;
   read_wav(expectFilename, audioSamplesExpected, sampleRate, numChannels);
   if (audioSamplesExpected.size() != audioOutput.size()) {
-    fprintf(stderr, "Output size mismatch: expected %zu, got %zu\n",
-            audioSamplesExpected.size(), audioOutput.size());
+    fprintf(stderr, "%s: Output size mismatch: expected %zu, got %zu\n",
+            programFilename, audioSamplesExpected.size(), audioOutput.size());
     return;
   }
   for (size_t i = 0; i < audioSamplesExpected.size(); i++) {
     if (audioSamplesExpected[i] != audioOutput[i]) {
-      fprintf(stderr, "Mismatch at sample %zu: expected %d, got %d\n",
-              i, audioSamplesExpected[i], audioOutput[i]);
+      fprintf(stderr, "%s: Mismatch at sample %zu: expected %d, got %d\n",
+              programFilename, i, audioSamplesExpected[i], audioOutput[i]);
       return;
     }
   }
@@ -451,9 +480,10 @@ int main() {
   testMultStaged();
   test50();
   testRamWeird();
-  
+
   testEqualsWav("reverb_perftest.txt", "input_guit.wav", "expected_reverb.wav");
   testEqualsWav("chorus_perftest.txt", "input_guit.wav", "expected_chorus.wav");
+  testEqualsWav("auto3d_perftest.txt", "input_guit.wav", "expected_auto3d.wav");
 
   return 0;
 }

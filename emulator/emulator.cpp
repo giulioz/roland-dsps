@@ -1,439 +1,409 @@
 #include "emulator.h"
 
-RamOperationStage2::RamOperationStage2(int32_t *eram,
-                                       std::queue<int32_t> *eramReadFifo)
-    : eram(eram), eramReadFifo(eramReadFifo) {}
-
-void RamOperationStage2::start(bool isWrite, uint16_t addr, uint8_t stage) {
-  this->isWrite = isWrite;
-  this->addr = addr;
-  this->active = true;
-  this->stage = stage;
-}
-
-void RamOperationStage2::tick(int32_t eramWriteLatch) {
-  writeData = eramWriteLatch;
-
-  if (active) {
-    if (stage == 11 && isWrite) {
-      active = false;
-      eram[addr] = writeData >> 4;
-    }
-
-    if (stage == 11 && !isWrite) {
-      active = false;
-      eramReadFifo->push(eram[addr] << 4);
-    }
-
-    stage += 1;
-  }
-}
-
-void RamOperationStage1::startTransaction(uint8_t command, uint16_t baseAddr,
-                                          int32_t offsetAddr) {
-  if (active) {
-    printf("stage 1 already active: %02x\n", command);
-  }
-  if (command == 0x05) {
-    printf("invalid command %02x\n", command);
-  }
-
-  bool shouldUseOffset = (command & 0x06) == 0x04;
-  addr = (int32_t)baseAddr + (shouldUseOffset ? offsetAddr : 0);
-  stage = 0;
-  isWrite = (command & 0x06) == 0x06;
-  active = true;
-  startCommand = command;
-}
-
-bool RamOperationStage1::sendCommand(RamOperationStage2 &ramStage2,
-                                     uint8_t command, uint16_t baseAddr,
-                                     int32_t offsetAddr) {
-  if (active) {
-    stage += 1;
-    uint16_t incr = command << ((stage - 1) * 3);
-    if (startCommand == 0x04) {
-      incr = 0x00;
-      if (command == 0x02 && stage == 1) {
-        incr = 0x01;
-      } else if (command != 0x00 && stage != 6) {
-        printf("ERAM invalid command: %02x\n", command);
-      }
-    }
-
-    if (stage < 6) {
-      addr = addr + incr;
-    } else {
-      if ((command & 1 && stage == 6)) {
-        addr = addr + incr;
-      }
-
-      // pass to next stage
-      ramStage2.start(isWrite, addr, stage);
-      active = false;
-
-      if (command > 0x1) {
-        startTransaction(command, baseAddr, offsetAddr);
-      }
-
-      return true;
-    }
-  } else {
-    if (command == 0x00) {
-      // nop
-    } else if (command > 0x01) {
-      startTransaction(command, baseAddr, offsetAddr);
-    } else {
-      printf("ERAM invalid stage: %02x\n", command);
-    }
-  }
-
-  return false;
-}
-
 static constexpr int pipelineWriteDelay = 3;
 
-LspState::LspState() : ramStage2{RamOperationStage2(eram, &eramReadFifo)} {}
+// skip
+LspInstr::LspInstr() {}
+
+LspInstr::LspInstr(uint8_t ii, uint8_t rr, int8_t cc, DspAccumulator *accA,
+                   DspAccumulator *accB)
+    : ii(ii), rr(rr), cc(cc) {
+  skip = false;
+
+  opcode = ii & 0xe0;
+  extRamCtrl = ii & 0x7;
+
+  writeCtrl = ii & 0x18;
+  memOffs = rr & 0x7f;
+  mulScaler = (rr & 0x80) != 0 ? 5 : 7;
+
+  switch (memOffs) {
+  case 1:
+    useImmediate = true;
+    immediateValue = (cc << 7) >> mulScaler;
+    break;
+  case 2:
+    useImmediate = true;
+    immediateValue = (cc << 12) >> mulScaler;
+    break;
+  case 3:
+    useImmediate = true;
+    immediateValue = (cc << 17) >> mulScaler;
+    break;
+  case 4:
+    useImmediate = true;
+    immediateValue = (cc << 22) >> mulScaler;
+    break;
+  }
+
+  // mac
+  isMac = opcode == 0x00 || opcode == 0x20 || opcode == 0x40 ||
+          opcode == 0x60 || opcode == 0xa0;
+  macAbsValue = opcode == 0xa0;
+  macReplaceAcc = ((ii & 0x20) != 0) || macAbsValue;
+  macAcc = (ii & 0x40) != 0 ? accB : accA;
+
+  // mul
+  isMul = opcode == 0x80;
+  mulLower = (cc & 0x40) != 0;
+  mulAcc = (cc & 0x10) != 0 ? accB : accA;
+  mulNegate = (cc & 0x4) != 0;
+  mulReplaceAcc = (cc & 0x8) != 0 && !mulLower;
+  mulCoefSelect = (cc & 0x2) != 0;
+  if (isMul) {
+    switch (memOffs) {
+    case 1:
+      useImmediate = true;
+      immediateValue = (cc << 7);
+      break;
+    case 2:
+      useImmediate = true;
+      immediateValue = (cc << 12);
+      break;
+    case 3:
+      useImmediate = true;
+      immediateValue = (cc << 17);
+      break;
+    case 4:
+      useImmediate = true;
+      immediateValue = (cc << 22);
+      break;
+    }
+  }
+
+  // special
+  isSpecial = opcode == 0xc0 || opcode == 0xe0;
+  specialAccDest = (ii & 0x20) != 0 ? accB : accA;
+  useSpecial = (rr & 0x40) != 0;
+  specialReplaceAcc = (rr & 0x20) != 0;
+  specialSlot = rr & 0x1f;
+  specialCase50d0 = writeCtrl == 0x00 && specialSlot == 0x10;
+  isAudioOut = isSpecial && specialSlot == 0x18;
+  isAudioIn = isSpecial && specialSlot == 0x1e;
+}
+
+void LspInstr::setJmp(const LspInstr &prev) {
+  jmpOnPositive = prev.isSpecial && prev.specialSlot == 0x0e;
+  jmpOnNegative = prev.isSpecial && prev.specialSlot == 0x0d;
+  jmpAlways = prev.isSpecial && prev.specialSlot == 0x0f;
+  jmp = jmpOnPositive || jmpOnNegative || jmpAlways;
+  jmpDest = (((uint8_t)prev.cc) << 1) - 1;
+}
+
+void LspInstr::setEram(const LspInstr instrSoFar[], int instrPos) {
+  eramRead =
+      isSpecial && writeCtrl != 0 && specialSlot >= 0x1a && specialSlot <= 0x1d;
+  eramWrite = isSpecial && writeCtrl != 0 && specialSlot == 0x10;
+
+  int startInstrI = 0;
+  if (eramWrite) {
+    startInstrI = instrPos - 8;
+  } else if (eramRead) {
+    startInstrI = instrPos - 12;
+  }
+
+  if (!eramWrite && !eramRead)
+    return;
+
+  const LspInstr *curr = &instrSoFar[startInstrI];
+  eramUseSecondTap = (curr->extRamCtrl & 0x06) == 0x04;
+  eramBaseAddr = 0;
+  curr++;
+  for (int i = 1; i <= 6; i++) {
+    uint16_t incr = curr->extRamCtrl << ((i - 1) * 3);
+    if (eramUseSecondTap) {
+      incr = 0x00;
+      if (curr->extRamCtrl == 0x02 && i == 1) {
+        incr = 0x01;
+      } else if (curr->extRamCtrl != 0x00 && i != 6) {
+        printf("ERAM invalid command: %02x\n", curr->extRamCtrl);
+      }
+    }
+
+    if (i < 6) {
+      eramBaseAddr += incr;
+    } else if ((curr->extRamCtrl & 1 && i == 6)) {
+      eramBaseAddr = eramBaseAddr + incr;
+    }
+    curr++;
+  }
+}
+
+void LspState::optimiseProgram() {
+  for (size_t pc = 0; pc < 384; pc++) {
+    uint32_t instr = iram[0x80 + pc];
+    if (instr == 0x000000) {
+      instrCache[pc] = LspInstr();
+    } else {
+      uint8_t ii = (instr >> 16) & 0xff;
+      uint8_t rr = (instr >> 8) & 0xff;
+      int8_t cc = (int8_t)(instr & 0xff);
+      instrCache[pc] = LspInstr(ii, rr, cc, &accA, &accB);
+    }
+
+    if (pc > 0) {
+      instrCache[pc].setJmp(instrCache[pc - 1]);
+    }
+
+    instrCache[pc].setEram(instrCache, pc);
+  }
+}
 
 void LspState::runProgram() {
-  jmpStage = 0;
-
   int total = 0;
+  audioIn = audioInR;
   for (pc = 0x80; pc < 0x200 && total < 384; pc++, total++) {
-    if (pc >= (0x80 + 384 / 2))
-      audioIn = audioInL;
-    else
-      audioIn = audioInR;
+    const LspInstr instr = instrCache[pc - 0x80];
 
-    uint32_t instr = iram[pc];
+    if (instr.isAudioIn && pc >= (0x80 + 384 / 2))
+      audioIn = audioInL;
+
     accA.fwdPipeline();
     accB.fwdPipeline();
     step(instr);
     accA.storePipeline();
     accB.storePipeline();
 
-    if (jmpStage == 1) {
-      jmpStage = 2;
-    } else if (jmpStage == 2) {
-      pc = jmpDest;
-      jmpStage = 0;
+    if (instr.jmp && shouldJump) {
+      pc = instr.jmpDest;
+      shouldJump = false;
     }
 
-    if (pc >= (0x80 + 384 / 2))
-      audioOutL = audioOut;
-    else
+    if (instr.isAudioOut && pc < (0x80 + 384 / 2))
       audioOutR = audioOut;
   }
+  audioOutL = audioOut;
 
   bufferPos = (bufferPos - 1) & 0x7f;
   eramPos -= 1;
-
-  if (eramReadFifo.size() > 0) {
-    printf("ERAM read FIFO overflow: %zu\n", eramReadFifo.size());
-  }
 }
 
-void LspState::step(uint32_t instr) {
-  uint8_t ii = (instr >> 16) & 0xff;
-  uint8_t rr = (instr >> 8) & 0xff;
-  int8_t cc = (int8_t)(instr & 0xff);
+void LspState::step(const LspInstr &instr) {
+  if (instr.eramRead) {
+    uint32_t addr = (eramPos + (int32_t)instr.eramBaseAddr +
+                     (instr.eramUseSecondTap ? eramSecondTapOffs : 0)) &
+                    0xffff;
+    eramReadValue = eram[addr] << 4;
+  }
 
-  uint8_t opcode = ii & 0xe0;
-  uint8_t extRamCtrl = ii & 0x7;
-
-  if (instr != 0x000000) {
-    if (opcode == 0x00 || opcode == 0x20 || opcode == 0x40 || opcode == 0x60 ||
-        opcode == 0xa0) {
-      doInstrMac(ii, rr, cc);
-    } else if (opcode == 0x80) {
-      doInstrMul(ii, rr, cc);
-    } else if (opcode == 0xc0 || opcode == 0xe0) {
-      doInstrSpecialReg(ii, rr, cc);
+  if (!instr.skip) {
+    if (instr.isMac) {
+      doInstrMac(instr);
+    } else if (instr.isMul) {
+      doInstrMul(instr);
+    } else if (instr.isSpecial) {
+      doInstrSpecialReg(instr);
     }
   }
 
-  commonDoEram(extRamCtrl);
+  if (instr.eramWrite) {
+    uint32_t addr = (eramPos + (int32_t)instr.eramBaseAddr) & 0xffff;
+    eram[addr] = eramWriteLatch >> 4;
+  }
 
-  prevRR = rr;
+  prevRR = instr.rr;
 }
 
-void LspState::commonDoEram(uint8_t command) {
-  ramStage1.sendCommand(ramStage2, command, eramPos, eramSecondTapOffs);
-  ramStage2.tick(eramWriteLatch);
-}
-
-void LspState::commonDoStore(uint8_t ii, uint8_t rr) {
-  uint8_t memOffs = rr & 0x7f;
-  uint8_t writeCtrl = ii & 0x18;
-  switch (writeCtrl) {
+void LspState::commonDoStore(const LspInstr &instr) {
+  switch (instr.writeCtrl) {
   case 0x08:
-    writeMemOffs(memOffs, accA.historySat24(pipelineWriteDelay));
+    writeMemOffs(instr.memOffs, accA.historySat24(pipelineWriteDelay));
     return;
   case 0x10:
-    writeMemOffs(memOffs, accB.historySat24(pipelineWriteDelay));
+    writeMemOffs(instr.memOffs, accB.historySat24(pipelineWriteDelay));
     return;
   case 0x18:
-    writeMemOffs(memOffs, accA.historyRaw24(pipelineWriteDelay));
+    writeMemOffs(instr.memOffs, accA.historyRaw24(pipelineWriteDelay));
     return;
   default:
     return;
   }
 }
 
-int32_t LspState::commonGetMemOrImmediate(uint8_t rr, int8_t cc) {
-  uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
-  uint8_t memOffs = rr & 0x7f;
-  int64_t incr = readMemOffs(memOffs) * cc;
-  switch (memOffs) {
-  case 1:
-    return incr = (cc << 7) >> mulScaler;
-  case 2:
-    return incr = (cc << 12) >> mulScaler;
-  case 3:
-    return incr = (cc << 17) >> mulScaler;
-  case 4:
-    return incr = (cc << 22) >> mulScaler;
-  default:
-    return (readMemOffs(memOffs) * cc) >> mulScaler;
-  }
-}
+void LspState::doInstrMac(const LspInstr &instr) {
+  commonDoStore(instr);
 
-void LspState::doInstrMac(uint8_t ii, uint8_t rr, int8_t cc) {
-  bool absValue = (ii & 0xe0) == 0xa0;
-  bool replaceAcc = ((ii & 0x20) != 0) || absValue;
-  DspAccumulator &acc = (ii & 0x40) != 0 ? accB : accA;
-
-  commonDoStore(ii, rr);
-
-  int32_t incr = commonGetMemOrImmediate(rr, cc);
-  if (replaceAcc) {
-    acc.set(incr);
+  int32_t incr = 0;
+  if (instr.useImmediate) {
+    incr = instr.immediateValue;
   } else {
-    acc.add(incr);
+    incr = (readMemOffs(instr.memOffs) * instr.cc) >> instr.mulScaler;
   }
 
-  if (absValue) {
-    acc.abs();
+  if (instr.macReplaceAcc) {
+    instr.macAcc->set(incr);
+  } else {
+    instr.macAcc->add(incr);
+  }
+
+  if (instr.macAbsValue) {
+    instr.macAcc->abs();
   }
 }
 
-void LspState::doInstrMul(uint8_t ii, uint8_t rr, int8_t cc) {
-  uint8_t memOffs = rr & 0x7f;
-  uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
-  bool lower = (cc & 0x40) != 0;
-  DspAccumulator &acc = (cc & 0x10) != 0 ? accB : accA;
-  bool negate = (cc & 0x4) != 0;
-  bool replaceAcc = (cc & 0x8) != 0;
-  int32_t opB = (cc & 0x2) != 0 ? multiplCoef2 : multiplCoef1;
+void LspState::doInstrMul(const LspInstr &instr) {
+  int32_t opB = instr.mulCoefSelect ? multiplCoef2 : multiplCoef1;
 
-  commonDoStore(ii, memOffs);
+  commonDoStore(instr);
 
-  if (lower) {
+  if (instr.mulLower) {
     opB &= 0xffff;
     opB >>= 9;
   } else {
     opB >>= 16;
   }
 
-  int64_t opA = readMemOffs(memOffs);
-  if (memOffs == 1)
-    opA = cc << 7;
-  if (memOffs == 2)
-    opA = cc << 12;
-  if (memOffs == 3)
-    opA = cc << 17;
-  if (memOffs == 4)
-    opA = cc << 22;
+  int64_t opA = 0;
+  if (instr.useImmediate)
+    opA = instr.immediateValue;
+  else
+    opA = readMemOffs(instr.memOffs);
 
   int64_t result = 0;
-  if (cc == 0x00) {
+  if (instr.cc == 0x00) {
     result = 0;
-  } else if (cc == 0x04 || cc == 0x08 || cc == 0xc) {
-    printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
   } else {
     result = opA * opB;
   }
 
-  result >>= mulScaler;
-  if (lower) {
+  result >>= instr.mulScaler;
+  if (instr.mulLower) {
     result >>= 7;
   }
 
-  if (negate) {
+  if (instr.mulNegate) {
     result = -result;
   }
-  if (!replaceAcc || lower) {
-    result += acc.sat24();
+  if (!instr.mulReplaceAcc) {
+    result += instr.mulAcc->sat24();
   }
-  acc.set(result);
+  instr.mulAcc->set(result);
 }
 
-void LspState::doInstrSpecialReg(uint8_t ii, uint8_t rr, int8_t cc) {
-  DspAccumulator &accDest = (ii & 0x20) != 0 ? accB : accA;
-  uint8_t writeCtrl = ii & 0x18;
-  uint8_t mulScaler = (rr & 0x80) != 0 ? 5 : 7;
-  bool useSpecial = (rr & 0x40) != 0;
-  bool replaceAcc = (rr & 0x20) != 0;
-  uint8_t specialSlot = rr & 0x1f;
-
-  if (!useSpecial) {
-    printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
-    return;
-  }
-
+void LspState::doInstrSpecialReg(const LspInstr &instr) {
   // special case 50/d0
-  if (writeCtrl == 0x00) {
-    if (specialSlot == 0x10) {
-      uint8_t prevMem = prevRR & 0x7f;
+  if (instr.specialCase50d0) {
+    uint8_t prevMem = prevRR & 0x7f;
 
-      int64_t incr = readMemOffs(prevMem) * (uint8_t)cc;
-      incr >>= 7;
+    int64_t incr = readMemOffs(prevMem) * (uint8_t)instr.cc;
+    incr >>= 7;
 
-      if (prevMem == 1 || prevMem == 2 || prevMem == 3 || prevMem == 4) {
-        int prevShift = 0;
-        if (prevMem == 2)
-          prevShift = 5;
-        else if (prevMem == 3)
-          prevShift = 10;
-        else if (prevMem == 4)
-          prevShift = 15;
-        incr = ((uint8_t)cc) << prevShift;
-      }
+    if (prevMem == 1 || prevMem == 2 || prevMem == 3 || prevMem == 4) {
+      int prevShift = 0;
+      if (prevMem == 2)
+        prevShift = 5;
+      else if (prevMem == 3)
+        prevShift = 10;
+      else if (prevMem == 4)
+        prevShift = 15;
+      incr = ((uint8_t)instr.cc) << prevShift;
+    }
 
-      incr >>= 1;
-      incr >>= mulScaler;
+    incr >>= 1;
+    incr >>= instr.mulScaler;
 
-      if (replaceAcc) {
-        accDest.set(incr);
-      } else {
-        accDest.add(incr);
-      }
+    if (instr.specialReplaceAcc) {
+      instr.specialAccDest->set(incr);
     } else {
-      printf("UNIMPLEMENTED %02x %02x %02x\n", ii, rr, cc);
+      instr.specialAccDest->add(incr);
     }
     return;
   }
 
   int64_t src = 0;
-  if (writeCtrl == 0x08) {
+  if (instr.writeCtrl == 0x08) {
     src = accA.historySat24(pipelineWriteDelay);
-  } else if (writeCtrl == 0x10) {
+  } else if (instr.writeCtrl == 0x10) {
     src = accB.historySat24(pipelineWriteDelay);
-  } else if (writeCtrl == 0x18) {
+  } else if (instr.writeCtrl == 0x18) {
     src = accA.historyRaw24(pipelineWriteDelay);
   }
 
   bool updatesAcc = false;
 
-  if (specialSlot == 0x0d) { // jmp if <0
-    if (src < 0) {
-      jmpDest = (((uint8_t)cc) << 1) - 1;
-      jmpStage = 1;
-    }
+  if (instr.specialSlot == 0x0d) { // jmp if <0
+    shouldJump = src < 0;
     updatesAcc = true; // TODO: check
   }
 
-  else if (specialSlot == 0x0e) { // jmp if >=0
-    if (src >= 0) {
-      jmpDest = (((uint8_t)cc) << 1) - 1;
-      jmpStage = 1;
-    }
+  else if (instr.specialSlot == 0x0e) { // jmp if >=0
+    shouldJump = src >= 0;
     updatesAcc = true; // TODO: check
   }
 
-  else if (specialSlot == 0x0f) { // jmp
-    jmpDest = (((uint8_t)cc) << 1) - 1;
-    jmpStage = 1;
+  else if (instr.specialSlot == 0x0f) { // jmp
+    shouldJump = true;
     updatesAcc = true; // TODO: check
   }
 
-  else if (specialSlot == 0x10) { // eram write latch
+  else if (instr.specialSlot == 0x10) { // eram write latch
     eramWriteLatch = src;
   }
 
-  else if (specialSlot == 0x13 && writeCtrl == 0x18) { // eram second tap offset
+  else if (instr.specialSlot == 0x13 &&
+           instr.writeCtrl == 0x18) { // eram second tap offset
     int32_t val = accA.historyRaw32(pipelineWriteDelay);
     eramSecondTapOffs = val >> 10;
     multiplCoef1 = (val & 0x3ff) << 13;
   }
 
-  else if (specialSlot == 0x14) { // multiplCoef1
+  else if (instr.specialSlot == 0x14) { // multiplCoef1
     multiplCoef1 = src;
   }
 
-  else if (specialSlot == 0x15) { // multiplCoef2
+  else if (instr.specialSlot == 0x15) { // multiplCoef2
     multiplCoef2 = src;
   }
 
-  else if (specialSlot == 0x18) { // audio out
+  else if (instr.specialSlot == 0x18) { // audio out
     audioOut = src;
     writeMemOffs(0x78, src);
     updatesAcc = true;
   }
 
-  else if (specialSlot == 0x1a) { // eram read 1
-    if (!eramReadFifo.empty()) {
-      src = eramReadFifo.front();
-      eramReadFifo.pop();
-    } else {
-      printf("%04x: eram read 1 empty\n", pc);
-    }
+  else if (instr.specialSlot == 0x1a) { // eram read 1
+    src = eramReadValue;
     writeMemOffs(0x7a, src);
     updatesAcc = true;
   }
 
-  else if (specialSlot == 0x1b) { // eram read 2
-    if (!eramReadFifo.empty()) {
-      src = eramReadFifo.front();
-      eramReadFifo.pop();
-    } else {
-      printf("%04x: eram read 2 empty\n", pc);
-    }
+  else if (instr.specialSlot == 0x1b) { // eram read 2
+    src = eramReadValue;
     writeMemOffs(0x7b, src);
     updatesAcc = true;
   }
 
-  else if (specialSlot == 0x1c) { // eram read 3
-    if (!eramReadFifo.empty()) {
-      src = eramReadFifo.front();
-      eramReadFifo.pop();
-    } else {
-      printf("%04x: eram read 3 empty\n", pc);
-    }
+  else if (instr.specialSlot == 0x1c) { // eram read 3
+    src = eramReadValue;
     writeMemOffs(0x7c, src);
     updatesAcc = true;
   }
 
-  else if (specialSlot == 0x1d) { // eram read 4
-    if (!eramReadFifo.empty()) {
-      src = eramReadFifo.front();
-      eramReadFifo.pop();
-    } else {
-      printf("%04x: eram read 4 empty\n", pc);
-    }
+  else if (instr.specialSlot == 0x1d) { // eram read 4
+    src = eramReadValue;
     writeMemOffs(0x7d, src);
     updatesAcc = true;
   }
 
-  else if (specialSlot == 0x1e) { // audio in
+  else if (instr.specialSlot == 0x1e) { // audio in
     src = audioIn;
     writeMemOffs(0x7e, src);
     updatesAcc = true;
   }
 
   else {
-    printf("%04x: unknown special write %02x=%06x\n", pc, specialSlot,
+    printf("%04x: unknown special write %02x=%06x\n", pc, instr.specialSlot,
            (int32_t)src);
     return;
   }
 
   if (updatesAcc) {
-    src *= cc;
-    src >>= mulScaler;
-    if (replaceAcc) {
-      accDest.set(src);
+    src *= instr.cc;
+    src >>= instr.mulScaler;
+    if (instr.specialReplaceAcc) {
+      instr.specialAccDest->set(src);
     } else {
-      accDest.add(src);
+      instr.specialAccDest->add(src);
     }
   }
 }

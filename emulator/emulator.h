@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <fstream>
 #include <limits>
-#include <queue>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -29,7 +28,7 @@ static constexpr int32_t clamp_24(int64_t v) {
 
 class DspAccumulator {
   int32_t acc = 0;
-  int32_t hist[8] = {0};
+  int32_t hist[4] = {0};
   std::size_t head = 0;
 
 public:
@@ -45,48 +44,84 @@ public:
   inline int32_t raw24() const { return sign_extend_24(acc & MASK); }
 
   inline int32_t historySat24(std::size_t n) const {
-    std::size_t idx = (head - n) & 7;
+    std::size_t idx = (head - n) & 3;
     return clamp_24(hist[idx]);
   }
   inline int32_t historyRaw24(std::size_t n) const {
-    std::size_t idx = (head - n) & 7;
+    std::size_t idx = (head - n) & 3;
     return sign_extend_24(hist[idx] & MASK);
   }
 
   inline int32_t historyRaw32(std::size_t n) const {
-    std::size_t idx = (head - n) & 7;
+    std::size_t idx = (head - n) & 3;
     return hist[idx];
   }
 
-  inline void fwdPipeline() { head = (head + 1) & 7; }
+  inline void fwdPipeline() { head = (head + 1) & 3; }
   inline void storePipeline() { hist[head] = acc; }
 };
 
-struct RamOperationStage2 {
-  bool isWrite = false;
-  uint16_t addr = 0;
-  int32_t writeData = 0;
-  bool active = false;
-  uint8_t stage = 0;
+struct LspInstr {
+  bool skip = true;
 
-  int32_t *eram;
-  std::queue<int32_t> *eramReadFifo;
+  uint8_t ii = 0;
+  uint8_t rr = 0;
+  int8_t cc = 0;
 
-  RamOperationStage2(int32_t *eram, std::queue<int32_t> *eramReadFifo);
-  void start(bool isWrite, uint16_t addr, uint8_t stage);
-  void tick(int32_t eramWriteLatch);
-};
+  uint8_t opcode = 0;
+  uint8_t extRamCtrl = 0;
 
-struct RamOperationStage1 {
-  uint32_t addr = 0;
-  uint8_t stage = 0;
-  bool isWrite = false;
-  bool active = false;
-  uint8_t startCommand = 0;
+  uint8_t writeCtrl = 0;
+  uint8_t memOffs = 0;
+  uint8_t mulScaler = 0;
 
-  void startTransaction(uint8_t command, uint16_t baseAddr, int32_t offsetAddr);
-  bool sendCommand(RamOperationStage2 &ramStage2, uint8_t command,
-                   uint16_t baseAddr, int32_t offsetAddr);
+  bool useImmediate = false;
+  int32_t immediateValue = 0;
+
+  // mac
+  bool isMac = false;
+  bool macAbsValue = false;
+  bool macReplaceAcc = false;
+  DspAccumulator *macAcc = nullptr;
+
+  // mul
+  bool isMul = false;
+  bool mulLower = 0;
+  DspAccumulator *mulAcc = nullptr;
+  bool mulNegate = false;
+  bool mulReplaceAcc = false;
+  bool mulCoefSelect = false; // false: coef1, true: coef2
+
+  // special
+  bool isSpecial = false;
+  DspAccumulator *specialAccDest = nullptr;
+  bool useSpecial = false;
+  bool specialReplaceAcc = false;
+  uint8_t specialSlot = 0;
+  bool specialCase50d0 = false;
+  bool jmpOnPositive = false;
+  bool jmpOnNegative = false;
+  bool jmpAlways = false;
+  bool jmp = false;
+  uint16_t jmpDest = 0;
+  bool isAudioIn = false;
+  bool isAudioOut = false;
+
+  // eram
+  bool eramRead = false;
+  bool eramWrite = false;
+  bool eramUseSecondTap = false;
+  uint32_t eramBaseAddr = 0;
+
+  // skip
+  LspInstr();
+
+  LspInstr(uint8_t ii, uint8_t rr, int8_t cc, DspAccumulator *accA,
+           DspAccumulator *accB);
+
+  void setJmp(const LspInstr &prev);
+
+  void setEram(const LspInstr instrSoFar[], int instrPos);
 };
 
 class LspState {
@@ -107,12 +142,11 @@ public:
   // External RAM
   int32_t eram[0x10000] = {0};
   uint16_t eramPos = 0;
-  std::queue<int32_t> eramReadFifo;
-  RamOperationStage1 ramStage1;
-  RamOperationStage2 ramStage2;
+  int32_t eramReadValue;
 
   // Pipeline
   uint8_t prevRR = 0;
+  bool shouldJump = false;
 
   // Special regs
   int32_t eramWriteLatch = 0;    // 0x10
@@ -122,20 +156,17 @@ public:
   int32_t audioOut = 0;          // 0x18
   int32_t audioIn = 0;           // 0x1e
 
-  int jmpStage = 0; // 0:no jmp, 1:needs jmp, 2:jmp
-  uint16_t jmpDest = 0;
+  LspInstr instrCache[384];
 
-  LspState();
   void runProgram();
+  void optimiseProgram();
 
 private:
-  void step(uint32_t instr);
-  void commonDoEram(uint8_t command);
-  void commonDoStore(uint8_t ii, uint8_t rr);
-  int32_t commonGetMemOrImmediate(uint8_t rr, int8_t cc);
-  void doInstrMac(uint8_t ii, uint8_t rr, int8_t cc);
-  void doInstrMul(uint8_t ii, uint8_t rr, int8_t cc);
-  void doInstrSpecialReg(uint8_t ii, uint8_t rr, int8_t cc);
+  void step(const LspInstr &instr);
+  void commonDoStore(const LspInstr &instr);
+  void doInstrMac(const LspInstr &instr);
+  void doInstrMul(const LspInstr &instr);
+  void doInstrSpecialReg(const LspInstr &instr);
   void writeMemOffs(uint8_t memOffs, int32_t value);
   int64_t readMemOffs(uint8_t memOffs);
 };

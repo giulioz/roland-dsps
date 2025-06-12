@@ -45,6 +45,8 @@ int main() {
 
   std::vector<int16_t> audioOutput;
 
+  state.optimiseProgram();
+  
   // Process audio samples
   for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
     if (numChannels == 1) {

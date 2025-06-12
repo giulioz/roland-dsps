@@ -15,7 +15,7 @@ static constexpr long long testLength = 2000000;
 static constexpr long long nTests = 5;
 
 int main() {
-  FILE *pgmFile = fopen("reverb_perftest.txt", "r");
+  FILE *pgmFile = fopen("/Users/giuliozausa/personal/programming/lsp/emulator/reverb_perftest.txt", "r");
   if (!pgmFile) {
     fprintf(stderr, "Error opening program file.\n");
     return 1;
@@ -57,8 +57,8 @@ int main() {
     sumTimes += duration.count();
   }
 
-  printf("Average time for %lld iterations: %lld ms\n", testLength,
-         sumTimes / nTests);
+  printf("Average time for %lld iterations: %lld ms   %.2fx rt\n", testLength,
+         sumTimes / nTests, (double)testLength / 44.1 / (sumTimes / nTests));
 
   return 0;
 }
