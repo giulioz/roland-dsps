@@ -87,7 +87,7 @@ void LspInstr::setJmp(const LspInstr &prev) {
   jmpOnNegative = prev.isSpecial && prev.specialSlot == 0x0d;
   jmpAlways = prev.isSpecial && prev.specialSlot == 0x0f;
   jmp = jmpOnPositive || jmpOnNegative || jmpAlways;
-  jmpDest = (((uint8_t)prev.cc) << 1) - 1;
+  jmpDest = (((uint8_t)prev.cc) << 1) - 1 - 0x80;
 }
 
 void LspInstr::setEram(const LspInstr instrSoFar[], int instrPos) {
@@ -152,10 +152,10 @@ void LspState::optimiseProgram() {
 void LspState::runProgram() {
   int total = 0;
   audioIn = audioInR;
-  for (pc = 0x80; pc < 0x200 && total < 384; pc++, total++) {
-    const LspInstr instr = instrCache[pc - 0x80];
+  for (pc = 0; total < 384; pc++, total++) {
+    const LspInstr instr = instrCache[pc];
 
-    if (instr.isAudioIn && pc >= (0x80 + 384 / 2))
+    if (instr.isAudioIn && pc >= (384 / 2))
       audioIn = audioInL;
 
     accA.fwdPipeline();
@@ -169,7 +169,7 @@ void LspState::runProgram() {
       shouldJump = false;
     }
 
-    if (instr.isAudioOut && pc < (0x80 + 384 / 2))
+    if (instr.isAudioOut && pc < (384 / 2))
       audioOutR = audioOut;
   }
   audioOutL = audioOut;
