@@ -19,7 +19,7 @@ CA0-13: Host interface address bus
 ~CS: Host interface chip select
 ~DS: Host interface read enable
 R/~W: Host interface write enable
-~MSF: Host interface endianness (1: little endian, 0: big endian every 4 bytes)
+~MSF: Host interface endianness (high: little endian, low: big endian, in groups of 4 bytes)
 
 SYO: Sample rate sync out
 SYI: Sample rate sync in
@@ -155,22 +155,22 @@ Using instructions with a store value of 2 or 3 (0x04/0x06), special registers c
 
 | Addr     | R/W       | Function                        |
 |----------|-----------|---------------------------------|
-|   0x180  |   W accA  | Unknown                         |
-|   0x181  |   W accA  | Unknown                         |
-|   0x182  |   W accA  |   Write host interface (0x802)  |
-|   0x183  |   W accA  |   ERAM write latch              |
-|   0x184  |   W accA  |    Unknown                      |
-|   0x185  |   W accA  |   ERAM second tap pos           |
+|   0x180  |   W accA  | Unknown (unused)                |
+|   0x181  |   W accA  | Unknown (unused)                |
+|   0x182  |   W accA  | Write host interface (0x802)    |
+|   0x183  |   W accA  | ERAM write latch                |
+|   0x184  |   W accA  | Unknown (unused)                |
+|   0x185  |   W accA  | ERAM second tap pos             |
 |   0x186  |   W accA  | Multiplication coeff (06)       |
-|   0x187  |   W accA  |   Multiplication coef (07)      |
-|   0x188  |   W accB  | Unknown                         |
-|   0x189  |   W accB  | Unknown                         |
-|   0x18A  |   W accB  |   Write host interface (0x802)  |
-|   0x18B  |   W accB  |   ERAM write latch              |
-|   0x18C  |   W accB  | Unknown                         |
-|   0x18D  |   W accB  |   ERAM second tap pos           |
-|   0x18E  |   W accB  |   Mul coef (06)                 |
-|   0x18F  |   W accB  |   Mul coef (07)                 |
+|   0x187  |   W accA  | Multiplication coe    f (07)    |
+|   0x188  |   W accB  | Unknown (unused)                |
+|   0x189  |   W accB  | Unknown (unused)                |
+|   0x18A  |   W accB  | Write host interface (0x802)    |
+|   0x18B  |   W accB  | ERAM write latch                |
+|   0x18C  |   W accB  | Unknown (unused)                |
+|   0x18D  |   W accB  | ERAM second tap pos             |
+|   0x18E  |   W accB  | Mul coef (06)                   |
+|   0x18F  |   W accB  | Mul coef (07)                   |
 
 #### Serial I/O registers
 
