@@ -65,7 +65,7 @@ The CSP can optionally use up to 256kWord of external DRAM. It can be connected 
 
 The CSP automatically performs a CAS-before-RAS refresh each sample, and uses fast page mode to access the two consecutive half-words in case of 12-bit width setups.
 
-The external DRAM is used as a circular buffer, with each sample decrementing the current pointer. the The DSP program can perform the following DRAM operations:
+The external DRAM is used as a circular buffer, with each sample decrementing the current pointer. The DSP program can perform the following DRAM operations:
 
 1. Read ERAM @ circular buffer ptr + immediate offset
 2. Write ERAM @ circular buffer ptr + immediate offset
@@ -98,8 +98,8 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
   - 7: store accB to IRAM (saturated)
 - b0c-0f: Opcode
   - 0: `accA += mul >> shift`
-  - 1: `accB  = mul >> shift`
-  - 2: `accA += mul >> shift`
+  - 1: `accB += mul >> shift`
+  - 2: `accA  = mul >> shift`
   - 3: `accB  = mul >> shift`
   - 4: `accA  = (mul >= 0 ? mul : ~mul) >> shift`
   - 5: `accA  = max(0, (muls >=0 ? muls : ~muls) + accA)   (weird pipeline)`
