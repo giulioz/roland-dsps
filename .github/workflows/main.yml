@@ -1,0 +1,90 @@
+# Based on https://github.com/OwlPlug/owlplug-scanner/blob/master/.github/workflows/main.yml
+name: lsp
+
+on: 
+  push:
+    branches: 
+      - '**'
+
+jobs:
+  build-win:
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v3.3.0
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - name: "Download Projucer"
+      run: |
+           cd juce
+           git clone -b 8.0.8 --depth 1 https://github.com/juce-framework/JUCE JUCE
+           bash -ex ./build/download-projucer.sh
+      shell: bash
+      env:
+        OS: windows
+    - name: "Build lsp"
+      run: sh -ex ./build/build-win.sh
+      shell: bash
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: lsp-win
+        path: |
+              ./juce/Builds/VisualStudio2022/x64/Release/VST3/lsp.vst3
+              ./juce/Builds/VisualStudio2022/x64/Release/Standalone Plugin/lsp.exe
+  build-osx:
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v3.3.0
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - name: "Download Projucer"
+      run: |
+           cd juce
+           git clone -b 8.0.8 --depth 1 https://github.com/juce-framework/JUCE JUCE
+           bash -ex ./build/download-projucer.sh
+      shell: bash
+      env:
+        OS: osx
+    - name: "Build macOS"
+      run: sh -ex ./build/build-osx.sh
+      shell: bash
+    - name: "zip macOS"
+      run: |
+           cd ./juce/Builds/MacOSX/build/Release/
+           zip -r lsp.vst3.macOS.zip lsp.vst3
+           zip -r lsp.component.macOS.zip lsp.component
+           zip -r lsp.app.macOS.zip lsp.app
+           cd -
+      shell: bash
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: lsp-osx
+        path: |
+              ./juce/Builds/MacOSX/build/Release/lsp.vst3.macOS.zip
+              ./juce/Builds/MacOSX/build/Release/lsp.component.macOS.zip
+              ./juce/Builds/MacOSX/build/Release/lsp.app.macOS.zip
+  release:
+    name: "Release"
+    needs: [build-win, build-osx]
+    if: github.ref == 'refs/heads/main'
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Retrieve artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: build
+          pattern: lsp-*
+          merge-multiple: true
+      - run: ls -R build
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: true
+          automatic_release_tag: latest
+          title: lsp Latest
+          files: |
+            juce/build/**/*

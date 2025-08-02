@@ -175,16 +175,23 @@ void LspInstr::findAccRef(LspInstr instrSoFar[], int instrPos) {
   }
 }
 
-void LspState::parseProgram() {
+void LspState::parseProgram(bool inverted) {
   for (size_t pc = 0; pc < 384; pc++) {
     uint32_t instr = iram[0x80 + pc];
     if (instr == 0x000000) {
       instrCache[pc] = LspInstr(pc);
     } else {
-      uint8_t ii = (instr >> 16) & 0xff;
-      uint8_t rr = (instr >> 8) & 0xff;
-      int8_t cc = (int8_t)(instr & 0xff);
-      instrCache[pc] = LspInstr(pc, ii, rr, cc, &accA, &accB);
+      if (inverted) {
+        uint8_t cc = (instr >> 16) & 0xff;
+        uint8_t rr = (instr >> 8) & 0xff;
+        int8_t ii = (int8_t)(instr & 0xff);
+        instrCache[pc] = LspInstr(pc, ii, rr, cc, &accA, &accB);
+      } else {
+        uint8_t ii = (instr >> 16) & 0xff;
+        uint8_t rr = (instr >> 8) & 0xff;
+        int8_t cc = (int8_t)(instr & 0xff);
+        instrCache[pc] = LspInstr(pc, ii, rr, cc, &accA, &accB);
+      }
     }
   }
 

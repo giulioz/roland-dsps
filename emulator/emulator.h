@@ -170,7 +170,7 @@ public:
   LspInstr instrCache[384];
 
   void runProgram();
-  void parseProgram();
+  void parseProgram(bool inverted = false);
 
 private:
   void step(const LspInstr &instr);

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="DSwmfO" name="lsp" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginManufacturerCode="GlZs"
+              pluginCode="VLSP" cppLanguageStandard="latest" pluginFormats="buildAU,buildAUv3,buildStandalone,buildVST3"
+              pluginName="LSP" pluginDesc="LSP" companyName="Giulio Zausa">
+  <MAINGROUP id="U4zWTk" name="lsp">
+    <GROUP id="{93AFEBF4-1501-0253-B69B-4BC823E30FFB}" name="sc88">
+      <FILE id="e4ak7R" name="sc88_pgmgen/sc88pro_valid.bin" compile="0" resource="1"
+            file="../sc88_pgmgen/sc88pro_valid.bin"/>
+      <FILE id="YV9bfx" name="state_loadlsp.bin" compile="0" resource="1"
+            file="../sc88_pgmgen/state_loadlsp.bin"/>
+      <FILE id="QS2vxB" name="mcu.cpp" compile="1" resource="0" file="../sc88_pgmgen/mcu.cpp"/>
+      <FILE id="H6qaAR" name="mcu.h" compile="0" resource="0" file="../sc88_pgmgen/mcu.h"/>
+      <FILE id="HX73Rd" name="mcu_opcodes.cpp" compile="1" resource="0" file="../sc88_pgmgen/mcu_opcodes.cpp"/>
+    </GROUP>
+    <GROUP id="{7ECFAF9E-03CA-19D2-B90C-459B51C60ED4}" name="resample">
+      <FILE id="yoCU09" name="config.h" compile="0" resource="0" file="Source/resample/config.h"/>
+      <FILE id="lqubxD" name="configtemplate.h" compile="0" resource="0"
+            file="Source/resample/configtemplate.h"/>
+      <FILE id="yUmkeo" name="filterkit.c" compile="1" resource="0" file="Source/resample/filterkit.c"/>
+      <FILE id="x0kWqz" name="filterkit.h" compile="0" resource="0" file="Source/resample/filterkit.h"/>
+      <FILE id="vlDzCc" name="libresample.h" compile="0" resource="0" file="Source/resample/libresample.h"/>
+      <FILE id="J4Eis4" name="resample.c" compile="1" resource="0" file="Source/resample/resample.c"/>
+      <FILE id="xGIh24" name="resample_defs.h" compile="0" resource="0" file="Source/resample/resample_defs.h"/>
+      <FILE id="qGy4y2" name="resamplesubs.c" compile="1" resource="0" file="Source/resample/resamplesubs.c"/>
+    </GROUP>
+    <GROUP id="{E1C04F2E-6E64-7D4B-B96D-97374AA1D125}" name="lsp_emu">
+      <FILE id="ggnJqw" name="emulator.cpp" compile="1" resource="0" file="../emulator/emulator.cpp"/>
+      <FILE id="LQLB9d" name="emulator.h" compile="0" resource="0" file="../emulator/emulator.h"/>
+      <FILE id="iNBbXB" name="runtime.h" compile="0" resource="0" file="../emulator/runtime.h"/>
+    </GROUP>
+    <FILE id="ZqCcqP" name="PluginEditor.cpp" compile="1" resource="0"
+          file="Source/PluginEditor.cpp"/>
+    <FILE id="D61dSb" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    <FILE id="Wan04U" name="PluginProcessor.cpp" compile="1" resource="0"
+          file="Source/PluginProcessor.cpp"/>
+    <FILE id="gWPAGg" name="PluginProcessor.h" compile="0" resource="0"
+          file="Source/PluginProcessor.h"/>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="lsp"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="lsp"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_animation" path="./JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <XCODE_IPHONE targetFolder="Builds/iOS">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="lsp"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="lsp"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_animation" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="./JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_IPHONE>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="lsp"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="lsp"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_animation" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="./JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="lsp"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="lsp"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_plugin_client" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="./JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="./JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+</JUCERPROJECT>
