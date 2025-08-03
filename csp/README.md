@@ -110,10 +110,10 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
   - 9: `accA += (mul >= 0 ? mul : ~mul) >> shift`
   - a: `accA += mul >> 15 >> shift`
   - b: `accB += mul >> 15 >> shift`
-  - c: `accA  = (mem * (special >> 8)) >> shift`
-  - d: `accB  = (mem * (special >> 8)) >> shift`
-  - e: `accA += (mem * (special >> 8)) >> shift`
-  - f: `accB += (mem * (special >> 8)) >> shift`
+  - c: `accA  =` multiplication (see below)
+  - d: `accB  =` multiplication (see below)
+  - e: `accA +=` multiplication (see below)
+  - f: `accB +=` multiplication (see below)
 - b10-11: Multiplier shift select
   - 0: `>> 15`
   - 1: `>> 14`
@@ -122,6 +122,25 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
 - b12: Unknown (unused in the SDE/SRV-330, probably related to SC parallel bus or clocking)
 - b13: ERAM start operation
 - b14-17: ERAM control/offset
+
+
+### Multiplication opcodes (c/d/e/f)
+
+Depending on the coefficient, these opcodes compute their result differently:
+
+- Coef 0000: (none?)
+- Coef 0001: ?? (used only in chip intro/outro)
+- Coef 0002: mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15
+- Coef 0003: mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15
+- Coef 0004: (mem * (~s186 >> 8)) >> shift
+- Coef 0005: (mem * (~s187 >> 8)) >> shift
+- Coef 0006: (mem * (s186 >> 8)) >> shift
+- Coef 0007: (mem * (s187 >> 8)) >> shift
+
+If an immediate-like memory offset is used (01/02), the value 0x8000 is used, shifted accordingly.
+
+*TODO:* for modes 02/03 there is some weird rounding going on that causes that formula to be slightly wrong in some cases (at most by 3).
+
 
 
 ### Examples
@@ -147,6 +166,8 @@ It's possible to start a memory operation with the following values (regarding b
 - 88,98,a8,b8: Read  @ absolute address (from special reg 185/18d)
 - c8,d8,e8,f8: Read  @ circular buffer ptr + offset (from special reg 185/18d)
 
+*NOTE: It's possible to interleave start commands. After a read, another can be started already at position +7. Switching between read and write seems to require +9 instead.*
+
 After a start command is issued, the highest nibble (b14-17) of the following 5 instructions can be used to form an immediate offset:
 - pos +0: start command
 - pos +1: adjust << 0
@@ -161,7 +182,9 @@ The read modes 88-f8 can use a special register (185/18d) as read pointer or off
 
 After a write command is issued, the value to write to the ERAM needs to be put into the special register 183/18b at most at pos +5.
 
-After a read command is issued, it's possible to read the result using the special registers 1f0-1ff. *TODO: why are there 16 of them?*
+After a read command is issued, it's possible to read the result using the special registers 1f0-1ff.
+
+*TODO: why are there 16 read registers? Is it like a circular buffer? Is 1f0 reserved for the indirect addressing? NOTE: the LSP also stores the value in ERAM at that address.*
 
 
 
@@ -196,7 +219,7 @@ Using instructions with a store value of 2 or 3 (0x04/0x06), special registers c
 |   0x184  |   W accA  | Unknown (unused)                |
 |   0x185  |   W accA  | ERAM second tap pos             |
 |   0x186  |   W accA  | Multiplication coeff (06)       |
-|   0x187  |   W accA  | Multiplication coe    f (07)    |
+|   0x187  |   W accA  | Multiplication coeff (07)       |
 |   0x188  |   W accB  | Unknown (unused)                |
 |   0x189  |   W accB  | Unknown (unused)                |
 |   0x18A  |   W accB  | Write host interface (0x802)    |
@@ -205,6 +228,12 @@ Using instructions with a store value of 2 or 3 (0x04/0x06), special registers c
 |   0x18D  |   W accB  | ERAM second tap pos             |
 |   0x18E  |   W accB  | Mul coef (06)                   |
 |   0x18F  |   W accB  | Mul coef (07)                   |
+
+
+**NOTE**: writing to 185/18d will also load the multiplication coeff 07 and 06 in the following way:
+- 06 = (val & 0x3ff) << 13
+- 07 = val
+
 
 #### Serial I/O registers
 
