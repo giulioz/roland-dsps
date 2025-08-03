@@ -63,13 +63,14 @@ ACIN, ACOUT: (unknown)
 
 The CSP can optionally use up to 256kWord of external DRAM. It can be connected as single 24-bit read or two 12-bit reads (configurable with the bit 0x40 at 0x804).
 
-The CSP automatically performs a CAS-before-RAS refresh each sample, and uses fast page mode to access the two consecutive half-words in case of 12-bit width setups.
+The CSP automatically performs a CAS-before-RAS refresh each sample, and uses fast page mode to access the two consecutive half-words in case of 12-bit width setups. Internal logical addresses are left justified, so they are converted to physical by doing a >> 10 shift for 24 bit RAM busses and >> 9 for 12 bit configs.
 
 The external DRAM is used as a circular buffer, with each sample decrementing the current pointer. The DSP program can perform the following DRAM operations:
 
 1. Read ERAM @ circular buffer ptr + immediate offset
 2. Write ERAM @ circular buffer ptr + immediate offset
-3. Read ERAM @ circular buffer ptr + variable offset
+3. Read ERAM @ absolute addr from register
+4. Read ERAM @ circular buffer ptr + offset from register
 
 
 ## The TR bus
@@ -118,7 +119,10 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
   - 1: `>> 14`
   - 2: `>> 13`
   - 3: `>> 11`
-- b12-17: DRAM control (TODO)
+- b12: Unknown (unused in the SDE/SRV-330, probably related to SC parallel bus or clocking)
+- b13: ERAM start operation
+- b14-17: ERAM control/offset
+
 
 ### Examples
 
@@ -131,6 +135,36 @@ The following code load the immediate value 0x1234, increments it using a value 
 00 00 00  0000
 00 0c 15  0000   // store accA -> mem[pos + 0x15]
 ```
+
+
+### ERAM Access
+
+The highest part of the instructions (b13-17) is used to control the access to the external RAM. The ERAM commands are sequenced: it's possible to form a complex ram command over multiple instructions, where the order and position matters.
+
+It's possible to start a memory operation with the following values (regarding b13-17):
+- 08,18,28,38: Read  @ circular buffer ptr + immediate offset
+- 48,58,68,78: Write @ circular buffer ptr + immediate offsett
+- 88,98,a8,b8: Read  @ absolute address (from special reg 185/18d)
+- c8,d8,e8,f8: Read  @ circular buffer ptr + offset (from special reg 185/18d)
+
+After a start command is issued, the highest nibble (b14-17) of the following 5 instructions can be used to form an immediate offset:
+- pos +0: start command
+- pos +1: adjust << 0
+- pos +2: adjust << 4
+- pos +3: adjust << 8
+- pos +4: adjust << 12
+- pos +5: adjust << 16
+
+The result of adding together the 5 nibbles is then summed (unsigned) to the internal circular buffer counter (which decrements automatically after each sample) and ANDed with 0x3ffff (18 bit of addresses).
+
+The read modes 88-f8 can use a special register (185/18d) as read pointer or offset. The 24 bit register is shifted by >> 10. When using those addressing modes, it's only possible to sum +1 to the address with the immediate nibbles. Using any bigger value will cause an error. This is especially useful to get a sample and the immediately next one, to perform linear interpolation. When using 
+
+After a write command is issued, the value to write to the ERAM needs to be put into the special register 183/18b at most at pos +5.
+
+After a read command is issued, it's possible to read the result using the special registers 1f0-1ff. *TODO: why are there 16 of them?*
+
+
+
 
 ### Special Registers
 
