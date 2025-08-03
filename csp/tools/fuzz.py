@@ -55,7 +55,6 @@ for i in range(48):
   serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 
 
-i = 0
 while True:
   rnd_opcode = random.choice([
     0x0, 0x1, 0x2, 0x3,
@@ -97,11 +96,11 @@ while True:
 
 
   # DEBUG
-  rnd_opcode = 0xc
-  rnd_mulshift = 0x0
-  rnd_memslot = 0x70
-  rnd_coef = 0x0000
-  rnd_mulmode = 3
+  # rnd_opcode = 0xc
+  # rnd_mulshift = 0x0
+  # rnd_memslot = 0x70
+  # rnd_coef = 0x0000
+  # rnd_mulmode = 3
   
   # rnd_memval = 0x0930
   # rnd_mulshift_mem = 0x0
@@ -120,13 +119,12 @@ while True:
   # rnd_immshift_mul186 = 0x1
   
   # rnd_mul187 = 0xf05f
-  # i += 0x10
   # rnd_mulshift_mul187 = 0x0
   # rnd_immshift_mul187 = 0x2
 
-  rnd_dest_187 = 0x87
+  # rnd_dest_187 = 0x87
   
-  rnd_saturate = 0xc
+  # rnd_saturate = 0xc
 
 
 

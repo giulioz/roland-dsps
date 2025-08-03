@@ -1,6 +1,11 @@
 from emu_test import sign_extend
 
 
+def arshift_round(x, k):
+    rnd = 1 << (k - 3)
+    return (x - rnd) >> k
+
+
 def read_mul_data(filename):
   results = []
   with open(filename, 'r') as f:
@@ -34,9 +39,9 @@ for entry in data:
 
 
   mul = (~mem * (~(m & 0xffffff) >> 8))
-  mul_s = ~mul >> 15
+  mul_s = ~arshift_round(mul, 15)
   emu = mem + mul_s
-
+  
   delta = abs(emu - result)
   if delta > max_delta:
     max_delta = delta

@@ -10,6 +10,10 @@ def saturate_24(x):
         return 8388607
     return x
 
+def arshift_round(x, k):
+    rnd = 1 << (k - 3)
+    return (x - rnd) >> k
+
 # mem_pos = 0
 # mem = [0] * 0x200
 
@@ -109,8 +113,8 @@ def step(opcode, shift_bits, mem_offs, coef_unsigned, accA, accB, mem_val, mul18
     mul_val = 0
     if coef_signed == 0x2 or coef_signed == 0x3:
       mul = (~mem_val_orig * (~(m & 0xffffff) >> 8))
-      mul_s = mul >> 15
-      mul_val = mem_val_orig - mul_s - 1
+      mul_s = ~arshift_round(mul, 15)
+      mul_val = mem_val_orig + mul_s
     elif coef_signed == 0x4 or coef_signed == 0x5:
       mul_val = (mem_val_orig * ~(m >> 8)) >> shift
     elif coef_signed == 0x6 or coef_signed == 0x7:

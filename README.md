@@ -17,7 +17,7 @@ Designer: Naoya Nozawa
 
 <img src="doc/csp_chip.jpeg" width="200" />
 
-Used in: SDE-330, SRV-330, SRX-330, JD-990, SE-70.<br/>
+Used in: SDE-330, SRV-330, SDX-330, JD-990, SE-70.<br/>
 Also revision CSP-2 exists (TC170C110AF-002, used in JV-2080, VG-8).<br/>
 Designer: Naoya Nozawa
 
