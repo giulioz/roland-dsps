@@ -130,12 +130,12 @@ Depending on the coefficient, these opcodes compute their result differently:
 
 - Coef 0000: (none?)
 - Coef 0001: ?? (used only in chip intro/outro)
-- Coef 0002: mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15
-- Coef 0003: mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15
-- Coef 0004: (mem * (~s186 >> 8)) >> shift
-- Coef 0005: (mem * (~s187 >> 8)) >> shift
-- Coef 0006: (mem * (s186 >> 8)) >> shift
-- Coef 0007: (mem * (s187 >> 8)) >> shift
+- Coef 0002: `mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15`
+- Coef 0003: `mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15`
+- Coef 0004: `(mem * (~s186 >> 8)) >> shift`
+- Coef 0005: `(mem * (~s187 >> 8)) >> shift`
+- Coef 0006: `(mem * (s186 >> 8)) >> shift`
+- Coef 0007: `(mem * (s187 >> 8)) >> shift`
 
 If an immediate-like memory offset is used (01/02), the value 0x8000 is used, shifted accordingly.
 
