@@ -51,7 +51,7 @@ ACIN, ACOUT: (unknown)
 - **IRAM** (internal ram): 24-bit, 512 words (?)
   - Cannot be written or read from the host interface
   - Addressed with offsets on a circular buffer, with the current pointer decrementing after each full program execution (each sample)
-- **Accumulators**: two (accA, accB) 38-bit (?)
+- **Accumulators**: two (accA, accB) 30-bit each
 - **Special registers**
   - Internally used to control the DRAM interface, serial I/O and others
   - The only accessible one from the host is at 0x802 (?), which can be read in the same way as the CRAM (writing with offset +0x2000)
@@ -102,8 +102,9 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
   - 1: `accB += mul >> shift`
   - 2: `accA  = mul >> shift`
   - 3: `accB  = mul >> shift`
-  - 4: `accA  = (mul >= 0 ? mul : ~mul) >> shift`
+  - 4: `accA  = (mul >= 0 ? mul : ~mul) >> shift`  (unused)
   - 5: `accA  = max(0, (muls >=0 ? muls : ~muls) + accA)   (weird pipeline)`
+    - *NOTE: this opcode behaves weirdly, when saving to the IRAM its result, it requires +1 steps of pipeline, otherwise 0x0000 will be read*
   - 6: `accA  = ((mul >= 0 ? ~mul : mul) & 0x3fffffffff) >> shift`
   - 7: `accA += ((mul >= 0 ? ~mul : mul) & 0x3fffffffff) >> shift`
   - 8: `accA  = (mul >= 0 ? mul : ~mul) >> shift`
