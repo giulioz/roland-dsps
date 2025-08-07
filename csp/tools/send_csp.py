@@ -48,23 +48,28 @@ serial_lib.dsp_w(0x080a, 0x00)
 pos = 0
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 
-
 serial_lib.dsp_pgm_w(pos, 0x00_20_01, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_0c_70, 0x0000); pos+=1
 
-serial_lib.dsp_pgm_w(pos, 0x02_20_02, 0x4000); pos+=1
+serial_lib.dsp_pgm_w(pos, 0x00_20_01, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
-serial_lib.dsp_pgm_w(pos, 0x00_07_87, 0x0000); pos+=1
+serial_lib.dsp_pgm_w(pos, 0x01_27_91, 0x4000); pos+=1
 
-serial_lib.dsp_pgm_w(pos, 0x00_c0_02, 0x0007); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
-serial_lib.dsp_pgm_w(pos, 0x00_08_70, 0x0000); pos+=1
+serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
+serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 
-serial_lib.dsp_pgm_w(pos, 0x01_20_70, 0x4000); pos+=1
+# serial_lib.dsp_pgm_w(pos, 0x00_50_70, 0xf000); pos+=1
+# serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
+# serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
+# serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
+# serial_lib.dsp_pgm_w(pos, 0x00_08_70, 0x0000); pos+=1
+
+# serial_lib.dsp_pgm_w(pos, 0x01_20_03, 0x4000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_00_00, 0x0000); pos+=1
 serial_lib.dsp_pgm_w(pos, 0x00_07_82, 0x0000); pos+=1

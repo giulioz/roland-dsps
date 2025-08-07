@@ -7,8 +7,8 @@ serial_lib.open_serial()
 
 serial_lib.clear_serial()
 
-# serial_lib.clear_pram()
-# serial_lib.clear_cram()
+serial_lib.clear_pram()
+serial_lib.clear_cram()
 
 serial_lib.dsp_w(0x0804, 0x07)
 serial_lib.dsp_w(0x0805, 0x80)
@@ -96,35 +96,44 @@ while True:
 
 
   # DEBUG
-  # rnd_opcode = 0xc
-  # rnd_mulshift = 0x0
-  # rnd_memslot = 0x70
-  # rnd_coef = 0x0000
-  # rnd_mulmode = 3
+  rnd_opcode = 0xc
+  rnd_mulshift = 0x0
+  rnd_memslot = 0x70
+  rnd_coef = 0x0000
+  rnd_mulmode = 3
   
-  # rnd_memval = 0x0930
-  # rnd_mulshift_mem = 0x0
-  # rnd_immshift_mem = 0x1
+  rnd_memval = 0x0930
+  rnd_mulshift_mem = 0x0
+  rnd_immshift_mem = 0x1
 
-  # rnd_accA = 0x0000
-  # rnd_mulshift_accA = 0x0
-  # rnd_immshift_accA = 0x1
+  rnd_accA = 0x0000
+  rnd_mulshift_accA = 0x0
+  rnd_immshift_accA = 0x1
   
-  # rnd_accB = 0x0000
-  # rnd_mulshift_accB = 0x0
-  # rnd_immshift_accB = 0x1
+  rnd_accB = 0x0000
+  rnd_mulshift_accB = 0x0
+  rnd_immshift_accB = 0x1
   
-  # rnd_mul186 = 0x0000
-  # rnd_mulshift_mul186 = 0x0
-  # rnd_immshift_mul186 = 0x1
+  rnd_mul186 = 0x0000
+  rnd_mulshift_mul186 = 0x0
+  rnd_immshift_mul186 = 0x1
   
-  # rnd_mul187 = 0xf05f
-  # rnd_mulshift_mul187 = 0x0
-  # rnd_immshift_mul187 = 0x2
+  rnd_mul187 = 0xf05f
+  rnd_mulshift_mul187 = 0x0
+  rnd_immshift_mul187 = 0x2
 
-  # rnd_dest_187 = 0x87
+  rnd_dest_187 = 0x87
   
-  # rnd_saturate = 0xc
+  rnd_saturate = 0xc
+
+  rnd_opcode = 0x2
+  rnd_mulshift = 0x0
+  rnd_memslot = 0x70
+  rnd_coef = 0x1000
+
+  rnd_mulshift_mem = 0x2
+  rnd_immshift_mem = 0x2
+  rnd_memval = 0x4081
 
 
 

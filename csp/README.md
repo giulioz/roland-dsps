@@ -59,6 +59,13 @@ ACIN, ACOUT: (unknown)
   - Accessible from the host at addresses 0x804, 0x808
 
 
+### Configuration registers
+
+- 804: ram config?
+  - bit 0x400000: 12/24 bit bus mode
+- 808: muting?
+
+
 ## External Memory (ERAM)
 
 The CSP can optionally use up to 256kWord of external DRAM. It can be connected as single 24-bit read or two 12-bit reads (configurable with the bit 0x40 at 0x804).
@@ -84,13 +91,15 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
 
 ## Instruction format
 
+*NOTE: in case of mistakes, please refer to the emulator behavior, as it's likely more updated and tested against the real hardware.*
+
 - b00-08: IRAM Offset / Immediate mode
   - 1: `mul = coef << 0`
   - 2: `mul = coef << 7`
   - else: `mul = mem[(pos+offs) & 0x1ff] * coef]`
 - b09-0b: Store destination/special reg (pipeline stores value as it was 3 instructions before)
   - 0: no store
-  - 1: store const 0x800000?
+  - 1: store const -max_24, then loads -max_24 or immediate into acc
   - 2: use special reg (unsaturated)
   - 3: use special reg (saturated)
   - 4: store accA to IRAM (unsaturated)
@@ -130,9 +139,9 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
 Depending on the coefficient, these opcodes compute their result differently:
 
 - Coef 0000: (none?)
-- Coef 0001: ?? (used only in chip intro/outro)
-- Coef 0002: `mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15`
-- Coef 0003: `mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> 15`
+- Coef 0001: `(mem * 0x7ff0) >> shift` (? controlled by muting bit)
+- Coef 0002: `mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> shift`
+- Coef 0003: `mem + ~((~mem * (~(s186 & 0xffffff) >> 8))) >> shift`
 - Coef 0004: `(mem * (~s186 >> 8)) >> shift`
 - Coef 0005: `(mem * (~s187 >> 8)) >> shift`
 - Coef 0006: `(mem * (s186 >> 8)) >> shift`
