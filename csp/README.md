@@ -88,6 +88,8 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
 
 ![SY Sync Bus](./sync_bus.jpeg)
 
+*NOTE: I fumbled in this picture, the start of the program is with SY low, so what I call channel 16 here is actually channel 0. This makes a lot more sense looking at the location of the relative special regs, with the first channel being 0x1C0. This also means that the sequence of channel is a very neat 0 to 24, as pulling SY to 0 again will force the program to reset to the start.*
+
 
 ## Instruction format
 
@@ -185,6 +187,14 @@ After a start command is issued, the highest nibble (b14-17) of the following 5 
 - pos +3: adjust << 8
 - pos +4: adjust << 12
 - pos +5: adjust << 16
+- ...
+- pos +7 last valid slot for writing full write latch
+- pos +8
+- pos +9
+  - last valid slot for writing high write latch (high 12 bits are written here)
+  - first slot valid for reading low 12 bits (low 12 bits are readt here)
+- pos +a
+- pos +b first slot valid for reading full 12 bits
 
 The result of adding together the 5 nibbles is then summed (unsigned) to the internal circular buffer counter (which decrements automatically after each sample) and ANDed with 0x3ffff (18 bit of addresses).
 
@@ -371,3 +381,5 @@ Using instructions with a store value of 2 or 3 (0x04/0x06), special registers c
 |   0x1FD  |   R  |   ERAM tap read  |
 |   0x1FE  |   R  |   ERAM tap read  |
 |   0x1FF  |   R  |   ERAM tap read  |
+
+**NOTE:** writing to those registers will also write the returned value to the IRAM as well (at position +0x1fx).

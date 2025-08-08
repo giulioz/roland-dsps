@@ -58,8 +58,15 @@ Also revisions ESP-2 (TC170C140AF-003) and ESP-4 (TC223C080AF-101) exist.
 ## Others
 
 - Hitachi HG61H20R36F (RRV-10, RV-2, MT-32, D-110, others)
+  - [Already reverse engineered](https://github.com/sergm/munt_devel/blob/master/BossEmu/BossEmu.cpp)
 - Hitachi HG62E22R64FS (RV-1000)
 - Toshiba TC23SC140AF-00X (D-70, U-20, SRC-2, others)
+  - DSP program in internal ROM (implant)
+  - Different chip versions with ROM for reverb+chorus, sample rate conversion or piano resonance
 - Toshiba TC25SC080AU-104 (HR-2, RV-3, RE-800, others)
+  - Called MR-chip, likely budget version of the ESP chip (successor of the LSP)
+  - Also MR-2 exists (TC203C040AF-001)
 - Fujitsu MB87126-00X (D-50, DEP-5, DEP-3)
+  - Uses internal ROM (dumpable optically)
+  - Three revisions known, with different roms and bugfixes
 - Fujitsu MB87427 (R-880, GS-6, E-660)
