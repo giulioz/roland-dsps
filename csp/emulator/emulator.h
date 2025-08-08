@@ -4,7 +4,8 @@
 #include <string.h>
 
 static constexpr int64_t PRAM_SIZE = 0x400;
-static constexpr int64_t ERAM_SIZE = 0x40000;
+// static constexpr int64_t ERAM_SIZE = 0x40000;
+static constexpr int64_t ERAM_SIZE = 0x10000;
 static constexpr int64_t IRAM_SIZE = 0x200;
 static constexpr int64_t IRAM_MASK = IRAM_SIZE - 1;
 
@@ -222,21 +223,16 @@ public:
         if (coef == 0x0001) {
           // TODO: dependent on host config reg 0x0808
           mulInputB_16 = 0x7ff0;
+          // mulInputB_16 = 0x0;
         }
 
         else if (coef == 0x0002 || coef == 0x0003) {
-          // TODO: not precise
+          // printf("error: coef %04x not supported\n", coef);
           mulInputA_24 = ~mulInputA_24;
-          mulInputB_16 = (~(mulCoef & 0xffffff) >> 8);
-
-          if (memOffs == 1) {
-            mulInputA_24 = 0x000000;
-          } else if (memOffs == 2) {
-            mulInputA_24 = 0x000000;
-          }
+          mulInputB_16 = ~(mulCoef & 0xffffff) >> 8;
         }
 
-        else if (coef == 0x000 || coef == 0x0005) {
+        else if (coef == 0x004 || coef == 0x0005) {
           mulInputB_16 = ~(mulCoef >> 8);
         }
 
@@ -256,42 +252,39 @@ public:
         mulInputB_16 = ~mulInputB_16 + 1;
       }
       int64_t mulResult = mulInputA_24 * mulInputB_16;
+      mulResult &= MUL_MASK_R;
+      if (finalSign) {
+        mulResult = ~mulResult + 1;
+      }
 
-      if (finalSign && !mulShouldAbs) {
+      // Abs
+      if (mulShouldAbs && mulResult < 0) {
         mulResult = ~mulResult;
       }
 
-      // Post multiplier adder
-      int64_t pmSumA = finalSign;
-      if (mulShouldAbs && finalSign) {
-        pmSumA = -pmSumA;
-      }
-      int64_t pmSumB = mulResult;
-      int64_t pmSumResult = pmSumA + pmSumB;
-
-      // Post neg
+      // Neg
       if (mulForceNeg) {
-        if (!finalSign) {
-          pmSumResult = ~pmSumResult;
+        if (mulResult >= 0) {
+          mulResult = ~mulResult;
         }
-        pmSumResult &= MUL_MASK_R;
+        mulResult &= MUL_MASK_R;
       }
 
       // Post multiplier scaler
       if (scalerCtrl == 0) {
-        pmSumResult >>= 4;
+        mulResult >>= 4;
       } else if (scalerCtrl == 1) {
-        pmSumResult >>= 3;
+        mulResult >>= 3;
       } else if (scalerCtrl == 2) {
-        pmSumResult >>= 2;
+        mulResult >>= 2;
       } else if (scalerCtrl == 3) {
-        pmSumResult >>= 0;
+        mulResult >>= 0;
       }
-      pmSumResult >>= 11;
+      mulResult >>= 11;
 
       // Accumulate inputs
       int64_t sumInA = 0;
-      int64_t sumInB = pmSumResult;
+      int64_t sumInB = mulResult;
       DspAccumulator *dest = &accA;
 
       if (opcode == 0x10 || opcode == 0x30 || opcode == 0xb0 ||
@@ -311,6 +304,12 @@ public:
 
       // Accumulate
       int64_t sumResult = sumInA + sumInB;
+
+      // Clamp
+      if (mulShouldClamp && sumResult < 0) {
+        sumResult = 0;
+      }
+
       (*dest) = sumResult;
 
       accA.storePipeline();
@@ -344,7 +343,7 @@ public:
 
     // Addr computation
     uint32_t effectiveAddr = (eramPos + eramImmOffset) & (ERAM_SIZE - 1);
-    if (eramMode == 0x48) {
+    if (eramMode == 0x80) {
       effectiveAddr =
           ((eramImmOffset & 1) + (eramVarOffset >> 10)) & (ERAM_SIZE - 1);
     } else if (eramMode == 0xc0) {
@@ -353,24 +352,31 @@ public:
     }
 
     // Write
-    if (stage == 6 && eramMode == 0x40) {
+    if (stage == 7 && eramMode == 0x40) {
       eram[effectiveAddr] = eramWriteLatch;
+      // printf("write %06x\n", eramWriteLatch);
+      // printf("pc:%03x  write eram[%06x]\n", pc, effectiveAddr);
     }
 
     // Read
-    else if (stage == 6) {
+    else if (stage == 6 && eramMode != 0x40) {
       eramReadLatch = eram[effectiveAddr];
+      // eramReadLatch = eramWriteLatch;
+      // printf("pc:%03x  read eram[%06x]=%06x\n", pc, effectiveAddr, eramReadLatch);
     }
   }
 
   int32_t getSpecialVal(uint16_t specialId) {
     // Serial Input
     if (specialId >= 0x190 && specialId <= 0x1af) {
+      // writeIramOffset(specialId, sioInput[specialId - 0x190]);
+      // printf("sioInput[%d]\n", specialId - 0x190);
       return sioInput[specialId - 0x190];
     }
 
     // ERAM tap
     else if (specialId >= 0x1f0 && specialId <= 0x1ff) {
+      writeIramOffset(specialId, eramReadLatch);
       return eramReadLatch;
     }
 
@@ -431,10 +437,11 @@ public:
     // ERAM write latch
     else if (specialId == 0x183 || specialId == 0x18b) {
       eramWriteLatch = value;
+      // printf("pc:%03x  eramWriteLatch=%06x\n", pc, eramWriteLatch);
     }
 
     // ERAM second tap pos
-    else if (specialId == 0x18 || specialId == 0x18d) {
+    else if (specialId == 0x185 || specialId == 0x18d) {
       eramVarOffset = value;
       mulCoefA = (eramVarOffset & 0x3ff) << 13;
       mulCoefB = eramVarOffset;

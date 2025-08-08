@@ -7,12 +7,14 @@ int main() {
   emulator->clear();
 
   // FILE *pgmFile = fopen("sinetest.txt", "r");
-  // FILE *pgmFile = fopen("test.txt", "r");
-  FILE *pgmFile = fopen("noisetest.txt", "r");
+  FILE *pgmFile = fopen("test.txt", "r");
+  // FILE *pgmFile = fopen("noisetest.txt", "r");
   // FILE *pgmFile = fopen("../algos/sde_stereodelay.txt", "r");
+  // FILE *pgmFile = fopen("../algos/sde_precisiondly.txt", "r");
   // FILE *pgmFile = fopen("../algos/sde_quaddelay.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_hall.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_stphaser.txt", "r");
+  // FILE *pgmFile = fopen("../algos/se70_simpledelay.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_metronome.txt", "r");
   // FILE *pgmFile =
   // fopen("/Users/giuliozausa/personal/programming/Nuked-SC55/build/csp.txt",
@@ -62,16 +64,22 @@ int main() {
   std::vector<int16_t> audioOutput;
 
   // SDE
-  int IN_L = 3;
-  int IN_R = 23;
-  int OUT_L = 0;
-  int OUT_R = 20;
+  // int IN_L = 3;
+  // int IN_R = 23;
+  // int OUT_L = 0;
+  // int OUT_R = 20;
 
-  // SE70
+  // SE70 32khz
   // int IN_L = 2;
   // int IN_R = 18;
   // int OUT_L = 11;
   // int OUT_R = 27;
+  
+  // SE70 48khz
+  int IN_L = 28;
+  int IN_R = 18;
+  int OUT_L = 2;
+  int OUT_R = 24;
 
   // Process audio samples
   for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
