@@ -11,9 +11,10 @@ int main() {
   // FILE *pgmFile = fopen("noisetest.txt", "r");
   // FILE *pgmFile = fopen("../algos/sde_stereodelay.txt", "r");
   // FILE *pgmFile = fopen("../algos/sde_precisiondly.txt", "r");
-  // FILE *pgmFile = fopen("../algos/sde_quaddelay.txt", "r");
+  // FILE *pgmFile = fopen("../algos/sde_simpledelay.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_hall.txt", "r");
-  // FILE *pgmFile = fopen("../algos/se70_stphaser.txt", "r");
+  // FILE *pgmFile = fopen("../algos/se70_stpitchshift.txt", "r");
+  // FILE *pgmFile = fopen("../algos/se70_stchorus.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_simpledelay.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_metronome.txt", "r");
   // FILE *pgmFile =
@@ -57,42 +58,45 @@ int main() {
 
   std::vector<int16_t> audioSamples;
   int sampleRate = 0;
-  int numChannels = 0;
-  read_wav("../../lsp/emulator/input_guit.wav", audioSamples, sampleRate,
-           numChannels);
+  int nch = 0;
+  read_wav("../../lsp/emulator/input_guit.wav", audioSamples, sampleRate, nch);
+  // read_wav("../../lsp/emulator/sine.wav", audioSamples, sampleRate, nch);
 
   std::vector<int16_t> audioOutput;
 
   // SDE
-  // int IN_L = 3;
-  // int IN_R = 23;
-  // int OUT_L = 0;
-  // int OUT_R = 20;
+  int IN_L = 3;
+  int IN_R = 23;
+  int OUT_L = 0;
+  int OUT_R = 20;
 
   // SE70 32khz
   // int IN_L = 2;
   // int IN_R = 18;
   // int OUT_L = 11;
   // int OUT_R = 27;
-  
+
   // SE70 48khz
-  int IN_L = 28;
-  int IN_R = 18;
-  int OUT_L = 2;
-  int OUT_R = 24;
+  // int IN_L = 28;
+  // int IN_R = 18;
+  // int OUT_L = 2;
+  // int OUT_R = 24;
 
   // Process audio samples
-  for (size_t i = 0; i < audioSamples.size(); i += numChannels) {
-    if (numChannels == 1) {
+  for (size_t i = 0; i < audioSamples.size(); i += nch) {
+    if (nch == 1) {
       emulator->sioInput[IN_L] = emulator->sioInput[IN_R] = audioSamples[i];
-    } else if (numChannels == 2) {
+    } else if (nch == 2) {
       emulator->sioInput[IN_L] = audioSamples[i];
       emulator->sioInput[IN_R] = audioSamples[i + 1];
     }
 
     emulator->sioInput[IN_L] <<= 6;
     emulator->sioInput[IN_R] <<= 6;
-    
+
+    // emulator->sioInput[IN_L] = 0;
+    // emulator->sioInput[IN_R] = 0;
+
     emulator->runProgram();
 
     // printf("L: %08x, R: %08x\n", emulator->sioOutput[OUT_L],

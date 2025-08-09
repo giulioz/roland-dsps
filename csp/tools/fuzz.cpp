@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "../emulator/emulator.h"
@@ -108,19 +109,18 @@ void fuzz() {
     emulator->clear();
 
     uint16_t possible_mems[] = {0x70, 0x01, 0x02};
-    uint8_t possible_accs[] = {// 0x0, 0x1, 0x2, 0x3,
-                               // 0x4, 0x5,
-                               // 0x6, 0x7,
-                               // 0x8, 0x9,
-                               // 0xa, 0xb,
-                               0xc, 0xd, 0xe, 0xf};
+    uint8_t possible_accs[] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
+                               0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
+    uint8_t possible_mulmodes[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
+    };
 
     // uint8_t rnd_opcode = rand() % 16;
     uint8_t rnd_opcode = possible_accs[rand() % sizeof(possible_accs)];
     uint8_t rnd_mulshift = rand() % 4;
     uint16_t rnd_memslot = possible_mems[rand() % (sizeof(possible_mems) / 2)];
     uint16_t rnd_coef = rand() & 0xffff;
-    uint8_t rnd_mulmode = (rand() % 6) + 2;
+    uint8_t rnd_mulmode = possible_mulmodes[rand() % sizeof(possible_mulmodes)];
 
     uint8_t rnd_mulshift_mem = rand() % 4;
     uint8_t rnd_immshift_mem = (rand() % 2) + 1;
@@ -143,10 +143,37 @@ void fuzz() {
     uint16_t rnd_mul187 = rand() & 0xffff;
 
     uint8_t rnd_dest_187 = (rand() & 1) != 0 ? 0x87 : 0x85;
-    uint8_t rnd_saturate = (rand() & 1) != 0 ? 0x8 : 0xc;
+    uint8_t rnd_accSel = (rand() & 1) != 0;
+    uint8_t rnd_saturate = (rand() & 1) != 0 ? (rnd_accSel ? 0x8 : 0xa) : (rnd_accSel ? 0xc : 0xe);
 
-    rnd_opcode = 0xc;
-    rnd_mulmode = 4;
+    rnd_opcode = 0x9;
+    // rnd_mulmode = 2;
+    // rnd_mulshift = 0x03;
+    // rnd_memslot = 0x01;
+    // rnd_coef = 0x0000;
+
+    // rnd_mulshift_mem = 0x00;
+    // rnd_immshift_mem = 0x01;
+    // rnd_memval = 0x38ef;
+
+    // rnd_mulshift_accA = 0x00;
+    // rnd_immshift_accA = 0x01;
+    // rnd_accA = 0x0000;
+
+    // rnd_mulshift_accB = 0x00;
+    // rnd_immshift_accB = 0x01;
+    // rnd_accB = 0x0000;
+
+    // rnd_mulshift_mul186 = 0x02;
+    // rnd_immshift_mul186 = 0x02;
+    // rnd_mul186 = 0x48ad;
+
+    // rnd_mulshift_mul187 = 0x03;
+    // rnd_immshift_mul187 = 0x02;
+    // rnd_mul187 = 0xb819;
+
+    // rnd_dest_187 = 0x87;
+    // rnd_saturate = 0x0c;
 
     int pos = 0;
     emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
@@ -174,7 +201,7 @@ void fuzz() {
                        rnd_mul187);
     emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
     emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
-    emulator->writePgm(pos++, 0x00, 0x05, 0x87, 0x0000);
+    emulator->writePgm(pos++, 0x00, 0x05, rnd_dest_187, 0x0000);
 
     // accA/accB
     emulator->writePgm(pos++, rnd_mulshift_accA, 0x20, rnd_immshift_accA,
@@ -196,7 +223,7 @@ void fuzz() {
     emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
     emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
     emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
-    emulator->writePgm(pos++, 0x00, 0x08, 0x70, 0x0000);
+    emulator->writePgm(pos++, 0x00, rnd_saturate, 0x70, 0x0000);
 
     emulator->writePgm(pos++, 0x01, 0x20, 0x70, 0x4000); // readback
     emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
@@ -222,59 +249,84 @@ void fuzz() {
 
     if ((result & 0xffffff) != (result_emu & 0xffffff)) {
       printf("Error detected!\n");
-      printf("rnd_opcode: %02x\n", rnd_opcode);
-      printf("rnd_mulshift: %02x\n", rnd_mulshift);
-      printf("rnd_memslot: %02x\n", rnd_memslot);
-      printf("rnd_coef: %04x\n", rnd_coef);
-      printf("rnd_mulshift_mem: %02x\n", rnd_mulshift_mem);
-      printf("rnd_immshift_mem: %02x\n", rnd_immshift_mem);
-      printf("rnd_memval: %04x\n", rnd_memval);
-      printf("rnd_mulshift_accA: %02x\n", rnd_mulshift_accA);
-      printf("rnd_immshift_accA: %02x\n", rnd_immshift_accA);
-      printf("rnd_accA: %04x\n", rnd_accA);
-      printf("rnd_mulshift_accB: %02x\n", rnd_mulshift_accB);
-      printf("rnd_immshift_accB: %02x\n", rnd_immshift_accB);
-      printf("rnd_accB: %04x\n", rnd_accB);
-      printf("rnd_mulshift_mul186: %02x\n", rnd_mulshift_mul186);
-      printf("rnd_immshift_mul186: %02x\n", rnd_immshift_mul186);
-      printf("rnd_mul186: %04x\n", rnd_mul186);
-      printf("rnd_mulshift_mul187: %02x\n", rnd_mulshift_mul187);
-      printf("rnd_immshift_mul187: %02x\n", rnd_immshift_mul187);
-      printf("rnd_mul187: %04x\n", rnd_mul187);
+      printf("opcode: %02x\n", rnd_opcode);
+      printf("mulshift: %02x\n", rnd_mulshift);
+      printf("memslot: %02x\n", rnd_memslot);
+      printf("coef: %04x\n", rnd_coef);
+      printf("mulshift_mem: %02x\n", rnd_mulshift_mem);
+      printf("immshift_mem: %02x\n", rnd_immshift_mem);
+      printf("memval: %04x\n", rnd_memval);
+      printf("mulshift_accA: %02x\n", rnd_mulshift_accA);
+      printf("immshift_accA: %02x\n", rnd_immshift_accA);
+      printf("accA: %04x\n", rnd_accA);
+      printf("mulshift_accB: %02x\n", rnd_mulshift_accB);
+      printf("immshift_accB: %02x\n", rnd_immshift_accB);
+      printf("accB: %04x\n", rnd_accB);
+      printf("mulshift_mul186: %02x\n", rnd_mulshift_mul186);
+      printf("immshift_mul186: %02x\n", rnd_immshift_mul186);
+      printf("mul186: %04x\n", rnd_mul186);
+      printf("mulshift_mul187: %02x\n", rnd_mulshift_mul187);
+      printf("immshift_mul187: %02x\n", rnd_immshift_mul187);
+      printf("mul187: %04x\n", rnd_mul187);
+      printf("mulmode: %04x\n", rnd_mulmode);
+      printf("dest_187: %02x\n", rnd_dest_187);
+      printf("saturate: %02x\n", rnd_saturate);
 
       // break;
     }
   }
 }
 
-void test() {
+void test_mem() {
   emulator->clear();
 
   int pos = 0;
 
-  for (size_t i = 0; i < 0x80; i++) {
-    int16_t val = i;
-    uint16_t mem = i * 4;
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
 
-    emulator->writePgm(pos++, 0x00, 0x20, 0x01, val);
-    emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
-    emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
-    emulator->writePgm(pos++, 0x00, 0x0c | ((mem >> 8) & 1), mem & 0xff, 0x0000);
-  }
+  // ram write
+  emulator->writePgm(pos++, 0x48, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x01, 0x20, 0x05, 0x4000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x01, 0x0001);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x08, 0x04, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x05, 0x83, 0x0000); // eram write latch
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000); // (eram write high)
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
 
-  emulator->writePgm(pos++, 0x00, 0x20, 0x01, 0x0000);
-  // emulator->writePgm(pos++, 0x01, 0x20, 0xf3, 0x4000);
-  emulator->writePgm(pos++, 0x00, 0xc0, 0xf3, 0x0001);
+  // ram read
+  emulator->writePgm(pos++, 0x08, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x40, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x10, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x01, 0x27, 0xf0, 0x4000); // read to iram
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+
+  emulator->writePgm(pos++, 0x01, 0x20, 0x04, 0x4000);
+  emulator->writePgm(pos++, 0x01, 0x01, 0xf0, 0xc000);
   emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
   emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
   emulator->writePgm(pos++, 0x00, 0x07, 0x82, 0x0000);
 
-  printf("pos: %03x\n", pos);
+  pos += 60;
 
-  // for (size_t i = 0; i < 1024*2; i++) {
-  //   emulator->runProgram();
-  // }
-  // int32_t result_emu = emulator->hostReadback;
+  for (size_t i = 0; i < 0x20000; i++) {
+    emulator->runProgram();
+  }
+  int32_t result_emu = emulator->hostReadback;
 
   for (size_t i = 0; i < pos; i++) {
     dsp_pgm_w(i,
@@ -287,14 +339,206 @@ void test() {
     dsp_w(0x2000 | 0x802, 0x00);
     int32_t result =
         sign_extend<24>((dsp_r(0x02) << 16) | (dsp_r(0x01) << 8) | dsp_r(0x00));
-    printf("hw: %06x\n", result & 0xffffff);
+    printf("hw: %06x    emu: %06x\n", result & 0xffffff, result_emu & 0xffffff);
+  }
+}
+
+void test_50() {
+  emulator->clear();
+
+  int pos = 0;
+
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+
+  // mem
+  emulator->writePgm(pos++, 0x00, 0x20, 0x01, 0x1234);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x0c, 0x05, 0x0000);
+
+  emulator->writePgm(pos++, 0x00, 0x30, 0x01, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x20, 0x01, 0x0000);
+
+  // test
+  emulator->writePgm(pos++, 0x00, 0x50, 0x05, 0x8200);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x0c, 0x05, 0x0000);
+
+  emulator->writePgm(pos++, 0x01, 0x20, 0x05, 0x4000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x07, 0x82, 0x0000);
+
+  pos += 60;
+
+  for (size_t i = 0; i < 40; i++) {
+    emulator->runProgram();
+  }
+  int32_t result_emu = emulator->hostReadback;
+
+  for (size_t i = 0; i < pos; i++) {
+    dsp_pgm_w(i,
+              (emulator->instr0[i] << 16) | (emulator->instr1[i] << 8) |
+                  (emulator->instr2[i] << 0),
+              emulator->coefs[i]);
   }
 
-  // printf("hw: %06x    emu: %06x\n", result & 0xffffff, result_emu &
-  // 0xffffff);
+  dsp_w(0x2000 | 0x802, 0x00);
+  int32_t result =
+      sign_extend<24>((dsp_r(0x02) << 16) | (dsp_r(0x01) << 8) | dsp_r(0x00));
+  printf("hw: %06x    emu: %06x\n", result & 0xffffff, result_emu & 0xffffff);
+}
+
+void test_02() {
+  emulator->clear();
+
+  int pos = 0;
+
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x20, 0x01, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x30, 0x01, 0x0000);
+
+  // mul186
+  emulator->writePgm(pos++, 0x00, 0x20, 0x01, 0xfef0);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x07, 0x85, 0x0000);
+
+  // mem
+  emulator->writePgm(pos++, 0x00, 0x20, 0x02, 0x44e7);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x0c, 0x05, 0x0000);
+
+  emulator->writePgm(pos++, 0x00, 0xc0, 0x05, 0x0003);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x07, 0x82, 0x0000);
+
+  pos += 60;
+
+  for (size_t i = 0; i < 40; i++) {
+    emulator->runProgram();
+  }
+  int32_t result_emu = emulator->hostReadback;
+
+  for (size_t i = 0; i < pos; i++) {
+    dsp_pgm_w(i,
+              (emulator->instr0[i] << 16) | (emulator->instr1[i] << 8) |
+                  (emulator->instr2[i] << 0),
+              emulator->coefs[i]);
+  }
+
+  dsp_w(0x2000 | 0x802, 0x00);
+  int32_t result =
+      sign_extend<24>((dsp_r(0x02) << 16) | (dsp_r(0x01) << 8) | dsp_r(0x00));
+  printf("hw: %06x    emu: %06x\n", result & 0xffffff, result_emu & 0xffffff);
+}
+
+void test_02_tbl() {
+  emulator->clear();
+
+  int pos = 0;
+
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+
+  // mul186
+  emulator->writePgm(pos++, 0x00, 0x20, 0x02, 0x1234);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x07, 0x86, 0x0000);
+
+  // mem
+  emulator->writePgm(pos++, 0x00, 0x20, 0x02, 0x1234);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x0c, 0x05, 0x0000);
+
+  emulator->writePgm(pos++, 0x00, 0xc0, 0x05, 0x0002);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x00, 0x00, 0x0000);
+  emulator->writePgm(pos++, 0x00, 0x07, 0x82, 0x0000);
+
+  for (size_t i = 0; i < pos; i++) {
+    dsp_pgm_w(i,
+              (emulator->instr0[i] << 16) | (emulator->instr1[i] << 8) |
+                  (emulator->instr2[i] << 0),
+              emulator->coefs[i]);
+  }
+
+  for (size_t i = 0; i < 32; i++) {
+    for (size_t j = 0; j < 32; j++) {
+      dsp_pgm_w(1,
+                (emulator->instr0[1] << 16) | (emulator->instr1[1] << 8) | 0x01,
+                sign_extend<16>(i * 0x739));
+      dsp_pgm_w(5,
+                (emulator->instr0[5] << 16) | (emulator->instr1[5] << 8) | 0x01,
+                sign_extend<16>(j * 0x739));
+
+      dsp_w(0x2000 | 0x802, 0x00);
+      int32_t result = sign_extend<24>((dsp_r(0x02) << 16) |
+                                       (dsp_r(0x01) << 8) | dsp_r(0x00));
+      printf("mul:%08x  mem:%08x  hw: %06x\n", sign_extend<16>(i * 0x739) << 0,
+             sign_extend<16>(j * 0x739) << 0, result & 0xffffff);
+    }
+  }
+  for (size_t i = 0; i < 32; i++) {
+    for (size_t j = 0; j < 32; j++) {
+      dsp_pgm_w(1,
+                (emulator->instr0[1] << 16) | (emulator->instr1[1] << 8) | 0x02,
+                sign_extend<16>(i * 0x739));
+      dsp_pgm_w(5,
+                (emulator->instr0[5] << 16) | (emulator->instr1[5] << 8) | 0x01,
+                sign_extend<16>(j * 0x739));
+
+      dsp_w(0x2000 | 0x802, 0x00);
+      int32_t result = sign_extend<24>((dsp_r(0x02) << 16) |
+                                       (dsp_r(0x01) << 8) | dsp_r(0x00));
+      printf("mul:%08x  mem:%08x  hw: %06x\n", sign_extend<16>(i * 0x739) << 7,
+             sign_extend<16>(j * 0x739) << 0, result & 0xffffff);
+    }
+  }
+  for (size_t i = 0; i < 32; i++) {
+    for (size_t j = 0; j < 32; j++) {
+      dsp_pgm_w(1,
+                (emulator->instr0[1] << 16) | (emulator->instr1[1] << 8) | 0x01,
+                sign_extend<16>(i * 0x739));
+      dsp_pgm_w(5,
+                (emulator->instr0[5] << 16) | (emulator->instr1[5] << 8) | 0x02,
+                sign_extend<16>(j * 0x739));
+
+      dsp_w(0x2000 | 0x802, 0x00);
+      int32_t result = sign_extend<24>((dsp_r(0x02) << 16) |
+                                       (dsp_r(0x01) << 8) | dsp_r(0x00));
+      printf("mul:%08x  mem:%08x  hw: %06x\n", sign_extend<16>(i * 0x739) << 0,
+             sign_extend<16>(j * 0x739) << 7, result & 0xffffff);
+    }
+  }
+  for (size_t i = 0; i < 32; i++) {
+    for (size_t j = 0; j < 32; j++) {
+      dsp_pgm_w(1,
+                (emulator->instr0[1] << 16) | (emulator->instr1[1] << 8) | 0x02,
+                sign_extend<16>(i * 0x739));
+      dsp_pgm_w(5,
+                (emulator->instr0[5] << 16) | (emulator->instr1[5] << 8) | 0x02,
+                sign_extend<16>(j * 0x739));
+
+      dsp_w(0x2000 | 0x802, 0x00);
+      int32_t result = sign_extend<24>((dsp_r(0x02) << 16) |
+                                       (dsp_r(0x01) << 8) | dsp_r(0x00));
+      printf("mul:%08x  mem:%08x  hw: %06x\n", sign_extend<16>(i * 0x739) << 7,
+             sign_extend<16>(j * 0x739) << 7, result & 0xffffff);
+    }
+  }
 }
 
 int main() {
+  srand(time(NULL));
+
   serial_fd = open_serial("/dev/cu.usbmodem1101");
 
   emulator = new Emulator();
@@ -305,10 +549,13 @@ int main() {
   dsp_w(0x0805, 0x80);
   dsp_w(0x0806, 0x02);
 
-  dsp_w(0x0808, 0x00);
+  dsp_w(0x0808, 0x01);
   dsp_w(0x0809, 0x00);
   dsp_w(0x080a, 0x00);
 
   fuzz();
-  // test();
+  // test_mem();
+  // test_50();
+  // test_02();
+  // test_02_tbl();
 }

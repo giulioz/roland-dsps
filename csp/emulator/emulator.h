@@ -4,10 +4,13 @@
 #include <string.h>
 
 static constexpr int64_t PRAM_SIZE = 0x400;
-// static constexpr int64_t ERAM_SIZE = 0x40000;
-static constexpr int64_t ERAM_SIZE = 0x10000;
+// static constexpr int64_t ERAM_SIZE = 0x10000; // SE-70
+static constexpr int64_t ERAM_SIZE = 0x20000; // SDE/SRV
+static constexpr int64_t ERAM_MASK = ERAM_SIZE - 1;
 static constexpr int64_t IRAM_SIZE = 0x200;
 static constexpr int64_t IRAM_MASK = IRAM_SIZE - 1;
+
+static constexpr int64_t ERAM_COMMIT_STAGE = 10;
 
 static constexpr int64_t ACC_BITS = 30;
 static constexpr int64_t MUL_BITS_A = 30;
@@ -97,9 +100,16 @@ public:
   uint16_t iramPos = 0;
   uint32_t eramPos = 0;
 
-  uint8_t eramMode = 0;
-  uint16_t eramPCStart = 0;
-  uint32_t eramImmOffset = 0;
+  bool eramActiveCurrent = false;
+  uint8_t eramModeCurrent = 0;
+  uint16_t eramPCStartCurrent = 0;
+  uint32_t eramEffectiveAddrCurrent = 0;
+
+  bool eramActiveNext = false;
+  uint8_t eramModeNext = 0;
+  uint16_t eramPCStartNext = 0;
+  uint32_t eramImmOffsetAccNext = 0;
+
   uint32_t eramVarOffset = 0;
   int32_t eramWriteLatch = 0;
   int32_t eramReadLatch = 0;
@@ -122,9 +132,14 @@ public:
     pc = 0;
     iramPos = 0;
     eramPos = 0;
-    eramMode = 0;
-    eramPCStart = 0;
-    eramImmOffset = 0;
+    eramActiveCurrent = false;
+    eramModeCurrent = 0;
+    eramPCStartCurrent = 0;
+    eramEffectiveAddrCurrent = 0;
+    eramActiveNext = false;
+    eramModeNext = 0;
+    eramPCStartNext = 0;
+    eramImmOffsetAccNext = 0;
     eramVarOffset = 0;
     eramWriteLatch = 0;
     eramReadLatch = 0;
@@ -212,14 +227,17 @@ public:
       bool mulShouldAbs =
           opcode == 0x40 || opcode == 0x50 || opcode == 0x80 || opcode == 0x90;
       bool mulForceNeg = opcode == 0x60 || opcode == 0x70;
-      bool mulShouldClamp = opcode == 0x50; // TODO?
+      bool mulShouldClamp = opcode == 0x50;
       bool mulBFromVariable =
           opcode == 0xc0 || opcode == 0xd0 || opcode == 0xe0 || opcode == 0xf0;
 
-      // Custom coef mult
-      if (mulBFromVariable) {
-        int64_t mulCoef = coef & 1 ? mulCoefB : mulCoefA;
+      if (opcode == 0x50) {
+        printf("pc:%03x  opcode 0x50 not supported\n", pc);
+      }
 
+      // Custom coef mult
+      int64_t mulCoef = coef & 1 ? mulCoefB : mulCoefA;
+      if (mulBFromVariable) {
         if (coef == 0x0001) {
           // TODO: dependent on host config reg 0x0808
           mulInputB_16 = 0x7ff0;
@@ -227,9 +245,7 @@ public:
         }
 
         else if (coef == 0x0002 || coef == 0x0003) {
-          // printf("error: coef %04x not supported\n", coef);
-          mulInputA_24 = ~mulInputA_24;
-          mulInputB_16 = ~(mulCoef & 0xffffff) >> 8;
+          // mulInputB_16 = 0x8000 + ((~abs(mulCoef)) >> 8);
         }
 
         else if (coef == 0x004 || coef == 0x0005) {
@@ -245,16 +261,27 @@ public:
       uint8_t signA = (mulInputA_24 >> (MUL_BITS_A - 1)) & 1;
       uint8_t signB = (mulInputB_16 >> (MUL_BITS_B - 1)) & 1;
       uint8_t finalSign = signA ^ signB;
+      int64_t mulInputA_24_abs = mulInputA_24;
+      int64_t mulInputB_16_abs = mulInputB_16;
       if (signA) {
-        mulInputA_24 = ~mulInputA_24 + 1;
+        mulInputA_24_abs = ~mulInputA_24_abs + 1;
       }
       if (signB) {
-        mulInputB_16 = ~mulInputB_16 + 1;
+        mulInputB_16_abs = ~mulInputB_16_abs + 1;
       }
-      int64_t mulResult = mulInputA_24 * mulInputB_16;
-      mulResult &= MUL_MASK_R;
+      int64_t mulResult = mulInputA_24_abs * mulInputB_16_abs;
       if (finalSign) {
         mulResult = ~mulResult + 1;
+      }
+      if (mulBFromVariable && (coef == 0x0002 || coef == 0x0003)) {
+        mulInputB_16 = 0x8000 + ((~(mulCoef >= 0 ? mulCoef : ~mulCoef)) >> 8);
+        if (mulCoef < 0) {
+          mulInputB_16 += 1;
+        }
+        mulResult = mulInputA_24 * mulInputB_16;
+        if (mulCoef < 0) {
+          mulResult = -mulResult;
+        }
       }
 
       // Abs
@@ -307,7 +334,7 @@ public:
 
       // Clamp
       if (mulShouldClamp && sumResult < 0) {
-        sumResult = 0;
+        // sumResult = 0;
       }
 
       (*dest) = sumResult;
@@ -317,60 +344,71 @@ public:
     }
 
     iramPos = (iramPos - 1) & IRAM_MASK;
-    eramPos -= 1;
+    eramPos = (eramPos - 1) & ERAM_MASK;
   }
 
   void doEram() {
     uint8_t eramCtrl = instr0[pc] & 0xf8;
-    uint8_t stage = pc - eramPCStart;
+    int stage1 = pc - eramPCStartNext;
+    int stage2 = pc - eramPCStartCurrent;
 
-    // Start eram command
-    if ((eramCtrl & 0x8) != 0) {
-      if (stage <= 6) {
-        printf("error: ERAM command started at stage %d\n", stage);
+    // Transaction start
+    bool newStart = (eramCtrl & 0x8) != 0;
+    if (newStart) {
+      if (eramActiveNext) {
+        printf("ERAM transaction already active at pc %03x\n", pc);
       }
 
-      eramMode = eramCtrl & 0xc0;
-      eramPCStart = pc;
-      eramImmOffset = 0;
+      eramActiveNext = true;
+      eramModeNext = eramCtrl >> 4;
+      eramPCStartNext = pc;
+      eramImmOffsetAccNext = 0;
     }
 
     // Accumulate immediates
     uint8_t eramAdj = eramCtrl >> 4;
-    if (eramAdj != 0 && stage <= 5) {
-      eramImmOffset += eramAdj << ((stage - 1) << 2);
+    if (eramActiveNext) {
+      eramImmOffsetAccNext += eramAdj << ((stage1 - 1) << 2);
     }
 
-    // Addr computation
-    uint32_t effectiveAddr = (eramPos + eramImmOffset) & (ERAM_SIZE - 1);
-    if (eramMode == 0x80) {
-      effectiveAddr =
-          ((eramImmOffset & 1) + (eramVarOffset >> 10)) & (ERAM_SIZE - 1);
-    } else if (eramMode == 0xc0) {
-      effectiveAddr = (eramPos + (eramImmOffset & 1) + (eramVarOffset >> 10)) &
-                      (ERAM_SIZE - 1);
+    // Next stage
+    if (eramActiveNext && stage1 == 5) {
+      eramActiveCurrent = true;
+      eramModeCurrent = eramModeNext;
+      eramPCStartCurrent = eramPCStartNext;
+
+      eramActiveNext = false;
+
+      // Addr computation
+      eramEffectiveAddrCurrent = eramPos + eramImmOffsetAccNext;
+      if (eramModeNext == 0x8) {
+        eramEffectiveAddrCurrent = (eramImmOffsetAccNext & 1) + eramVarOffset;
+      } else if (eramModeNext == 0xc) {
+        eramEffectiveAddrCurrent =
+            eramPos + (eramImmOffsetAccNext & 1) + eramVarOffset;
+      }
+
+      eramEffectiveAddrCurrent &= (ERAM_SIZE - 1);
     }
 
     // Write
-    if (stage == 7 && eramMode == 0x40) {
-      eram[effectiveAddr] = eramWriteLatch;
-      // printf("write %06x\n", eramWriteLatch);
-      // printf("pc:%03x  write eram[%06x]\n", pc, effectiveAddr);
+    if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
+        eramModeCurrent == 0x4) {
+      eramActiveCurrent = false;
+      eram[eramEffectiveAddrCurrent] = eramWriteLatch;
     }
 
     // Read
-    else if (stage == 6 && eramMode != 0x40) {
-      eramReadLatch = eram[effectiveAddr];
-      // eramReadLatch = eramWriteLatch;
-      // printf("pc:%03x  read eram[%06x]=%06x\n", pc, effectiveAddr, eramReadLatch);
+    else if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
+             eramModeCurrent != 0x4) {
+      eramActiveCurrent = false;
+      eramReadLatch = eram[eramEffectiveAddrCurrent];
     }
   }
 
   int32_t getSpecialVal(uint16_t specialId) {
     // Serial Input
     if (specialId >= 0x190 && specialId <= 0x1af) {
-      // writeIramOffset(specialId, sioInput[specialId - 0x190]);
-      // printf("sioInput[%d]\n", specialId - 0x190);
       return sioInput[specialId - 0x190];
     }
 
@@ -399,8 +437,6 @@ public:
 
     // Serial Output
     if (specialId >= 0x1b0 && specialId <= 0x1ef) {
-      // Actually the sum would not be necessary if the i/o slots were the
-      // wrong way around
       sioOutput[(specialId - 0x1b0) & 0x1f] = value;
     }
 
@@ -437,14 +473,13 @@ public:
     // ERAM write latch
     else if (specialId == 0x183 || specialId == 0x18b) {
       eramWriteLatch = value;
-      // printf("pc:%03x  eramWriteLatch=%06x\n", pc, eramWriteLatch);
     }
 
     // ERAM second tap pos
     else if (specialId == 0x185 || specialId == 0x18d) {
-      eramVarOffset = value;
-      mulCoefA = (eramVarOffset & 0x3ff) << 13;
-      mulCoefB = eramVarOffset;
+      eramVarOffset = value >> 10;
+      mulCoefA = (value & 0x3ff) << 13;
+      mulCoefB = value;
     }
 
     // Mult coefficients

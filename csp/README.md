@@ -136,6 +136,23 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
 - b14-17: ERAM control/offset
 
 
+### Opcode 50
+
++00: 00 50 05
++01
++02
++03 store to mem:
+      accA = max(0, ((abs(mem) * abs(coef)) >> shift) + accA)
+      accB = accB >= 0 ? 0 : accB
++04 store to mem:
+      accA = max(0, ((abs(mem) * abs(coef)) >> shift) + accA)
+...
++08 store to mem: (normal)
+      accA = ((abs(mem) * abs(coef)) >> shift) + accA
+
+Storing accA/accB in the range between 04 and 08 stores 0 regardless of the actual value, if the initial opcode 50 clamps to 0.
+
+
 ### Multiplication opcodes (c/d/e/f)
 
 Depending on the coefficient, these opcodes compute their result differently:
