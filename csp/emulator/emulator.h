@@ -6,6 +6,7 @@
 static constexpr int64_t PRAM_SIZE = 0x400;
 // static constexpr int64_t ERAM_SIZE = 0x10000; // SE-70
 static constexpr int64_t ERAM_SIZE = 0x20000; // SDE/SRV
+// static constexpr int64_t ERAM_SIZE = 0x80000; // SDE/SRV
 static constexpr int64_t ERAM_MASK = ERAM_SIZE - 1;
 static constexpr int64_t IRAM_SIZE = 0x200;
 static constexpr int64_t IRAM_MASK = IRAM_SIZE - 1;
@@ -35,11 +36,6 @@ template <int32_t n_bits> static constexpr int32_t sign_extend(int32_t x) {
   if (x & (1 << (n_bits - 1))) // If sign bit is set
     x |= ~((1 << n_bits) - 1);
   return x;
-}
-
-static constexpr int32_t arshift_round(int32_t x, int32_t k) {
-  int32_t rnd = 1 << (k - 3);
-  return (x - rnd) >> k;
 }
 
 class DspAccumulator {
@@ -100,10 +96,13 @@ public:
   uint16_t iramPos = 0;
   uint32_t eramPos = 0;
 
+  int opcode5Cycles = 0;
+  int opcode5Sign = 0;
+
   bool eramActiveCurrent = false;
   uint8_t eramModeCurrent = 0;
   uint16_t eramPCStartCurrent = 0;
-  uint32_t eramEffectiveAddrCurrent = 0;
+  uint32_t eramEffectiveAddr = 0;
 
   bool eramActiveNext = false;
   uint8_t eramModeNext = 0;
@@ -132,10 +131,12 @@ public:
     pc = 0;
     iramPos = 0;
     eramPos = 0;
+    opcode5Cycles = 0;
+    opcode5Sign = 0;
     eramActiveCurrent = false;
     eramModeCurrent = 0;
     eramPCStartCurrent = 0;
-    eramEffectiveAddrCurrent = 0;
+    eramEffectiveAddr = 0;
     eramActiveNext = false;
     eramModeNext = 0;
     eramPCStartNext = 0;
@@ -169,7 +170,7 @@ public:
   }
 
   void runProgram() {
-    for (pc = 0; pc < 1024; pc++) {
+    for (pc = 0; pc < PRAM_SIZE; pc++) {
       accA.fwdPipeline();
       accB.fwdPipeline();
 
@@ -195,6 +196,10 @@ public:
       DspAccumulator *storeAcc =
           storeCtrl == 0x0a || storeCtrl == 0x0e ? &accB : &accA;
 
+      if (opcode5Cycles > 0) {
+        opcode5Cycles--;
+      }
+
       if (storeCtrl == 0x02) {
         // TODO: check
         mulInputA_24 = sign_extend<24>(0x800000);
@@ -208,7 +213,12 @@ public:
           mulInputA_24 = storeAcc->historyRaw24(PIPELINE_WRITE_DELAY);
         }
 
-        writeIramOffset(memOffs, mulInputA_24);
+        bool shouldClamp = false;
+        if (opcode5Cycles <= 5 && opcode5Sign == -1) {
+          // shouldClamp = true;
+        }
+
+        writeIramOffset(memOffs, shouldClamp ? 0 : mulInputA_24);
       }
 
       else if (storeSpecial) {
@@ -230,10 +240,6 @@ public:
       bool mulShouldClamp = opcode == 0x50;
       bool mulBFromVariable =
           opcode == 0xc0 || opcode == 0xd0 || opcode == 0xe0 || opcode == 0xf0;
-
-      if (opcode == 0x50) {
-        printf("pc:%03x  opcode 0x50 not supported\n", pc);
-      }
 
       // Custom coef mult
       int64_t mulCoef = coef & 1 ? mulCoefB : mulCoefA;
@@ -270,9 +276,12 @@ public:
         mulInputB_16_abs = ~mulInputB_16_abs + 1;
       }
       int64_t mulResult = mulInputA_24_abs * mulInputB_16_abs;
-      if (finalSign) {
+      if (finalSign && !mulShouldClamp) {
         mulResult = ~mulResult + 1;
+      } else if (finalSign) {
+        mulResult = mulResult - 1;
       }
+
       if (mulBFromVariable && (coef == 0x0002 || coef == 0x0003)) {
         mulInputB_16 = 0x8000 + ((~(mulCoef >= 0 ? mulCoef : ~mulCoef)) >> 8);
         if (mulCoef < 0) {
@@ -333,8 +342,9 @@ public:
       int64_t sumResult = sumInA + sumInB;
 
       // Clamp
-      if (mulShouldClamp && sumResult < 0) {
-        // sumResult = 0;
+      if (opcode == 0x50) {
+        opcode5Cycles = 8;
+        opcode5Sign = sumResult < 0 ? -1 : 1;
       }
 
       (*dest) = sumResult;
@@ -366,8 +376,8 @@ public:
     }
 
     // Accumulate immediates
-    uint8_t eramAdj = eramCtrl >> 4;
-    if (eramActiveNext) {
+    uint32_t eramAdj = eramCtrl >> 4;
+    if (eramActiveNext && stage1 <= 5 && stage1 > 0) {
       eramImmOffsetAccNext += eramAdj << ((stage1 - 1) << 2);
     }
 
@@ -379,30 +389,33 @@ public:
 
       eramActiveNext = false;
 
+      // int32_t immOffsetSigned = sign_extend<17>(eramImmOffsetAccNext);
+      // int32_t varOffsetSigned = sign_extend<8>(eramVarOffset);
+
       // Addr computation
-      eramEffectiveAddrCurrent = eramPos + eramImmOffsetAccNext;
+      eramEffectiveAddr = (eramPos + eramImmOffsetAccNext);
       if (eramModeNext == 0x8) {
-        eramEffectiveAddrCurrent = (eramImmOffsetAccNext & 1) + eramVarOffset;
+        eramEffectiveAddr = eramVarOffset + (eramImmOffsetAccNext & 1);
       } else if (eramModeNext == 0xc) {
-        eramEffectiveAddrCurrent =
-            eramPos + (eramImmOffsetAccNext & 1) + eramVarOffset;
+        eramEffectiveAddr =
+            eramPos + eramVarOffset + (eramImmOffsetAccNext & 1);
       }
 
-      eramEffectiveAddrCurrent &= (ERAM_SIZE - 1);
+      eramEffectiveAddr &= ERAM_MASK;
     }
 
     // Write
     if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
         eramModeCurrent == 0x4) {
       eramActiveCurrent = false;
-      eram[eramEffectiveAddrCurrent] = eramWriteLatch;
+      eram[eramEffectiveAddr] = eramWriteLatch;
     }
 
     // Read
     else if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
              eramModeCurrent != 0x4) {
       eramActiveCurrent = false;
-      eramReadLatch = eram[eramEffectiveAddrCurrent];
+      eramReadLatch = eram[eramEffectiveAddr];
     }
   }
 

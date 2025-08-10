@@ -79,6 +79,27 @@ The external DRAM is used as a circular buffer, with each sample decrementing th
 3. Read ERAM @ absolute addr from register
 4. Read ERAM @ circular buffer ptr + offset from register
 
+### ERAM physical address
+
+row:col
+000:1ff -> 000:100
+1ff:0ff
+
+
+op:
+001:100 +1 =  001:101 ??
+000:1ff +1 =  001:100
+
+1ff:0ff +1 =  000:100
+000:1f5 +1 =  000:1f6
+
+001:100 +0xffff =  000:1ff
+
+s185=0x0400 -> +1
+s185=0x07ff -> +1
+s185=0x0800 -> +2
+s185=0xffff -> -1
+
 
 ## The TR bus
 
