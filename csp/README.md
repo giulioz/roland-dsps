@@ -65,6 +65,18 @@ ACIN, ACOUT: (unknown)
   - bit 0x400000: 12/24 bit bus mode
 - 808: muting?
 
+Known values
+- 804
+  - SE-70: 070000, 070001, 070101
+    - 070000: after program load
+  - SRV-330: 478003, 478102, 478103
+    - 478002: after program load
+- 808
+  - SE-70: 7f, f6, 0a
+  - SRV-330
+    - e0: before program load
+    - 01: after program load
+
 
 ## External Memory (ERAM)
 
@@ -81,6 +93,7 @@ The external DRAM is used as a circular buffer, with each sample decrementing th
 
 ### ERAM physical address
 
+```
 row:col
 000:1ff -> 000:100
 1ff:0ff
@@ -99,6 +112,7 @@ s185=0x0400 -> +1
 s185=0x07ff -> +1
 s185=0x0800 -> +2
 s185=0xffff -> -1
+```
 
 
 ## The TR bus
@@ -159,6 +173,7 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
 
 ### Opcode 50
 
+```
 +00: 00 50 05
 +01
 +02
@@ -170,6 +185,7 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
 ...
 +08 store to mem: (normal)
       accA = ((abs(mem) * abs(coef)) >> shift) + accA
+```
 
 Storing accA/accB in the range between 04 and 08 stores 0 regardless of the actual value, if the initial opcode 50 clamps to 0.
 

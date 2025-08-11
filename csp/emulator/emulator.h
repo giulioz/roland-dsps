@@ -3,16 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-// static constexpr int64_t ERAM_SIZE = 0x10000; // SE-70
-// static constexpr int64_t ERAM_DATA_MASK = 0xfffff0; // SE-70
+static constexpr int64_t ERAM_SIZE = 0x10000;       // SE-70
+static constexpr int64_t ERAM_DATA_MASK = 0xfffff0; // SE-70
 
-static constexpr int64_t ERAM_SIZE = 0x20000; // SDE/SRV
-static constexpr int64_t ERAM_DATA_MASK = 0xffffff; // SDE/SRV
+// static constexpr int64_t ERAM_SIZE = 0x20000; // SDE/SRV
+// static constexpr int64_t ERAM_DATA_MASK = 0xffffff; // SDE/SRV
 
 static constexpr int64_t PRAM_SIZE = 0x400;
 static constexpr int64_t IRAM_SIZE = 0x200;
 static constexpr int64_t IRAM_MASK = IRAM_SIZE - 1;
+static constexpr int64_t ERAM_SIZE_FULL = 0x40000;
 static constexpr int64_t ERAM_MASK = ERAM_SIZE - 1;
+static constexpr int64_t ERAM_MASK_FULL = ERAM_SIZE_FULL - 1;
 
 static constexpr int64_t ERAM_COMMIT_STAGE = 10;
 
@@ -93,7 +95,7 @@ public:
   uint8_t instr2[PRAM_SIZE] = {0};
 
   int32_t iram[IRAM_SIZE] = {0};
-  int32_t eram[ERAM_SIZE] = {0};
+  int32_t eram[ERAM_SIZE_FULL] = {0};
 
   uint16_t pc = 0;
   uint16_t iramPos = 0;
@@ -226,7 +228,25 @@ public:
 
       else if (storeSpecial) {
         doSpecialStore(memOffs, storeSaturate);
-        mulInputA_24 = getSpecialVal(memOffs);
+
+        // Serial Input
+        if (memOffs >= 0x190 && memOffs <= 0x1af) {
+          mulInputA_24 = sioInput[memOffs - 0x190];
+        }
+
+        // ERAM tap
+        else if (memOffs >= 0x1f0 && memOffs <= 0x1ff) {
+          writeIramOffset(memOffs, eramReadLatch);
+          mulInputA_24 = eramReadLatch;
+        }
+
+        else {
+          if (storeSaturate) {
+            mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
+          } else {
+            mulInputA_24 = storeAcc->historyRaw24(PIPELINE_WRITE_DELAY);
+          }
+        }
       }
 
       // Immediate load coef
@@ -357,7 +377,7 @@ public:
     }
 
     iramPos = (iramPos - 1) & IRAM_MASK;
-    eramPos = (eramPos - 1) & ERAM_MASK;
+    eramPos = (eramPos - 1) & ERAM_MASK_FULL;
   }
 
   void doEram() {
@@ -400,39 +420,21 @@ public:
         eramEffectiveAddr =
             eramPos + eramVarOffset + (eramImmOffsetAccNext & 1);
       }
-
-      eramEffectiveAddr &= ERAM_MASK;
     }
 
     // Write
     if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
         eramModeCurrent == 0x4) {
       eramActiveCurrent = false;
-      eram[eramEffectiveAddr] = eramWriteLatch;
+      eram[eramEffectiveAddr & ERAM_MASK] = eramWriteLatch;
     }
 
     // Read
     else if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
              eramModeCurrent != 0x4) {
       eramActiveCurrent = false;
-      eramReadLatch = sign_extend<24>(eram[eramEffectiveAddr] & ERAM_DATA_MASK);
-    }
-  }
-
-  int32_t getSpecialVal(uint16_t specialId) {
-    // Serial Input
-    if (specialId >= 0x190 && specialId <= 0x1af) {
-      return sioInput[specialId - 0x190];
-    }
-
-    // ERAM tap
-    else if (specialId >= 0x1f0 && specialId <= 0x1ff) {
-      writeIramOffset(specialId, eramReadLatch);
-      return eramReadLatch;
-    }
-
-    else {
-      return 0x000000;
+      eramReadLatch =
+          sign_extend<24>(eram[eramEffectiveAddr & ERAM_MASK] & ERAM_DATA_MASK);
     }
   }
 
