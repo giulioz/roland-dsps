@@ -3,12 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-static constexpr int64_t PRAM_SIZE = 0x400;
 // static constexpr int64_t ERAM_SIZE = 0x10000; // SE-70
+// static constexpr int64_t ERAM_DATA_MASK = 0xfffff0; // SE-70
+
 static constexpr int64_t ERAM_SIZE = 0x20000; // SDE/SRV
-static constexpr int64_t ERAM_MASK = ERAM_SIZE - 1;
+static constexpr int64_t ERAM_DATA_MASK = 0xffffff; // SDE/SRV
+
+static constexpr int64_t PRAM_SIZE = 0x400;
 static constexpr int64_t IRAM_SIZE = 0x200;
 static constexpr int64_t IRAM_MASK = IRAM_SIZE - 1;
+static constexpr int64_t ERAM_MASK = ERAM_SIZE - 1;
 
 static constexpr int64_t ERAM_COMMIT_STAGE = 10;
 
@@ -411,7 +415,7 @@ public:
     else if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
              eramModeCurrent != 0x4) {
       eramActiveCurrent = false;
-      eramReadLatch = eram[eramEffectiveAddr];
+      eramReadLatch = sign_extend<24>(eram[eramEffectiveAddr] & ERAM_DATA_MASK);
     }
   }
 
