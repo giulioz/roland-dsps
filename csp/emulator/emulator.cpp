@@ -7,7 +7,7 @@ int main() {
   Emulator *emulator2 = new Emulator();
   emulator1->clear();
   emulator2->clear();
-  bool useSecond = false;
+  bool useSecond = true;
 
   // FILE *pgmFile = fopen("sinetest.txt", "r");
   // FILE *pgmFile = fopen("srv_rev_test.txt", "r");
@@ -17,9 +17,10 @@ int main() {
   // FILE *pgmFile = fopen("../algos/sde_stereodelay.txt", "r");
   // FILE *pgmFile = fopen("../algos/sde_precisiondly.txt", "r");
   // FILE *pgmFile = fopen("../algos/sde_simpledelay.txt", "r");
+  FILE *pgmFile = fopen("../algos/srv_chorusreverb.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_hall.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_stpitchshift.txt", "r");
-  FILE *pgmFile = fopen("../algos/se70_stchorus.txt", "r");
+  // FILE *pgmFile = fopen("../algos/se70_stchorus.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_stphaser.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_rotarymulti.txt", "r");
   // FILE *pgmFile = fopen("../algos/se70_simpledelay.txt", "r");
@@ -67,16 +68,16 @@ int main() {
   int sampleRate = 0;
   int nch = 0;
   // read_wav("../../lsp/emulator/input.wav", audioSamples, sampleRate, nch);
-  // read_wav("../../lsp/emulator/input_guit.wav", audioSamples, sampleRate, nch);
-  read_wav("../../lsp/emulator/sine.wav", audioSamples, sampleRate, nch);
+  read_wav("../../lsp/emulator/input_guit.wav", audioSamples, sampleRate, nch);
+  // read_wav("../../lsp/emulator/sine.wav", audioSamples, sampleRate, nch);
 
   std::vector<int16_t> audioOutput;
 
-  // SDE
-  // int IN_L = 3;
-  // int IN_R = 23;
-  // int OUT_L = 0;
-  // int OUT_R = 20;
+  // SDE/SRV
+  int IN_L = 3;
+  int IN_R = 23;
+  int OUT_L = 0;
+  int OUT_R = 20;
 
   // SE70 32khz
   // int IN_L = 2;
@@ -85,10 +86,10 @@ int main() {
   // int OUT_R = 27;
 
   // SE70 48khz
-  int IN_L = 28;
-  int IN_R = 18;
-  int OUT_L = 2;
-  int OUT_R = 24;
+  // int IN_L = 28;
+  // int IN_R = 18;
+  // int OUT_L = 2;
+  // int OUT_R = 24;
 
   // Process audio samples
   for (size_t i = 0; i < audioSamples.size(); i += nch) {

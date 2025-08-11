@@ -6,7 +6,6 @@
 static constexpr int64_t PRAM_SIZE = 0x400;
 // static constexpr int64_t ERAM_SIZE = 0x10000; // SE-70
 static constexpr int64_t ERAM_SIZE = 0x20000; // SDE/SRV
-// static constexpr int64_t ERAM_SIZE = 0x80000; // SDE/SRV
 static constexpr int64_t ERAM_MASK = ERAM_SIZE - 1;
 static constexpr int64_t IRAM_SIZE = 0x200;
 static constexpr int64_t IRAM_MASK = IRAM_SIZE - 1;
@@ -89,7 +88,7 @@ public:
   uint8_t instr1[PRAM_SIZE] = {0};
   uint8_t instr2[PRAM_SIZE] = {0};
 
-  int32_t iram[IRAM_MASK] = {0};
+  int32_t iram[IRAM_SIZE] = {0};
   int32_t eram[ERAM_SIZE] = {0};
 
   uint16_t pc = 0;
@@ -377,7 +376,7 @@ public:
 
     // Accumulate immediates
     uint32_t eramAdj = eramCtrl >> 4;
-    if (eramActiveNext && stage1 <= 5 && stage1 > 0) {
+    if (!newStart && eramActiveNext && stage1 <= 5 && stage1 > 0) {
       eramImmOffsetAccNext += eramAdj << ((stage1 - 1) << 2);
     }
 
@@ -389,11 +388,8 @@ public:
 
       eramActiveNext = false;
 
-      // int32_t immOffsetSigned = sign_extend<17>(eramImmOffsetAccNext);
-      // int32_t varOffsetSigned = sign_extend<8>(eramVarOffset);
-
       // Addr computation
-      eramEffectiveAddr = (eramPos + eramImmOffsetAccNext);
+      eramEffectiveAddr = eramPos + eramImmOffsetAccNext;
       if (eramModeNext == 0x8) {
         eramEffectiveAddr = eramVarOffset + (eramImmOffsetAccNext & 1);
       } else if (eramModeNext == 0xc) {
