@@ -63,6 +63,7 @@ ACIN, ACOUT: (unknown)
 
 - 804: ram config?
   - bit 0x400000: 12/24 bit bus mode
+  - bit 0x000002: affects store 1
 - 808: muting?
 
 Known values

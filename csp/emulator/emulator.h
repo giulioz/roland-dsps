@@ -175,7 +175,12 @@ public:
   }
 
   void runProgram() {
+    int limit = 1024;
     for (pc = 0; pc < PRAM_SIZE; pc++) {
+      limit--;
+      if (limit == 0)
+        break;
+
       accA.fwdPipeline();
       accB.fwdPipeline();
 
@@ -207,7 +212,8 @@ public:
 
       if (storeCtrl == 0x02) {
         // TODO: check
-        mulInputA_24 = sign_extend<24>(0x800000);
+        mulInputA_24 = sign_extend<24>(0x100000); // SE-70
+        // mulInputA_24 = sign_extend<24>(0x900000); // SRV/SDE
         writeIramOffset(memOffs, mulInputA_24);
       }
 
@@ -460,23 +466,26 @@ public:
       uint16_t jmpDest = coefs[pc];
       bool shouldJump = false;
 
+      value = saturated ? accA.historySat24(PIPELINE_WRITE_DELAY)
+                        : accA.historyRaw24(PIPELINE_WRITE_DELAY);
+
       if (specialId == 0x172) { // JMP
         shouldJump = true;
       } else if (specialId == 0x173) { // JMP accA > 0
-        shouldJump = accA.historyRawFull(PIPELINE_WRITE_DELAY) > 0;
+        shouldJump = value > 0;
       } else if (specialId == 0x174) { // JMP accA sat overflow
-        shouldJump = accA.historyRawFull(PIPELINE_WRITE_DELAY) > 0x7fffff ||
-                     accA.historyRawFull(PIPELINE_WRITE_DELAY) < -0x800000;
+        shouldJump = accA.historyRaw24(PIPELINE_WRITE_DELAY) > 0x7fffff ||
+                     accA.historyRaw24(PIPELINE_WRITE_DELAY) < -0x800000;
       } else if (specialId == 0x175) { // JMP accA < 0
-        shouldJump = accA.historyRawFull(PIPELINE_WRITE_DELAY) < 0;
+        shouldJump = value < 0;
       } else if (specialId == 0x176) { // JMP accA == 0
-        shouldJump = accA.historyRawFull(PIPELINE_WRITE_DELAY) == 0;
+        shouldJump = value == 0;
       } else if (specialId == 0x177) { // JMP accA >= 0
-        shouldJump = accA.historyRawFull(PIPELINE_WRITE_DELAY) >= 0;
+        shouldJump = value >= 0;
       }
 
       if (shouldJump) {
-        pc = jmpDest;
+        pc = jmpDest - 1;
       }
     }
 
