@@ -63,7 +63,7 @@ ACIN, ACOUT: (unknown)
 
 - 804: ram config?
   - bit 0x400000: 12/24 bit bus mode
-  - bit 0x000002: affects store 1
+  - bit 0x000002: SC bus invert msb?
 - 808: muting?
 
 Known values
@@ -137,7 +137,7 @@ The serial I/O can be used by the DSP program by writing/reading on internal spe
   - else: `mul = mem[(pos+offs) & 0x1ff] * coef]`
 - b09-0b: Store destination/special reg (pipeline stores value as it was 3 instructions before)
   - 0: no store
-  - 1: store const -max_24, then loads -max_24 or immediate into acc
+  - 1: read value from SC bus
   - 2: use special reg (unsaturated)
   - 3: use special reg (saturated)
   - 4: store accA to IRAM (unsaturated)
@@ -331,8 +331,8 @@ Using instructions with a store value of 2 or 3 (0x04/0x06), special registers c
 |   0x19E  |   R       |   TRR SY1 slot14           |
 |   0x19F  |   R       |   TRR SY1 slot15           |
 |          |           |                            |
-|   0x1A0  |   R       |   TRR SY0 slot0            |
-|   0x1A1  |   R       |   TRR SY0 slot1            |
+|   0x1A0  |   R       |   TRR SY0 slot0 (JD990 L)  |
+|   0x1A1  |   R       |   TRR SY0 slot1 (JD990 R)  |
 |   0x1A2  |   R       |   TRR SY0 slot2 (SE70 R)   |
 |   0x1A3  |   R       |   TRR SY0 slot3            |
 |   0x1A4  |   R       |   TRR SY0 slot4            |
