@@ -11,7 +11,7 @@ Fixed-function 24 bit, 32 channel state variable filter.<br/>
 Used in: S-770, S-750, SP-700, S-760, DJ-70, D-70, MV-30, JD-800, JD-990.<br/>
 Also revision MB87424A exists.<br/>
 
-[→ Go to info/emulator](./tvf)
+[→ Go to info/emulator](./tvf)<br/>
 [→ Go to die shot](https://siliconpr0n.org/map/roland/r15239115/furrtek_mz/)
 
 
