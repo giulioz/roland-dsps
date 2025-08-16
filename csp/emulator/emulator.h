@@ -248,13 +248,13 @@ public:
           mulInputA_24 = eramReadLatch;
         }
 
-        // else {
-        //   if (storeSaturate) {
-        //     mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
-        //   } else {
-        //     mulInputA_24 = storeAcc->historyRaw24(PIPELINE_WRITE_DELAY);
-        //   }
-        // }
+        else {
+          if (storeSaturate) {
+            mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
+          } else {
+            mulInputA_24 = storeAcc->historyRaw24(PIPELINE_WRITE_DELAY);
+          }
+        }
       }
 
       // Immediate load coef
