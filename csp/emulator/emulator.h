@@ -6,7 +6,7 @@
 static constexpr int64_t ERAM_SIZE = 0x10000;       // SE-70
 static constexpr int64_t ERAM_DATA_MASK = 0xfffff0; // SE-70
 
-// static constexpr int64_t ERAM_SIZE = 0x20000; // SDE/SRV
+// static constexpr int64_t ERAM_SIZE = 0x20000;       // SDE/SRV
 // static constexpr int64_t ERAM_DATA_MASK = 0xffffff; // SDE/SRV
 
 static constexpr int64_t PRAM_SIZE = 0x400;
@@ -186,6 +186,10 @@ public:
 
       doEram();
 
+      if (opcode5Cycles > 0) {
+        opcode5Cycles--;
+      }
+
       // Decode instr
       uint8_t storeCtrl = instr1[pc] & 0xe;
       uint16_t memOffs = instr2[pc] | ((instr1[pc] & 1) << 8);
@@ -206,33 +210,31 @@ public:
       DspAccumulator *storeAcc =
           storeCtrl == 0x0a || storeCtrl == 0x0e ? &accB : &accA;
 
-      if (opcode5Cycles > 0) {
-        opcode5Cycles--;
-      }
-
       if (storeCtrl == 0x02) {
-        // TODO: check
-        mulInputA_24 = sign_extend<24>(0x100000); // SE-70
-        // mulInputA_24 = sign_extend<24>(0x900000); // SRV/SDE
+        // Synth bus input
+        mulInputA_24 = sign_extend<24>(0x800000); // SE-70
         writeIramOffset(memOffs, mulInputA_24);
       }
 
       else if (storeIram) {
+        if (memOffs == 1 || memOffs == 2) {
+          printf("store to immediate?\n");
+        }
+
         if (storeSaturate) {
           mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
         } else {
           mulInputA_24 = storeAcc->historyRaw24(PIPELINE_WRITE_DELAY);
         }
 
-        bool shouldClamp = false;
-        if (opcode5Cycles <= 5 && opcode5Sign == -1) {
-          // shouldClamp = true;
-        }
-
-        writeIramOffset(memOffs, shouldClamp ? 0 : mulInputA_24);
+        writeIramOffset(memOffs, mulInputA_24);
       }
 
       else if (storeSpecial) {
+        if (memOffs == 1 || memOffs == 2) {
+          printf("store to immediate?\n");
+        }
+
         doSpecialStore(memOffs, storeSaturate);
 
         // Serial Input
@@ -246,13 +248,13 @@ public:
           mulInputA_24 = eramReadLatch;
         }
 
-        else {
-          if (storeSaturate) {
-            mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
-          } else {
-            mulInputA_24 = storeAcc->historyRaw24(PIPELINE_WRITE_DELAY);
-          }
-        }
+        // else {
+        //   if (storeSaturate) {
+        //     mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
+        //   } else {
+        //     mulInputA_24 = storeAcc->historyRaw24(PIPELINE_WRITE_DELAY);
+        //   }
+        // }
       }
 
       // Immediate load coef
@@ -262,11 +264,17 @@ public:
         mulInputA_24 = 0x400000;
       }
 
+      if ((opcode5Cycles == 6 || opcode5Cycles == 5) && opcode5Sign == 1) {
+        mulInputA_24 = 0;
+      } else if ((opcode5Cycles > 0 && opcode5Cycles <= 4) && opcode5Sign == -1) {
+        mulInputA_24 = 0;
+      }
+
       // Multiplier mode
-      bool mulShouldAbs =
-          opcode == 0x40 || opcode == 0x50 || opcode == 0x80 || opcode == 0x90;
+      bool mulShouldAbs4 = opcode == 0x40 || opcode == 0x50;
+      bool mulShouldAbs8 = opcode == 0x80 || opcode == 0x90;
       bool mulForceNeg = opcode == 0x60 || opcode == 0x70;
-      bool mulShouldClamp = opcode == 0x50;
+      bool mulShouldClamp5 = opcode == 0x50;
       bool mulBFromVariable =
           opcode == 0xc0 || opcode == 0xd0 || opcode == 0xe0 || opcode == 0xf0;
 
@@ -305,12 +313,13 @@ public:
         mulInputB_16_abs = ~mulInputB_16_abs + 1;
       }
       int64_t mulResult = mulInputA_24_abs * mulInputB_16_abs;
-      if (finalSign && !mulShouldClamp) {
+      if (finalSign && !mulShouldAbs4) {
         mulResult = ~mulResult + 1;
       } else if (finalSign) {
         mulResult = mulResult - 1;
       }
 
+      // Interp
       if (mulBFromVariable && (coef == 0x0002 || coef == 0x0003)) {
         mulInputB_16 = 0x8000 + ((~(mulCoef >= 0 ? mulCoef : ~mulCoef)) >> 8);
         if (mulCoef < 0) {
@@ -323,7 +332,7 @@ public:
       }
 
       // Abs
-      if (mulShouldAbs && mulResult < 0) {
+      if (mulShouldAbs8 && finalSign) {
         mulResult = ~mulResult;
       }
 
@@ -333,6 +342,12 @@ public:
           mulResult = ~mulResult;
         }
         mulResult &= MUL_MASK_R;
+        if (mulInputA_24 == 0) {
+          mulResult = signB ? -0x4000000000 : 0x3fffffffff;
+        }
+        if (mulInputB_16 == 0) {
+          mulResult = signA ? -0x4000000000 : 0x3fffffffff;
+        }
       }
 
       // Post multiplier scaler
@@ -350,17 +365,17 @@ public:
       // Accumulate inputs
       int64_t sumInA = 0;
       int64_t sumInB = mulResult;
-      DspAccumulator *dest = &accA;
+      DspAccumulator *sumDest = &accA;
 
       if (opcode == 0x10 || opcode == 0x30 || opcode == 0xb0 ||
           opcode == 0xd0 || opcode == 0xf0) {
-        dest = &accB;
+        sumDest = &accB;
       }
 
       if (opcode == 0x00 || opcode == 0x10 || opcode == 0x50 ||
           opcode == 0x70 || opcode == 0x90 || opcode == 0xa0 ||
           opcode == 0xb0 || opcode == 0xe0 || opcode == 0xf0) {
-        sumInA = dest->rawFull();
+        sumInA = sumDest->rawFull();
       }
 
       if (opcode == 0xa0 || opcode == 0xb0) {
@@ -371,12 +386,12 @@ public:
       int64_t sumResult = sumInA + sumInB;
 
       // Clamp
-      if (opcode == 0x50) {
-        opcode5Cycles = 8;
+      if (mulShouldClamp5) {
+        opcode5Cycles = 9;
         opcode5Sign = sumResult < 0 ? -1 : 1;
       }
 
-      (*dest) = sumResult;
+      (*sumDest) = sumResult;
 
       accA.storePipeline();
       accB.storePipeline();
@@ -402,6 +417,10 @@ public:
       eramModeNext = eramCtrl >> 4;
       eramPCStartNext = pc;
       eramImmOffsetAccNext = 0;
+
+      if (eramModeNext != (eramModeNext & 0xc)) {
+        printf("wtf %03x\n", eramCtrl);
+      }
     }
 
     // Accumulate immediates
@@ -412,6 +431,10 @@ public:
 
     // Next stage
     if (eramActiveNext && stage1 == 5) {
+      if (eramActiveCurrent) {
+        printf("ERAM transaction already active at pc %03x\n", pc);
+      }
+
       eramActiveCurrent = true;
       eramModeCurrent = eramModeNext;
       eramPCStartCurrent = eramPCStartNext;
@@ -466,16 +489,13 @@ public:
       uint16_t jmpDest = coefs[pc];
       bool shouldJump = false;
 
-      value = saturated ? accA.historySat24(PIPELINE_WRITE_DELAY)
-                        : accA.historyRaw24(PIPELINE_WRITE_DELAY);
-
       if (specialId == 0x172) { // JMP
         shouldJump = true;
       } else if (specialId == 0x173) { // JMP accA > 0
         shouldJump = value > 0;
       } else if (specialId == 0x174) { // JMP accA sat overflow
-        shouldJump = accA.historyRaw24(PIPELINE_WRITE_DELAY) > 0x7fffff ||
-                     accA.historyRaw24(PIPELINE_WRITE_DELAY) < -0x800000;
+        shouldJump = accA.historyRawFull(PIPELINE_WRITE_DELAY) > 0x7fffff ||
+                     accA.historyRawFull(PIPELINE_WRITE_DELAY) < -0x800000;
       } else if (specialId == 0x175) { // JMP accA < 0
         shouldJump = value < 0;
       } else if (specialId == 0x176) { // JMP accA == 0
@@ -501,7 +521,7 @@ public:
 
     // ERAM second tap pos
     else if (specialId == 0x185 || specialId == 0x18d) {
-      eramVarOffset = value >> 10;
+      eramVarOffset = (value & 0xffffff) >> 10;
       mulCoefA = (value & 0x3ff) << 13;
       mulCoefB = value;
     }
