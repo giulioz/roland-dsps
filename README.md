@@ -74,6 +74,7 @@ Many known versions manufactured by either Fujitsu or Toshiba.
 
 <img src="doc/esp_chip.jpeg" width="200" />
 
+Dual-processing but reduced version (smaller coefficients) of the CSP.<br/>
 Used in JP-8000, GP-1000, VS-880, GX-700, RSS-10, DR-880, many more.<br/>
 Also revisions ESP-2 (TC170C140AF-003) and ESP-4 (TC223C080AF-101) exist.
 
