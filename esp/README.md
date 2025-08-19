@@ -20,6 +20,14 @@
 16 channels when SY=1, then 48 channels when SY=0?
 
 
+# ERAM control
+
+commands:
+- 08: read @(pos + imm)
+- 10: write @(pos + imm)
+- 18: read @(pos + (imm & 1) + var)
+
+
 
 
 # 28 bit PRAM
@@ -47,40 +55,40 @@ special regs 38:
 
 special regs 34:
 
-- 280
-- 284
-- 288
-- 28c
-- 290
-- 294
-- 298
-- 29c
-- 2a0
-- 2a4
-- 2a8
-- 2ac
+- 280: write? reads iram
+- 284: write? reads iram
+- 288: write? reads iram
+- 28c: write? reads iram
+- 290: write? reads iram
+- 294: write? reads iram
+- 298: write? reads iram
+- 29c: write? reads iram
+- 2a0: write? reads iram
+- 2a4: write? reads iram
+- 2a8: write? reads iram
+- 2ac: write? reads iram
 
 300->33c: store and sum accA
 340->37c: store and replace accA
 380->3bc: store and sum accB
 3c0->3fc: store and replace accB
 
-- 300
-- 304
-- 308
-- 30c
-- 310
-- 314
-- 318: previous mac result
-- 31c
-- 320
-- 324
-- 328: write host interface accA
-- 32c
-- 330
-- 334
-- 338
-- 33c
+- 300: reads iram?  write?
+- 304: reads iram?  write?
+- 308: jump to shifter+coef if acc<0  (jump has 2 delay slots)
+- 30c: jump to shifter+coef always?
+- 310: reads iram?  write?
+- 314: reads iram?  write?
+- 318: read previous mac result >> 7
+- 31c: reads iram?  write?
+- 320: reads iram?  write?
+- 324: reads iram?  write?
+- 328: reads iram?  write host interface accA
+- 32c: reads iram?  eram write latch?
+- 330: read 0?   eram read latch?
+- 334: read 0?   eram read latch?
+- 338: read 0?   eram read latch?
+- 33c: read 0?   eram read latch?
 
 bit 0-7: coef (signed 8 bit)
 bit 8-9: shifter
