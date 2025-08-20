@@ -73,22 +73,22 @@ special regs 34:
 380->3bc: store and sum accB
 3c0->3fc: store and replace accB
 
-- 300: reads iram?  write?
-- 304: reads iram?  write?
-- 308: jump to shifter+coef if acc<0  (jump has 2 delay slots)
-- 30c: jump to shifter+coef always?
-- 310: reads iram?  write?
-- 314: reads iram?  write?
-- 318: read previous mac result >> 7
-- 31c: reads iram?  write?
-- 320: reads iram?  write?
-- 324: reads iram?  write?
-- 328: reads iram?  write host interface accA
-- 32c: reads iram?  eram write latch?
-- 330: read 0?   eram read latch?
-- 334: read 0?   eram read latch?
-- 338: read 0?   eram read latch?
-- 33c: read 0?   eram read latch?
+- 300 (c/d/e/f 0): reads iram?  write?
+- 304 (c/d/e/f 1): reads iram?  write?
+- 308 (c/d/e/f 2): jump to shifter+coef if acc<0  (jump has 2 delay slots)
+- 30c (c/d/e/f 3): jump to shifter+coef always?
+- 310 (c/d/e/f 4): reads iram?  write?
+- 314 (c/d/e/f 5): reads iram?  write?
+- 318 (c/d/e/f 6): read previous mac result >> 7
+- 31c (c/d/e/f 7): reads iram?  eram tap pos?
+- 320 (c/d/e/f 8): reads iram?  write?
+- 324 (c/d/e/f 9): reads iram?  write?
+- 328 (c/d/e/f a): reads iram?  write host interface accA
+- 32c (c/d/e/f b): reads iram?  eram write latch?
+- 330 (c/d/e/f c): read 0?   eram read latch?
+- 334 (c/d/e/f d): read 0?   eram read latch?
+- 338 (c/d/e/f e): read 0?   eram read latch?
+- 33c (c/d/e/f f): read 0?   eram read latch?
 
 bit 0-7: coef (signed 8 bit)
 bit 8-9: shifter
