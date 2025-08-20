@@ -73,13 +73,13 @@ special regs 34:
 380->3bc: store and sum accB
 3c0->3fc: store and replace accB
 
-- 300 (c/d/e/f 0): reads iram?  write?
-- 304 (c/d/e/f 1): reads iram?  write?
-- 308 (c/d/e/f 2): jump to shifter+coef if acc<0  (jump has 2 delay slots)
+- 300 (c/d/e/f 0): jump to shifter+coef if acc==0
+- 304 (c/d/e/f 1): jump to shifter+coef if acc<0
+- 308 (c/d/e/f 2): jump to shifter+coef if acc>=0  (jump has 2 delay slots)
 - 30c (c/d/e/f 3): jump to shifter+coef always?
 - 310 (c/d/e/f 4): reads iram?  write?
 - 314 (c/d/e/f 5): reads iram?  write?
-- 318 (c/d/e/f 6): read previous mac result >> 7
+- 318 (c/d/e/f 6): read previous mac mem input >> 7
 - 31c (c/d/e/f 7): reads iram?  eram tap pos?
 - 320 (c/d/e/f 8): reads iram?  write?
 - 324 (c/d/e/f 9): reads iram?  write?
