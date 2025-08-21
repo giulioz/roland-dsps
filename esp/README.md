@@ -17,7 +17,7 @@
 
 
 # TR Bus
-16 channels when SY=1, then 48 channels when SY=0?
+16 channels when SY=1, then 48 channels when SY=0? (64 channels?)
 
 
 # ERAM control
@@ -27,6 +27,27 @@ commands:
 - 10: write @(pos + imm)
 - 18: read @(pos + (imm & 1) + var)
 
+
+After a read, you can read the latch at position +0xa
+Write latch can be written at pos +4
+
+
+# GRAM
+
+on 24 bit:
+3a 40 00  -> write accA
+
+on 28 bit:
+22 54 40  -> load into accA
+
+0x00-0x5f first area (delay line)
+0x60-0x6f weird area where only pairs work as delay line? (audio input?)
+0x70-0xe6 audio out area?
+0xe7-0xff normal delay line?
+
+0xe6 is where the audio "goes out"?
+  -> writing to 0x70+ then to 0xe6 works for LR output
+  -> writing anywhere else instead of e6 outputs that value on both L and R
 
 
 
@@ -55,18 +76,23 @@ special regs 38:
 
 special regs 34:
 
-- 280: write? reads iram
-- 284: write? reads iram
-- 288: write? reads iram
-- 28c: write? reads iram
-- 290: write? reads iram
-- 294: write? reads iram
-- 298: write? reads iram
-- 29c: write? reads iram
-- 2a0: write? reads iram
-- 2a4: write? reads iram
-- 2a8: write? reads iram
-- 2ac: write? reads iram
+- comm between two cores?
+  - 280 (a0): write mul coef 0 accA (28 bit pgm only)
+  - 284 (a1): write mul coef 0 accB (28 bit pgm only)
+  - 288 (a2): write mul coef 1 accA (28 bit pgm only)
+  - 28c (a3): write mul coef 1 accB (28 bit pgm only)
+  - 290 (a4): write mul coef 2 accA (28 bit pgm only)
+  - 294 (a5): write mul coef 2 accB (28 bit pgm only)
+  - 298 (a6): write mul coef 3 accA (24 bit pgm only)
+  - 29c (a7): write mul coef 3 accB (24 bit pgm only)
+  - 2a0 (a8): write mul coef 4 accA (24 bit pgm only)
+  - 2a4 (a9): write mul coef 4 accB (24 bit pgm only)
+  - 2a8 (aa): write mul coef 5 accA (24 bit pgm only)
+  - 2ac (ab): write mul coef 5 accB (24 bit pgm only)
+  - 2b0 (ac): write ?
+  - 2b4 (ad): write ?
+  - 2b8 (ae): write ?
+  - 2bc (af): write ?
 
 300->33c: store and sum accA
 340->37c: store and replace accA
@@ -106,55 +132,123 @@ bit 18-22: opcode
 bit 23: unused?
 
 store
-- 34: store special
+- MAC A
+  - 00: sum accA
+  - 04: load accA
+  - 08: store accA sat to iram, then accA=stored val
+  - 0c: store accB sat to iram, then accA=stored val
 
-- 00: sum accA
-- 04: load accA
-- 08: store accA sat to iram, then accA=stored val
-- 0c: store accB sat to iram, then accA=stored val
+- MAC B
+  - 10: sum accB
+  - 14: load accB
+  - 18: store accA sat to iram, then accB=stored val
+  - 1c: store accB sat to iram, then accB=stored val
 
-- 10: sum accB
-- 14: load accB
-- 18: store accA sat to iram, then accB=stored val
-- 1c: store accB sat to iram, then accB=stored val
+- SPECIAL/MUL/GRAM
+  - 20: sum gram -> accA
+    - seems to be using 2 pipeline slots before (or after?)
+  - 24: load gram -> accA
+  - 28: normal accA load? (unused?)
+  - 2c: normal accA load? (unused?)
+  - 30: mult per variable (see below)
+  - 34: special registers read/write (see below)
+  - 38: gram write accA
+  - 3c: gram write accB
+    - coef always zero but shift varies?
 
-- 20: sum accA inverted?  ((~mem >> 2) * coef) >> shift
-- 24: load accA inverted?  ((~mem >> 2) * coef) >> shift
-- 28: normal accA load?
-- 2c: normal accA load?
+- UNSAT/CLAMP
+  - 40: store accA to iram unsat, then accA+=stored val
+  - 44: store accA to iram unsat, then accA=stored val
+  - 48: store accA to iram clamp neg to 0, then accA+=stored val
+  - 4c: store accA to iram clamp neg to 0, then accA=stored val
 
-- 30: sum accA inverted?  ((~mem >> 2) * coef) >> shift
-- 34: normal accA sum? (store special?)
-- 38: normal accA sum? (store audio out?)
-- 3c: normal accA sum?
+- ?
+  - 50: load accA, following instructions conditionals (see below)
+  - 54: sum accA?
+    - seems identical to 00
+    - used in the jp8000 only?
+  - 58: store accA to iram, then accA+=stored val
+  - 5c: store accB to iram, then accB+=stored val
 
-- 40: store accA to iram unsat, then accA+=stored val
-- 44: store accA to iram unsat, then accA=stored val
-- 48: store accA to iram clamp neg to 0, then accA+=stored val
-- 4c: store accA to iram clamp neg to 0, then accA=stored val
+- ?
+  - 60: accA += something like 0x7fffff - mem?
+  - 64: accA = something like 0x7fffff - mem?
+  - 68: store accA to iram, then accA += something like 0x7fffff - stored val?
+  - 6c: store accA to iram, then accA = something like 0x7fffff - stored val?
 
-- 50: load accA, following instructions conditionals (see CSP)
-- 54: sum accA, following instructions conditionals (see CSP)
-- 58: store accA to iram, then accA+=stored val
-- 5c: store accB to iram, then accB+=stored val
+- ?
+  - 70: accA += something like 0x7fffff - mem?
+  - 74: accA = something like 0x7fffff - mem?
+  - 78: store accA to iram, then accA += something like 0x7fffff - stored val?
+  - 7c: store accA to iram, then accA = something like 0x7fffff - stored val?
 
-- 60: accA += something like 0x7fffff - mem?
-- 64: accA = something like 0x7fffff - mem?
-- 68: store accA to iram, then accA += something like 0x7fffff - stored val?
-- 6c: store accA to iram, then accA = something like 0x7fffff - stored val?
 
-- 70: accA += something like 0x7fffff - mem?
-- 74: accA = something like 0x7fffff - mem?
-- 78: store accA to iram, then accA += something like 0x7fffff - stored val?
-- 7c: store accA to iram, then accA = something like 0x7fffff - stored val?
 
-opcodes:
-- 00: sum accA
-- 04: load accA
-- 10: sum accB
-- 14: load accB
-- 20: sum and invert (pre and shift 1??) accA
-- 24: load and invert accA
+conditional opcode 50:
++0 opcode 50
++1
++2
++3
++4
++5 executed only if result (mem * coef) is < 0
++6 executed only if result (mem * coef) is < 0
++7 executed only if result (mem * coef) is >= 0
++8 executed only if result (mem * coef) is >= 0
++9 executed only if result (mem * coef) is >= 0
++a executed only if result (mem * coef) is >= 0
+
+
+mul opcode 30 coefs:
+b0: replace/sum
+b1: dest accA/accB
+b2:
+b3:
+b4:
+b5/b6: special a0/a2/a4/?
+b7
+
+00: coef=(mul coef 0)>>16, val=mem, result replaces accA
+01: coef=(mul coef 0)>>16, val=mem, result sums accA
+02: coef=(mul coef 0)>>16, val=mem, result replaces accB
+03: coef=(mul coef 0)>>16, val=mem, result sums accB
+04: coef=(mul coef 0)>>16, val=accA, result replaces accA
+05: coef=(mul coef 0)>>16, val=accA, result sums accA
+06: coef=(mul coef 0)>>16, val=accA, result replaces accB
+07: coef=(mul coef 0)>>16, val=accA, result sums accB
+08: coef=-(mul coef 0)>>16, val=mem, result replaces accA
+09: coef=-(mul coef 0)>>16, val=mem, result sums accA
+0a: coef=-(mul coef 0)>>16, val=mem, result replaces accB
+0b: coef=-(mul coef 0)>>16, val=mem, result sums accB
+0c: coef=-(mul coef 0)>>16, val=accA, result replaces accA
+0d: coef=-(mul coef 0)>>16, val=accA, result sums accA
+0e: coef=-(mul coef 0)>>16, val=accA, result replaces accB
+0f: coef=-(mul coef 0)>>16, val=accA, result sums accB
+
+10: coef?? (related to mul coef 0), val=mem, result replaces accA
+11: coef?? (related to mul coef 0), val=mem, result sums accA
+12: coef?? (related to mul coef 0), val=mem, result replaces accB
+13: coef?? (related to mul coef 0), val=mem, result sums accB
+14: coef?? (related to mul coef 0), val=accA, result replaces accA
+15: coef?? (related to mul coef 0), val=accA, result sums accA
+16: coef?? (related to mul coef 0), val=accA, result replaces accB
+17: coef?? (related to mul coef 0), val=accA, result sums accB
+18: coef=?? (related to mul coef 0), val=mem, result replaces accA
+19: coef=?? (related to mul coef 0), val=mem, result sums accA
+1a: coef=?? (related to mul coef 0), val=mem, result replaces accB
+1b: coef=?? (related to mul coef 0), val=mem, result sums accB
+1c: coef=?? (related to mul coef 0), val=accA, result replaces accA
+1d: coef=?? (related to mul coef 0), val=accA, result sums accA
+1e: coef=?? (related to mul coef 0), val=accA, result replaces accB
+1f: coef=?? (related to mul coef 0), val=accA, result sums accB
+
+2x/3x: mul coef 1
+4x/5x: mul coef 2
+6x/7x: mul coef 3 (24 bit pgm)
+8x/9x: mul coef 4 (24 bit pgm)
+ax/bx: mul coef 5 (24 bit pgm)
+cx/dx: interpolation coef?
+ex/fx: interpolation coef?
+
 
 
 b7 28 00   write to host reg
