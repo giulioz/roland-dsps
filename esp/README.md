@@ -74,25 +74,23 @@ special regs 38:
 
 
 
-special regs 34:
-
-- comm between two cores?
-  - 280 (a0): write mul coef 0 accA (28 bit pgm only)
-  - 284 (a1): write mul coef 0 accB (28 bit pgm only)
-  - 288 (a2): write mul coef 1 accA (28 bit pgm only)
-  - 28c (a3): write mul coef 1 accB (28 bit pgm only)
-  - 290 (a4): write mul coef 2 accA (28 bit pgm only)
-  - 294 (a5): write mul coef 2 accB (28 bit pgm only)
-  - 298 (a6): write mul coef 3 accA (24 bit pgm only)
-  - 29c (a7): write mul coef 3 accB (24 bit pgm only)
-  - 2a0 (a8): write mul coef 4 accA (24 bit pgm only)
-  - 2a4 (a9): write mul coef 4 accB (24 bit pgm only)
-  - 2a8 (aa): write mul coef 5 accA (24 bit pgm only)
-  - 2ac (ab): write mul coef 5 accB (24 bit pgm only)
-  - 2b0 (ac): write ?
-  - 2b4 (ad): write ?
-  - 2b8 (ae): write ?
-  - 2bc (af): write ?
+special regs opcode 34:
+- 280 (a0): write mul coef 0 accA (28 bit pgm only)
+- 284 (a1): write mul coef 0 accB (28 bit pgm only)
+- 288 (a2): write mul coef 1 accA (28 bit pgm only)
+- 28c (a3): write mul coef 1 accB (28 bit pgm only)
+- 290 (a4): write mul coef 2 accA (28 bit pgm only)
+- 294 (a5): write mul coef 2 accB (28 bit pgm only)
+- 298 (a6): write mul coef 3 accA (24 bit pgm only)
+- 29c (a7): write mul coef 3 accB (24 bit pgm only)
+- 2a0 (a8): write mul coef 4 accA (24 bit pgm only)
+- 2a4 (a9): write mul coef 4 accB (24 bit pgm only)
+- 2a8 (aa): write mul coef 5 accA (24 bit pgm only)
+- 2ac (ab): write mul coef 5 accB (24 bit pgm only)
+- 2b0 (ac): write ?
+- 2b4 (ad): write ?
+- 2b8 (ae): write ?
+- 2bc (af): write ?
 
 300->33c: store and sum accA
 340->37c: store and replace accA
@@ -116,22 +114,23 @@ special regs 34:
 - 338 (c/d/e/f e): read 0?   eram read latch?
 - 33c (c/d/e/f f): read 0?   eram read latch?
 
-bit 0-7: coef (signed 8 bit)
-bit 8-9: shifter
-  0: >>7
-  1: >>6
-  2: >>5
-  3: >>3
-bit 10-17: mem slot
-  1: imm 0x10
-  2: imm 0x400
-  3: imm 0x1000
-  4: imm 0x400000
-  other: mem read
-bit 18-22: opcode
-bit 23: unused?
+opcode format:
+  bit 0-7: coef (signed 8 bit)
+  bit 8-9: shifter
+    0: >>7
+    1: >>6
+    2: >>5
+    3: >>3
+  bit 10-17: mem slot
+    1: imm 0x10
+    2: imm 0x400
+    3: imm 0x1000
+    4: imm 0x400000
+    other: mem read
+  bit 18-22: opcode
+  bit 23: unused?
 
-store
+opcodes
 - MAC A
   - 00: sum accA
   - 04: load accA
