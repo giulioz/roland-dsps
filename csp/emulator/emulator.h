@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-static constexpr int64_t ERAM_SIZE = 0x10000;       // SE-70
-static constexpr int64_t ERAM_DATA_MASK = 0xfffff0; // SE-70
+// static constexpr int64_t ERAM_SIZE = 0x10000;       // SE-70
+// static constexpr int64_t ERAM_DATA_MASK = 0xfffff0; // SE-70
 
-// static constexpr int64_t ERAM_SIZE = 0x20000;       // SDE/SRV
-// static constexpr int64_t ERAM_DATA_MASK = 0xffffff; // SDE/SRV
+static constexpr int64_t ERAM_SIZE = 0x20000;       // SDE/SRV
+static constexpr int64_t ERAM_DATA_MASK = 0xffffff; // SDE/SRV
 
 static constexpr int64_t PRAM_SIZE = 0x400;
 static constexpr int64_t IRAM_SIZE = 0x200;
@@ -17,6 +17,7 @@ static constexpr int64_t ERAM_MASK = ERAM_SIZE - 1;
 static constexpr int64_t ERAM_MASK_FULL = ERAM_SIZE_FULL - 1;
 
 static constexpr int64_t ERAM_COMMIT_STAGE = 10;
+static constexpr int64_t ERAM_VAR_MASK = 0xffffc00;
 
 static constexpr int64_t ACC_BITS = 30;
 static constexpr int64_t MUL_BITS_A = 30;
@@ -108,13 +109,14 @@ public:
   uint8_t eramModeCurrent = 0;
   uint16_t eramPCStartCurrent = 0;
   uint32_t eramEffectiveAddr = 0;
+  int32_t eramWriteLatchCurrent = 0;
 
   bool eramActiveNext = false;
   uint8_t eramModeNext = 0;
   uint16_t eramPCStartNext = 0;
   uint32_t eramImmOffsetAccNext = 0;
 
-  uint32_t eramVarOffset = 0;
+  int64_t eramVarOffset = 0;
   int32_t eramWriteLatch = 0;
   int32_t eramReadLatch = 0;
 
@@ -142,6 +144,7 @@ public:
     eramModeCurrent = 0;
     eramPCStartCurrent = 0;
     eramEffectiveAddr = 0;
+    eramWriteLatchCurrent = 0;
     eramActiveNext = false;
     eramModeNext = 0;
     eramPCStartNext = 0;
@@ -221,6 +224,8 @@ public:
           printf("store to immediate?\n");
         }
 
+        // unsure, the esp always uses the full accumulator
+        // mulInputA_24 = storeAcc->historyRawFull(PIPELINE_WRITE_DELAY);
         if (storeSaturate) {
           mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
         } else {
@@ -249,6 +254,8 @@ public:
         }
 
         else {
+          // unsure, the esp always uses the full accumulator
+          // mulInputA_24 = storeAcc->historyRawFull(PIPELINE_WRITE_DELAY);
           if (storeSaturate) {
             mulInputA_24 = storeAcc->historySat24(PIPELINE_WRITE_DELAY);
           } else {
@@ -438,24 +445,28 @@ public:
       eramActiveCurrent = true;
       eramModeCurrent = eramModeNext;
       eramPCStartCurrent = eramPCStartNext;
+      eramWriteLatchCurrent = eramWriteLatch;
 
       eramActiveNext = false;
 
       // Addr computation
       eramEffectiveAddr = eramPos + eramImmOffsetAccNext;
       if (eramModeNext == 0x8) {
-        eramEffectiveAddr = eramVarOffset + (eramImmOffsetAccNext & 1);
+        eramEffectiveAddr = ((eramVarOffset & ERAM_VAR_MASK) >> 10) + (eramImmOffsetAccNext & 1);
       } else if (eramModeNext == 0xc) {
-        eramEffectiveAddr =
-            eramPos + eramVarOffset + (eramImmOffsetAccNext & 1);
+        eramEffectiveAddr = (int64_t)eramPos + ((eramVarOffset & ERAM_VAR_MASK) >> 10) + (eramImmOffsetAccNext & 1);
       }
+    }
+
+    if (eramActiveCurrent && stage2 == 7) {
+      eramWriteLatchCurrent = eramWriteLatch;
     }
 
     // Write
     if (eramActiveCurrent && stage2 == ERAM_COMMIT_STAGE &&
         eramModeCurrent == 0x4) {
       eramActiveCurrent = false;
-      eram[eramEffectiveAddr & ERAM_MASK] = eramWriteLatch;
+      eram[eramEffectiveAddr & ERAM_MASK] = eramWriteLatchCurrent;
     }
 
     // Read
@@ -521,7 +532,7 @@ public:
 
     // ERAM second tap pos
     else if (specialId == 0x185 || specialId == 0x18d) {
-      eramVarOffset = (value & 0xffffff) >> 10;
+      eramVarOffset = src->historyRawFull(PIPELINE_WRITE_DELAY);
       mulCoefA = (value & 0x3ff) << 13;
       mulCoefB = value;
     }
