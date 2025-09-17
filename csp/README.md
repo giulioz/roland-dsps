@@ -275,12 +275,22 @@ Using instructions with a store value of 2 or 3 (0x04/0x06), special registers c
 
 | Addr     | R/W         | Function                   |
 |----------|-------------|----------------------------|
+|   0x170  |   ??        |                            |
+|   0x171  |   ??        |                            |
 |   0x172  |   JMP       |   Jump (always)            |
 |   0x173  |   JMP accA  |   Jump (accA > 0)          |
 |   0x174  |   JMP accA  |   Jump (accA sat overflow) |
 |   0x175  |   JMP accA  |   Jump (accA < 0)          |
 |   0x176  |   JMP accA  |   Jump (accA == 0)         |
 |   0x177  |   JMP accA  |   Jump (accA >= 0)         |
+|   0x178  |   ??        |                            |
+|   0x179  |   ??        |                            |
+|   0x17a  |   JMP       |   Jump (always)            |
+|   0x17b  |   JMP accB  |   Jump (accB > 0)          |
+|   0x17c  |   JMP accB  |   Jump (accB sat overflow) |
+|   0x17d  |   JMP accB  |   Jump (accB < 0)          |
+|   0x17e  |   JMP accB  |   Jump (accB == 0)         |
+|   0x17f  |   JMP accB  |   Jump (accB >= 0)         |
 
 
 #### General registers
